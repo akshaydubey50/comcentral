@@ -1,0 +1,2 @@
+# Managed migration history uses PostgreSQL.
+provider = "postgresql"

@@ -1,0 +1,187 @@
+generator client {
+  provider   = "prisma-client"
+  output     = "../src/server/generated/prisma"
+  engineType = "client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+}
+
+enum EmployeeStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum Currency {
+  USD
+  INR
+  EUR
+  GBP
+  JPY
+  CAD
+  AUD
+  SGD
+}
+
+model User {
+  id              String          @id
+  name            String
+  email           String          @unique
+  emailVerified   Boolean         @default(false) @map("email_verified")
+  image           String?
+  createdAt       DateTime @db.Timestamptz(3)        @default(now()) @map("created_at")
+  updatedAt       DateTime @db.Timestamptz(3)        @updatedAt @map("updated_at")
+  sessions        Session[]
+  accounts        Account[]
+  salaryHistories SalaryHistory[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime @db.Timestamptz(3) @map("expires_at")
+  token     String   @unique
+  createdAt DateTime @db.Timestamptz(3) @default(now()) @map("created_at")
+  updatedAt DateTime @db.Timestamptz(3) @updatedAt @map("updated_at")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String    @map("account_id")
+  providerId            String    @map("provider_id")
+  userId                 String    @map("user_id")
+  accessToken            String?   @map("access_token")
+  refreshToken           String?   @map("refresh_token")
+  idToken                String?   @map("id_token")
+  accessTokenExpiresAt   DateTime? @db.Timestamptz(3) @map("access_token_expires_at")
+  refreshTokenExpiresAt  DateTime? @db.Timestamptz(3) @map("refresh_token_expires_at")
+  scope                   String?
+  password                String?
+  createdAt               DateTime @db.Timestamptz(3)  @default(now()) @map("created_at")
+  updatedAt               DateTime @db.Timestamptz(3)  @updatedAt @map("updated_at")
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@unique([providerId, accountId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime @db.Timestamptz(3) @map("expires_at")
+  createdAt  DateTime @db.Timestamptz(3) @default(now()) @map("created_at")
+  updatedAt  DateTime @db.Timestamptz(3) @updatedAt @map("updated_at")
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+model RateLimit {
+  id          String @id
+  key         String @unique
+  count       Int
+  lastRequest BigInt @map("last_request")
+
+  @@map("rate_limit")
+}
+
+model SeedMarker {
+  id            String     @id
+  employeeCount Int        @map("employee_count")
+  createdAt     DateTime @db.Timestamptz(3)   @default(now()) @map("created_at")
+  employees     Employee[]
+
+  @@map("seed_marker")
+}
+
+model Employee {
+  id             String          @id @default(cuid())
+  employeeCode   String          @unique @map("employee_code") @db.VarChar(40)
+  name           String          @db.VarChar(160)
+  email          String          @unique @db.VarChar(254)
+  country        String          @db.Char(2)
+  department     String          @db.VarChar(100)
+  jobRole        String          @map("job_role") @db.VarChar(100)
+  employmentType EmploymentType  @map("employment_type")
+  joiningDate    DateTime        @map("joining_date") @db.Date
+  salary         Decimal         @db.Decimal(14, 2)
+  currency       Currency
+  status         EmployeeStatus  @default(ACTIVE)
+  version        Int             @default(1)
+  seedBatch      String?         @map("seed_batch")
+  createdAt      DateTime @db.Timestamptz(3)        @default(now()) @map("created_at")
+  updatedAt      DateTime @db.Timestamptz(3)        @updatedAt @map("updated_at")
+  histories      SalaryHistory[]
+  seedMarker     SeedMarker?     @relation(fields: [seedBatch], references: [id], onDelete: Restrict)
+
+  @@index([status, name, id])
+  @@index([country, status])
+  @@index([department, status])
+  @@index([jobRole, status])
+  @@index([employmentType, status])
+  @@index([seedBatch])
+  @@map("employee")
+}
+
+model SalaryHistory {
+  id               String   @id @default(cuid())
+  employeeId       String   @map("employee_id")
+  previousSalary   Decimal  @map("previous_salary") @db.Decimal(14, 2)
+  previousCurrency Currency @map("previous_currency")
+  salary           Decimal  @db.Decimal(14, 2)
+  currency         Currency
+  reason           String   @db.VarChar(500)
+  actorId          String   @map("actor_id")
+  actorName        String   @map("actor_name")
+  actorEmail       String   @map("actor_email")
+  createdAt        DateTime @db.Timestamptz(3) @default(now()) @map("created_at")
+  employee         Employee @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  actor            User     @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([employeeId, createdAt(sort: Desc), id])
+  @@map("salary_history")
+}
+
+model FxSnapshot {
+  id        String   @id @default(cuid())
+  rateDate  DateTime @map("rate_date") @db.Date
+  fetchedAt DateTime @db.Timestamptz(3) @map("fetched_at")
+  provider  String   @db.VarChar(80)
+  checksum  String   @unique @db.Char(64)
+  rates     Json
+  createdAt DateTime @db.Timestamptz(3) @default(now()) @map("created_at")
+  attempts  FxRefreshAttempt[]
+
+  @@index([rateDate(sort: Desc), fetchedAt(sort: Desc)])
+  @@map("fx_snapshot")
+}
+
+model FxRefreshAttempt {
+  id         String   @id @default(cuid())
+  attemptedAt DateTime @db.Timestamptz(3) @default(now()) @map("attempted_at")
+  succeeded   Boolean
+  message     String   @db.VarChar(240)
+  snapshotId  String?  @map("snapshot_id")
+  snapshot    FxSnapshot? @relation(fields: [snapshotId], references: [id], onDelete: Restrict)
+
+  @@index([snapshotId])
+  @@index([attemptedAt(sort: Desc)])
+  @@map("fx_refresh_attempt")
+}
