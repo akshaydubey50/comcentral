@@ -86,6 +86,9 @@ export const api = {
   session: () => request<{ user: HrUser | null }>('/api/session'),
   signIn: (email: string, password: string) =>
     request<unknown>('/api/auth/sign-in/email', json('POST', { email, password })),
+  // The browser session uses an HttpOnly cookie; never retain the returned token.
+  signUp: (name: string, email: string, password: string): Promise<void> =>
+    request<unknown>('/api/auth/sign-up/email', json('POST', { name, email, password })).then(() => undefined),
   signOut: () => request<unknown>('/api/auth/sign-out', json('POST')),
   options: () => request<{ data: DirectoryOptions }>('/api/options').then((body) => body.data),
 

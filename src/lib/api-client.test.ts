@@ -1,6 +1,29 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { ApiClientError, buildQuery } from './api-client';
+import { api, ApiClientError, buildQuery } from './api-client';
+
+afterEach(() => vi.unstubAllGlobals());
+
+describe('registration transport', () => {
+  it('sends only account fields with same-origin cookies and discards the returned session token', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ token: 'test-only-token', user: { id: 'hr' } })));
+    vi.stubGlobal('fetch', fetchMock);
+    expect(await api.signUp('Ada HR', 'ada@example.test', 'test-password')).toBeUndefined();
+    expect(fetchMock).toHaveBeenCalledExactlyOnceWith('/api/auth/sign-up/email', expect.objectContaining({
+      method: 'POST', credentials: 'same-origin',
+      body: JSON.stringify({ name: 'Ada HR', email: 'ada@example.test', password: 'test-password' }),
+    }));
+  });
+
+  it('preserves the signup error code for actionable form feedback', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      code: 'USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL', message: 'Duplicate',
+    }), { status: 422 })));
+    await expect(api.signUp('Ada', 'ada@example.test', 'test-password')).rejects.toMatchObject({
+      status: 422, code: 'USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL',
+    });
+  });
+});
 
 describe('buildQuery', () => {
   it('serializes only defined filters and keeps pagination numeric', () => {
