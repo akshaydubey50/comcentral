@@ -39,9 +39,9 @@ Dependencies: None.
 Likely files: src/components/employees/salary-change-dialog.test.tsx; salary-change-dialog.tsx; tests/setup.ts only if implicated.
 Estimated scope: S/M: 1-3 files.
 
-- [ ] Reproduce and identify the cause of the full-suite timeout before changing behavior or timing policy.
-- [ ] Preserve drafts, the opening version, explicit stale-data reload and required fresh review.
-- [ ] Focused and full-unit checks pass without skipped assertions or an unexplained timeout increase.
+- [x] Reproduce and identify the cause of the full-suite timeout before changing behavior or timing policy.
+- [x] Preserve drafts, the opening version, explicit stale-data reload and required fresh review.
+- [x] Focused and full-unit checks pass without skipped assertions or an unexplained timeout increase.
 
 Verification: Run the focused salary-dialog file, then npm test -- --maxWorkers=1 --no-file-parallelism; record timing and cause.
 

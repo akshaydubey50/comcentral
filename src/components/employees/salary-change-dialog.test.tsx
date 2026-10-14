@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ComponentProps } from 'react';
 
 const mocks = vi.hoisted(() => ({ changeSalary: vi.fn(), employee: vi.fn() }));
 
@@ -16,6 +17,18 @@ vi.mock('@/lib/api-client', () => {
   return {
     ApiClientError,
     api: { changeSalary: mocks.changeSalary, employee: mocks.employee },
+  };
+});
+
+// The dialog shell is a third-party modal implementation; these tests exercise
+// the salary workflow without paying for portal, focus-trap, and transition work.
+vi.mock('@mui/material', async (importOriginal) => {
+  const material = await importOriginal<typeof import('@mui/material')>();
+  return {
+    ...material,
+    Dialog: ({ open, children, 'aria-labelledby': labelledBy }: ComponentProps<typeof material.Dialog>) => (
+      open ? <div role="dialog" aria-labelledby={labelledBy}>{children}</div> : null
+    ),
   };
 });
 
@@ -57,33 +70,37 @@ describe('SalaryChangeDialog', () => {
     mocks.employee.mockResolvedValue(latest);
     const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
     render(<QueryClientProvider client={client}><SalaryChangeDialog employee={employee} open onClose={vi.fn()} /></QueryClientProvider>);
+    const dialog = within(screen.getByRole('dialog', { name: /change annual salary/i }));
+    const salaryInput = dialog.getByLabelText(/new annual base salary/i);
+    const reasonInput = dialog.getByLabelText(/reason for change/i);
+    const submitButton = dialog.getByRole('button', { name: /apply salary change/i });
 
-    fireEvent.change(screen.getByLabelText(/new annual base salary/i), { target: { value: '130000.00' } });
-    fireEvent.change(screen.getByLabelText(/reason for change/i), { target: { value: 'Annual market adjustment' } });
-    fireEvent.click(screen.getByRole('button', { name: /apply salary change/i }));
+    fireEvent.change(salaryInput, { target: { value: '130000.00' } });
+    fireEvent.change(reasonInput, { target: { value: 'Annual market adjustment' } });
+    fireEvent.click(submitButton);
 
-    await waitFor(() => expect(mocks.changeSalary).toHaveBeenCalledWith('emp-1', {
+    expect(await dialog.findByText(/changed after you opened it/i)).toBeInTheDocument();
+    expect(mocks.changeSalary).toHaveBeenCalledWith('emp-1', {
       salary: '130000.00',
       currency: 'GBP',
       reason: 'Annual market adjustment',
       version: 7,
-    }));
-    expect(await screen.findByText(/changed after you opened it/i)).toBeInTheDocument();
+    });
     expect(mocks.employee).not.toHaveBeenCalled();
-    expect(screen.getByRole('button', { name: /apply salary change/i })).toBeDisabled();
+    expect(submitButton).toBeDisabled();
 
-    fireEvent.click(screen.getByRole('button', { name: /reload latest/i }));
+    fireEvent.click(dialog.getByRole('button', { name: /reload latest/i }));
 
-    await waitFor(() => expect(mocks.employee).toHaveBeenCalledWith('emp-1'));
-    await waitFor(() => expect(screen.getByLabelText(/new annual base salary/i)).toHaveValue('140000.00'));
-    expect(screen.getByLabelText(/reason for change/i)).toHaveValue('');
-    expect(screen.getByText(/salary and reason were reset/i)).toBeInTheDocument();
+    expect(await dialog.findByText(/salary and reason were reset/i)).toBeInTheDocument();
+    expect(mocks.employee).toHaveBeenCalledWith('emp-1');
+    expect(salaryInput).toHaveValue('140000.00');
+    expect(reasonInput).toHaveValue('');
     expect(mocks.changeSalary).toHaveBeenCalledTimes(1);
-    await waitFor(() => expect(screen.getByRole('button', { name: /apply salary change/i })).toBeEnabled());
+    await waitFor(() => expect(submitButton).toBeEnabled());
 
-    fireEvent.change(screen.getByLabelText(/new annual base salary/i), { target: { value: '145000.00' } });
-    fireEvent.change(screen.getByLabelText(/reason for change/i), { target: { value: 'Reviewed against latest record' } });
-    fireEvent.click(screen.getByRole('button', { name: /apply salary change/i }));
+    fireEvent.change(salaryInput, { target: { value: '145000.00' } });
+    fireEvent.change(reasonInput, { target: { value: 'Reviewed against latest record' } });
+    fireEvent.click(submitButton);
 
     await waitFor(() => expect(mocks.changeSalary).toHaveBeenLastCalledWith('emp-1', {
       salary: '145000.00',
