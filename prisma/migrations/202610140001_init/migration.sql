@@ -101,7 +101,12 @@ CREATE TABLE "employee" (
   CONSTRAINT "employee_version_positive" CHECK ("version" > 0),
   CONSTRAINT "employee_email_lowercase" CHECK ("email" = lower("email") AND "email" = btrim("email")),
   CONSTRAINT "employee_country_supported" CHECK ("country" IN ('AU', 'CA', 'DE', 'GB', 'IN', 'JP', 'SG', 'US')),
-  CONSTRAINT "employee_code_shape" CHECK ("employee_code" = btrim("employee_code") AND "employee_code" ~ '^[A-Za-z0-9][A-Za-z0-9._-]*
+  CONSTRAINT "employee_code_shape" CHECK ("employee_code" = btrim("employee_code") AND "employee_code" ~ '^[A-Za-z0-9][A-Za-z0-9._-]*$'),
+  CONSTRAINT "employee_text_trimmed" CHECK (
+    length(btrim("name")) > 0 AND "name" = btrim("name") AND
+    length(btrim("department")) > 0 AND "department" = btrim("department") AND
+    length(btrim("job_role")) > 0 AND "job_role" = btrim("job_role")
+  )
 );
 CREATE UNIQUE INDEX "employee_employee_code_key" ON "employee"("employee_code");
 CREATE UNIQUE INDEX "employee_email_key" ON "employee"("email");
@@ -146,7 +151,8 @@ CREATE TABLE "fx_snapshot" (
   CONSTRAINT "fx_snapshot_pkey" PRIMARY KEY ("id"),
   CONSTRAINT "fx_snapshot_not_future" CHECK ("rate_date" <= CURRENT_DATE),
   CONSTRAINT "fx_snapshot_provider_present" CHECK (length(btrim("provider")) > 0),
-  CONSTRAINT "fx_snapshot_checksum_shape" CHECK ("checksum" ~ '^[a-f0-9]{64}
+  CONSTRAINT "fx_snapshot_checksum_shape" CHECK ("checksum" ~ '^[a-f0-9]{64}$'),
+  CONSTRAINT "fx_snapshot_rates_object" CHECK (jsonb_typeof("rates") = 'object' AND "rates" ?& ARRAY['USD','INR','EUR','GBP','JPY','CAD','AUD','SGD'])
 );
 CREATE UNIQUE INDEX "fx_snapshot_checksum_key" ON "fx_snapshot"("checksum");
 CREATE INDEX "fx_snapshot_rate_date_fetched_at_idx" ON "fx_snapshot"("rate_date" DESC, "fetched_at" DESC);
@@ -159,216 +165,6 @@ CREATE TABLE "fx_refresh_attempt" (
   "snapshot_id" TEXT,
   CONSTRAINT "fx_refresh_attempt_pkey" PRIMARY KEY ("id"),
   CONSTRAINT "fx_refresh_attempt_message_present" CHECK (length(btrim("message")) > 0)
-);
-CREATE INDEX "fx_refresh_attempt_snapshot_id_idx" ON "fx_refresh_attempt"("snapshot_id");
-CREATE INDEX "fx_refresh_attempt_attempted_at_idx" ON "fx_refresh_attempt"("attempted_at" DESC);
-
-ALTER TABLE "session" ADD CONSTRAINT "session_user_id_fkey"
-  FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "account" ADD CONSTRAINT "account_user_id_fkey"
-  FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "employee" ADD CONSTRAINT "employee_seed_batch_fkey"
-  FOREIGN KEY ("seed_batch") REFERENCES "seed_marker"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "salary_history" ADD CONSTRAINT "salary_history_employee_id_fkey"
-  FOREIGN KEY ("employee_id") REFERENCES "employee"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "salary_history" ADD CONSTRAINT "salary_history_actor_id_fkey"
-  FOREIGN KEY ("actor_id") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "fx_refresh_attempt" ADD CONSTRAINT "fx_refresh_attempt_snapshot_id_fkey"
-  FOREIGN KEY ("snapshot_id") REFERENCES "fx_snapshot"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
-CREATE FUNCTION prevent_immutable_audit_change() RETURNS trigger AS $$
-BEGIN
-  RAISE EXCEPTION 'immutable audit records cannot be changed';
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER salary_history_immutable
-  BEFORE UPDATE OR DELETE ON "salary_history"
-  FOR EACH ROW EXECUTE FUNCTION prevent_immutable_audit_change();
-CREATE TRIGGER fx_snapshot_immutable
-  BEFORE UPDATE OR DELETE ON "fx_snapshot"
-  FOR EACH ROW EXECUTE FUNCTION prevent_immutable_audit_change();
-),
-  CONSTRAINT "employee_text_trimmed" CHECK (
-    length(btrim("name")) > 0 AND "name" = btrim("name") AND
-    length(btrim("department")) > 0 AND "department" = btrim("department") AND
-    length(btrim("job_role")) > 0 AND "job_role" = btrim("job_role")
-  )
-);
-CREATE UNIQUE INDEX "employee_employee_code_key" ON "employee"("employee_code");
-CREATE UNIQUE INDEX "employee_email_key" ON "employee"("email");
-CREATE INDEX "employee_status_name_id_idx" ON "employee"("status", "name", "id");
-CREATE INDEX "employee_country_status_idx" ON "employee"("country", "status");
-CREATE INDEX "employee_department_status_idx" ON "employee"("department", "status");
-CREATE INDEX "employee_job_role_status_idx" ON "employee"("job_role", "status");
-CREATE INDEX "employee_employment_type_status_idx" ON "employee"("employment_type", "status");
-CREATE INDEX "employee_seed_batch_idx" ON "employee"("seed_batch");
-
-CREATE TABLE "salary_history" (
-  "id" TEXT NOT NULL,
-  "employee_id" TEXT NOT NULL,
-  "previous_salary" DECIMAL(14,2) NOT NULL,
-  "previous_currency" "Currency" NOT NULL,
-  "salary" DECIMAL(14,2) NOT NULL,
-  "currency" "Currency" NOT NULL,
-  "reason" VARCHAR(500) NOT NULL,
-  "actor_id" TEXT NOT NULL,
-  "actor_name" TEXT NOT NULL,
-  "actor_email" TEXT NOT NULL,
-  "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "salary_history_pkey" PRIMARY KEY ("id"),
-  CONSTRAINT "salary_history_amounts_positive" CHECK ("previous_salary" > 0 AND "salary" > 0),
-  CONSTRAINT "salary_history_reason_present" CHECK (length(btrim("reason")) > 0)
-);
-CREATE INDEX "salary_history_employee_id_created_at_id_idx" ON "salary_history"("employee_id", "created_at" DESC, "id");
-
-CREATE TABLE "fx_snapshot" (
-  "id" TEXT NOT NULL,
-  "rate_date" DATE NOT NULL,
-  "fetched_at" TIMESTAMPTZ(3) NOT NULL,
-  "provider" VARCHAR(80) NOT NULL,
-  "checksum" CHAR(64) NOT NULL,
-  "rates" JSONB NOT NULL,
-  "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "fx_snapshot_pkey" PRIMARY KEY ("id"),
-  CONSTRAINT "fx_snapshot_not_future" CHECK ("rate_date" <= CURRENT_DATE)
-);
-CREATE UNIQUE INDEX "fx_snapshot_checksum_key" ON "fx_snapshot"("checksum");
-CREATE INDEX "fx_snapshot_rate_date_fetched_at_idx" ON "fx_snapshot"("rate_date" DESC, "fetched_at" DESC);
-
-CREATE TABLE "fx_refresh_attempt" (
-  "id" TEXT NOT NULL,
-  "attempted_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "succeeded" BOOLEAN NOT NULL,
-  "message" VARCHAR(240) NOT NULL,
-  "snapshot_id" TEXT,
-  CONSTRAINT "fx_refresh_attempt_pkey" PRIMARY KEY ("id")
-);
-CREATE INDEX "fx_refresh_attempt_snapshot_id_idx" ON "fx_refresh_attempt"("snapshot_id");
-CREATE INDEX "fx_refresh_attempt_attempted_at_idx" ON "fx_refresh_attempt"("attempted_at" DESC);
-
-ALTER TABLE "session" ADD CONSTRAINT "session_user_id_fkey"
-  FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "account" ADD CONSTRAINT "account_user_id_fkey"
-  FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "employee" ADD CONSTRAINT "employee_seed_batch_fkey"
-  FOREIGN KEY ("seed_batch") REFERENCES "seed_marker"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "salary_history" ADD CONSTRAINT "salary_history_employee_id_fkey"
-  FOREIGN KEY ("employee_id") REFERENCES "employee"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "salary_history" ADD CONSTRAINT "salary_history_actor_id_fkey"
-  FOREIGN KEY ("actor_id") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "fx_refresh_attempt" ADD CONSTRAINT "fx_refresh_attempt_snapshot_id_fkey"
-  FOREIGN KEY ("snapshot_id") REFERENCES "fx_snapshot"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
-CREATE FUNCTION prevent_immutable_audit_change() RETURNS trigger AS $$
-BEGIN
-  RAISE EXCEPTION 'immutable audit records cannot be changed';
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER salary_history_immutable
-  BEFORE UPDATE OR DELETE ON "salary_history"
-  FOR EACH ROW EXECUTE FUNCTION prevent_immutable_audit_change();
-CREATE TRIGGER fx_snapshot_immutable
-  BEFORE UPDATE OR DELETE ON "fx_snapshot"
-  FOR EACH ROW EXECUTE FUNCTION prevent_immutable_audit_change();
-),
-  CONSTRAINT "fx_snapshot_rates_object" CHECK (jsonb_typeof("rates") = 'object' AND "rates" ?& ARRAY['USD','INR','EUR','GBP','JPY','CAD','AUD','SGD'])
-);
-CREATE UNIQUE INDEX "fx_snapshot_checksum_key" ON "fx_snapshot"("checksum");
-CREATE INDEX "fx_snapshot_rate_date_fetched_at_idx" ON "fx_snapshot"("rate_date" DESC, "fetched_at" DESC);
-
-CREATE TABLE "fx_refresh_attempt" (
-  "id" TEXT NOT NULL,
-  "attempted_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "succeeded" BOOLEAN NOT NULL,
-  "message" VARCHAR(240) NOT NULL,
-  "snapshot_id" TEXT,
-  CONSTRAINT "fx_refresh_attempt_pkey" PRIMARY KEY ("id")
-);
-CREATE INDEX "fx_refresh_attempt_snapshot_id_idx" ON "fx_refresh_attempt"("snapshot_id");
-CREATE INDEX "fx_refresh_attempt_attempted_at_idx" ON "fx_refresh_attempt"("attempted_at" DESC);
-
-ALTER TABLE "session" ADD CONSTRAINT "session_user_id_fkey"
-  FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "account" ADD CONSTRAINT "account_user_id_fkey"
-  FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "employee" ADD CONSTRAINT "employee_seed_batch_fkey"
-  FOREIGN KEY ("seed_batch") REFERENCES "seed_marker"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "salary_history" ADD CONSTRAINT "salary_history_employee_id_fkey"
-  FOREIGN KEY ("employee_id") REFERENCES "employee"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "salary_history" ADD CONSTRAINT "salary_history_actor_id_fkey"
-  FOREIGN KEY ("actor_id") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "fx_refresh_attempt" ADD CONSTRAINT "fx_refresh_attempt_snapshot_id_fkey"
-  FOREIGN KEY ("snapshot_id") REFERENCES "fx_snapshot"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
-CREATE FUNCTION prevent_immutable_audit_change() RETURNS trigger AS $$
-BEGIN
-  RAISE EXCEPTION 'immutable audit records cannot be changed';
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER salary_history_immutable
-  BEFORE UPDATE OR DELETE ON "salary_history"
-  FOR EACH ROW EXECUTE FUNCTION prevent_immutable_audit_change();
-CREATE TRIGGER fx_snapshot_immutable
-  BEFORE UPDATE OR DELETE ON "fx_snapshot"
-  FOR EACH ROW EXECUTE FUNCTION prevent_immutable_audit_change();
-),
-  CONSTRAINT "employee_text_trimmed" CHECK (
-    length(btrim("name")) > 0 AND "name" = btrim("name") AND
-    length(btrim("department")) > 0 AND "department" = btrim("department") AND
-    length(btrim("job_role")) > 0 AND "job_role" = btrim("job_role")
-  )
-);
-CREATE UNIQUE INDEX "employee_employee_code_key" ON "employee"("employee_code");
-CREATE UNIQUE INDEX "employee_email_key" ON "employee"("email");
-CREATE INDEX "employee_status_name_id_idx" ON "employee"("status", "name", "id");
-CREATE INDEX "employee_country_status_idx" ON "employee"("country", "status");
-CREATE INDEX "employee_department_status_idx" ON "employee"("department", "status");
-CREATE INDEX "employee_job_role_status_idx" ON "employee"("job_role", "status");
-CREATE INDEX "employee_employment_type_status_idx" ON "employee"("employment_type", "status");
-CREATE INDEX "employee_seed_batch_idx" ON "employee"("seed_batch");
-
-CREATE TABLE "salary_history" (
-  "id" TEXT NOT NULL,
-  "employee_id" TEXT NOT NULL,
-  "previous_salary" DECIMAL(14,2) NOT NULL,
-  "previous_currency" "Currency" NOT NULL,
-  "salary" DECIMAL(14,2) NOT NULL,
-  "currency" "Currency" NOT NULL,
-  "reason" VARCHAR(500) NOT NULL,
-  "actor_id" TEXT NOT NULL,
-  "actor_name" TEXT NOT NULL,
-  "actor_email" TEXT NOT NULL,
-  "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "salary_history_pkey" PRIMARY KEY ("id"),
-  CONSTRAINT "salary_history_amounts_positive" CHECK ("previous_salary" > 0 AND "salary" > 0),
-  CONSTRAINT "salary_history_reason_present" CHECK (length(btrim("reason")) > 0)
-);
-CREATE INDEX "salary_history_employee_id_created_at_id_idx" ON "salary_history"("employee_id", "created_at" DESC, "id");
-
-CREATE TABLE "fx_snapshot" (
-  "id" TEXT NOT NULL,
-  "rate_date" DATE NOT NULL,
-  "fetched_at" TIMESTAMPTZ(3) NOT NULL,
-  "provider" VARCHAR(80) NOT NULL,
-  "checksum" CHAR(64) NOT NULL,
-  "rates" JSONB NOT NULL,
-  "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "fx_snapshot_pkey" PRIMARY KEY ("id"),
-  CONSTRAINT "fx_snapshot_not_future" CHECK ("rate_date" <= CURRENT_DATE)
-);
-CREATE UNIQUE INDEX "fx_snapshot_checksum_key" ON "fx_snapshot"("checksum");
-CREATE INDEX "fx_snapshot_rate_date_fetched_at_idx" ON "fx_snapshot"("rate_date" DESC, "fetched_at" DESC);
-
-CREATE TABLE "fx_refresh_attempt" (
-  "id" TEXT NOT NULL,
-  "attempted_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "succeeded" BOOLEAN NOT NULL,
-  "message" VARCHAR(240) NOT NULL,
-  "snapshot_id" TEXT,
-  CONSTRAINT "fx_refresh_attempt_pkey" PRIMARY KEY ("id")
 );
 CREATE INDEX "fx_refresh_attempt_snapshot_id_idx" ON "fx_refresh_attempt"("snapshot_id");
 CREATE INDEX "fx_refresh_attempt_attempted_at_idx" ON "fx_refresh_attempt"("attempted_at" DESC);
