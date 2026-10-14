@@ -1,4 +1,4 @@
-# ACME Salary
+# ComCentral
 
 An HR workspace for managing annual base salaries for 10,000 employees across countries. Built independently with Next.js, TypeScript, Material UI, Node.js Route Handlers and PostgreSQL.
 

@@ -49,7 +49,7 @@ export default function LoginPage() {
             <Box sx={{ display: 'grid', placeItems: 'center', width: 38, height: 38, borderRadius: 1.5, bgcolor: 'primary.main', color: 'white' }}>
               <Building2 size={21} aria-hidden />
             </Box>
-            <Typography fontWeight={800} fontSize="1.05rem">ACME Salary</Typography>
+            <Typography fontWeight={800} fontSize="1.05rem">ComCentral</Typography>
           </Stack>
           <Typography component="h1" variant="h1">Welcome back</Typography>
           <Typography color="text.secondary" sx={{ mt: 1, mb: 3.5 }}>Sign in with your provisioned HR account to manage compensation records.</Typography>

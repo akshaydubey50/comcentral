@@ -1,4 +1,4 @@
-# ACME Salary working agreement
+# ComCentral working agreement
 
 Build the approved scope in docs/requirements.md. Use Next.js App Router, TypeScript, Material UI, PostgreSQL/Prisma 7 and Better Auth. Shared API types in src/shared/contracts.ts are the integration contract; coordinate changes before editing. Monetary values cross the API as decimal strings. No public registration, mock production data, or silent FX fallback.
 

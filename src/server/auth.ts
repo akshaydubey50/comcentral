@@ -12,7 +12,7 @@ export function createAuth(allowProvisioning = false) {
   const baseURL = applicationOrigin();
 
   return betterAuth({
-    appName: 'ACME Salary',
+    appName: 'ComCentral',
     baseURL,
     secret,
     trustedOrigins: [baseURL],

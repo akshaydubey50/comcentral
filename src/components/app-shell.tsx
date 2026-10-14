@@ -28,7 +28,7 @@ function Navigation({ pathname, onNavigate }: { pathname: string; onNavigate?: (
           <Building2 size={20} aria-hidden />
         </Box>
         <Box>
-          <Typography fontWeight={800} lineHeight={1.05}>ACME Salary</Typography>
+          <Typography fontWeight={800} lineHeight={1.05}>ComCentral</Typography>
           <Typography variant="caption" sx={{ color: '#b9d2cf' }}>HR workspace</Typography>
         </Box>
       </Stack>
