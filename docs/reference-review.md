@@ -1,6 +1,6 @@
 # PayScope reference review
 
-**Status:** Reference analysis for an independent implementation, started with user authorization on 14 October 2026.
+**Status:** Historical README-only reference analysis. The [full source and document comparison](payscope-comparison.md), pinned to a PayScope commit and completed with focused reviewers on 14 October 2026, supersedes this initial evidence boundary. This earlier note is retained to show how the independent scope was chosen.
 
 ## Evidence and boundary
 The user supplied the employer's original assessment and identified https://github.com/meganathan-tech24/PayScope as a reference, explicitly requesting an independent implementation. On 14 October 2026, the user exported its description and README using GitHub CLI. This review covers that README snapshot only. No source code, test executions, deployed behavior, linked design documents, or commit history have been inspected. The snapshot is not pinned to a commit.
@@ -15,8 +15,8 @@ The employer's brief determines mandatory requirements. README checkboxes and pe
 | Frontend uses React/Vite on Vercel; Express API deployment instructions target Render. | This reference does not demonstrate that its complete backend runs on Vercel. Our proposed Next.js/Node.js APIs plus external PostgreSQL need their own early deployment test. |
 | Salaries use integer minor units; aggregates stay within currencies by default. | Preserve explicit currency boundaries. Our proposed exact-decimal representation is a separate choice; both approaches require currency precision and rounding rules. |
 | Optional USD normalization, tenure reports, salary bands, and statistical outliers are described. | The user promoted all four into first-release scope. Implement dated USD reporting with automatic daily rates, tenure, distribution bands and comparable-group outliers; document exact calculations. |
-| HR and Viewer roles have different data visibility, including CSV and salary sorting. | This illustrates that permissions must cover every response path. Our proposed initial persona is provisioned HR only; additional roles need explicit disclosure requirements. |
-| Anyone may register as HR_MANAGER; the README calls this an assessment simplification. | Provision HR accounts through a controlled setup process. Public selection of salary-access privileges would undermine our access model. |
+| HR and Viewer roles have different data visibility, including CSV and salary sorting. | This illustrates that permissions must cover every response path. ComCentral has one HR access level; additional roles remain outside the approved scope. |
+| Anyone may register as HR_MANAGER; the README calls this an assessment simplification. | The original provisioned-only decision was superseded on 2026-10-14: public registration now grants immediate access to the existing shared HR workspace, with no role picker or approval gate. See requirements.md; implementation is pending. |
 | Logout discards a stateless JWT; server revocation is a future step. | The proposed Better Auth database-session approach should verify expiry, server-side logout, and authorization independently. |
 | Application logs are written asynchronously with a fallback. | Operational diagnostics and compensation audit records serve different purposes. Required salary history must commit atomically with the salary update. |
 | The seed command replaces all employees. | Keep our seed operation confined to a documented demo/test dataset and make reruns predictable without replacing unrelated records. |
