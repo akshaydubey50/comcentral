@@ -11,7 +11,7 @@ Types: src/shared/contracts.ts. JSON decimal strings for money; dates YYYY-MM-DD
 - GET /api/employees/:id/history -> {data: SalaryHistory[]}, newest first.
 - GET /api/employees/export same EmployeeFilters, all matches as downloadable CSV (native amounts).
 - GET /api/imports/template -> CSV template. Columns are EmployeeInput field names in declaration order.
-- POST /api/imports/preview {csvText:string} -> {data: ImportPreview}. Max2MB and10000rows; preview20rows, at most100 returned errors with errorCount. Exact header set; full server validation, duplicates withinfile andDB.
+- POST /api/imports/preview {csvText:string} -> {data: ImportPreview}. Decoded CSV max 2 MiB and 10,000 rows; JSON envelope max 4 MiB + 1 KiB; preview20rows, at most100 returned errors with errorCount. Exact header set; full server validation, duplicates withinfile andDB.
 - POST /api/imports/commit {csvText,previewHash,confirmed:true} -> {data: ImportResult},201. Server verifies unchanged hash, parses and revalidates all rows and DB uniqueness, then transaction inserts whole batch or none.
 - GET /api/insights InsightsQuery -> {data: Insights}; full filtered set before aggregation, never page-limited.
 - POST /api/fx/refresh -> {data: FxStatus}; authenticated same-origin HR retry. GET /api/cron/fx is separately authenticated with CRON_SECRET Bearer token.
