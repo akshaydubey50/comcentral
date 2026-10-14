@@ -1,9 +1,11 @@
 import { test, expect, type APIRequestContext } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
+import { requireLocalBrowserTestTarget } from './test-target';
 
 const email = process.env.E2E_EMAIL;
 const password = process.env.E2E_PASSWORD;
 const origin = process.env.E2E_BASE_URL || 'http://localhost:3000';
+test.beforeAll(() => requireLocalBrowserTestTarget());
 
 async function signIn(request: APIRequestContext) {
   if (!email || !password) throw new Error('Set E2E_EMAIL and E2E_PASSWORD for the provisioned test HR account.');
@@ -86,7 +88,7 @@ test('HR signs in, opens the directory, and signs out in the browser', async ({ 
   if (!email || !password) throw new Error('Set E2E_EMAIL and E2E_PASSWORD before browser tests.');
   await page.goto('/login');
   await page.getByLabel('Work email').fill(email);
-  await page.getByLabel('Password', { exact: true }).fill(password);
+  await page.getByLabel(/^Password/).fill(password);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(page.getByRole('navigation', { name: 'Primary navigation' })).toBeVisible();
   await page.getByRole('link', { name: 'Employees', exact: true }).click();

@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { createPrismaClient, getPrisma } from '../../src/server/db/prisma';
 import type { PrismaClient } from '../../src/server/generated/prisma/client';
@@ -17,7 +17,7 @@ function suffix(): string {
 describe('PostgreSQL salary invariants', () => {
   beforeAll(() => {
     const testDatabaseUrl = requireIsolatedTestDatabaseUrl();
-    process.env.DATABASE_URL = testDatabaseUrl;
+    vi.stubEnv('DATABASE_URL', testDatabaseUrl);
     prisma = createPrismaClient(testDatabaseUrl);
     initialized = true;
   });
@@ -25,6 +25,7 @@ describe('PostgreSQL salary invariants', () => {
   afterAll(async () => {
     if (!initialized) return;
     await Promise.all([prisma.$disconnect(), getPrisma().$disconnect()]);
+    vi.unstubAllEnvs();
   });
 
   it('rejects non-positive salary at the database boundary', async () => {
