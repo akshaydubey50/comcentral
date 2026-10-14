@@ -9,7 +9,7 @@ An HR workspace for managing annual base salaries for 10,000 employees across co
 Use Node.js 24 and npm. From Git Bash:
 
 ```bash
-cd /d/akshay/assesment
+cd /d/akshay/comcentral
 npm install
 test -f .env || cp .env.example .env
 ```
