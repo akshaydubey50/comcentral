@@ -38,6 +38,7 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/acme_test
       DIRECT_URL: postgresql://postgres:postgres@localhost:5432/acme_test
       TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5433/acme_integration_test
+      SEED_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5433/comcentral_seed_test
       BETTER_AUTH_URL: http://localhost:3000
       BETTER_AUTH_SECRET: ci-only-auth-secret-never-use-outside-disposable-tests
       CRON_SECRET: ci-only-cron-secret-never-use-outside-disposable-tests
@@ -45,6 +46,7 @@ jobs:
       HR_NAME: Test HR Manager
       HR_PASSWORD: ci-only-password-7F9m3J2k
       E2E_EMAIL: hr@example.test
+      E2E_ALLOW_REGISTRATION: 'true'
       E2E_PASSWORD: ci-only-password-7F9m3J2k
     steps:
       - uses: actions/checkout@v7
@@ -63,10 +65,22 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5433/acme_integration_test
           DIRECT_URL: postgresql://postgres:postgres@localhost:5433/acme_integration_test
+      - name: Create dedicated seed integration database
+        run: psql --host localhost --port 5433 --username postgres --dbname postgres --command 'CREATE DATABASE comcentral_seed_test'
+        env:
+          PGPASSWORD: postgres
+      - name: Migrate dedicated seed integration database
+        run: npm run db:migrate
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5433/comcentral_seed_test
+          DIRECT_URL: postgresql://postgres:postgres@localhost:5433/comcentral_seed_test
       - run: npm run test:integration
       - run: npm run build
       - run: npm run db:provision
       - run: npm run db:seed
+        env:
+          COMCENTRAL_SEED_TARGET: test
+          COMCENTRAL_SEED_DATABASE_ACK: acme_test
       - run: npx playwright install --with-deps chromium
       - name: Browser journeys
         run: |

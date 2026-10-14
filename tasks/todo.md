@@ -117,11 +117,13 @@ Dependencies: None for implementation; isolated target for execution.
 Likely files: prisma/seed.ts; seed/target helper if needed; focused guard and integration tests.
 Estimated scope: M: 3-5 files.
 
-- [ ] An explicit demo/test target is required; application/production and unrelated populated targets are refused.
-- [ ] Count/marker preconditions and inserts are protected against concurrent employee writes and failures.
-- [ ] The dedicated target has exactly 10,000 deterministic employees after safe first/repeat execution, without deleting unrelated records.
+- [x] An explicit demo/test target acknowledgment is required; production mode and unrelated populated targets are refused.
+- [x] Count/marker preconditions and inserts share a transaction and table locks, with rollback on failure. Later normal demo writes remain allowed.
+- [x] The dedicated target has exactly 10,000 deterministic employees after safe first/repeat execution, without deleting unrelated records.
 
 Verification: First run offline refusal cases, then isolated transaction/race and seed checks; print counts only.
+
+Evidence: 10 guard tests and 4 dedicated PostgreSQL tests passed on 2026-10-14; see [seed safety](../docs/seed-safety.md).
 
 ## B06: Add correlated redacted operational logs
 
