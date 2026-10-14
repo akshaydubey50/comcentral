@@ -58,8 +58,8 @@ export function GroupSection({ insights }: { insights: Insights }) {
       <Typography id="group-title" component="h2" variant="h2" sx={{ mb: 1.5 }}>By {label.toLowerCase()}</Typography>
       <Card sx={{ overflow: 'hidden' }}>
         <TableContainer className="data-table-wrap">
-          <Table aria-label={'Salary statistics by ' + label.toLowerCase()} sx={{ minWidth: 900 }}>
-            <TableHead><TableRow><TableCell>{label}</TableCell><TableCell>Currency</TableCell><TableCell align="right">People</TableCell><TableCell align="right">Total</TableCell><TableCell align="right">Average</TableCell><TableCell align="right">Median</TableCell><TableCell align="right">P25</TableCell><TableCell align="right">P75</TableCell></TableRow></TableHead>
+          <Table aria-label={'Salary statistics by ' + label.toLowerCase()} sx={{ minWidth: 1100 }}>
+            <TableHead><TableRow><TableCell>{label}</TableCell><TableCell>Currency</TableCell><TableCell align="right">People</TableCell><TableCell align="right">Total</TableCell><TableCell align="right">Minimum</TableCell><TableCell align="right">Maximum</TableCell><TableCell align="right">Average</TableCell><TableCell align="right">Median</TableCell><TableCell align="right">P25</TableCell><TableCell align="right">P75</TableCell></TableRow></TableHead>
             <TableBody>
               {insights.groups.map((group) => (
                 <TableRow key={group.label + '-' + group.currency}>
@@ -67,6 +67,8 @@ export function GroupSection({ insights }: { insights: Insights }) {
                   <TableCell>{group.currency}</TableCell>
                   <TableCell align="right">{group.count.toLocaleString()}</TableCell>
                   <TableCell align="right">{formatCurrency(group.total, group.currency)}</TableCell>
+                  <TableCell align="right">{formatCurrency(group.min, group.currency)}</TableCell>
+                  <TableCell align="right">{formatCurrency(group.max, group.currency)}</TableCell>
                   <TableCell align="right">{formatCurrency(group.average, group.currency)}</TableCell>
                   <TableCell align="right">{formatCurrency(group.median, group.currency)}</TableCell>
                   <TableCell align="right">{formatCurrency(group.p25, group.currency)}</TableCell>

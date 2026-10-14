@@ -9,6 +9,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { Download, Plus } from 'lucide-react';
 
 import { api, downloadBlob } from '@/lib/api-client';
+import { parseEmployeeQuery } from '@/lib/query-state';
 import type { EmployeeFilters, EmployeeQuery, EmployeeSort } from '@/shared/contracts';
 import { EmptyState, ErrorState, LoadingState } from '@/components/feedback';
 import { PageHeader } from '@/components/page-header';
@@ -30,18 +31,7 @@ function EmployeeDirectoryContent() {
   const search = useSearchParams();
   const [createOpen, setCreateOpen] = useState(false);
 
-  const query = useMemo<EmployeeQuery>(() => ({
-    q: search.get('q') || undefined,
-    country: search.get('country') || undefined,
-    department: search.get('department') || undefined,
-    jobRole: search.get('jobRole') || undefined,
-    employmentType: (search.get('employmentType') as EmployeeQuery['employmentType']) || undefined,
-    status: (search.get('status') as EmployeeQuery['status']) || 'ACTIVE',
-    page: Math.max(1, Number(search.get('page') || 1)),
-    pageSize: Math.min(100, Math.max(10, Number(search.get('pageSize') || 25))),
-    sortBy: (search.get('sortBy') as EmployeeSort) || 'name',
-    sortOrder: search.get('sortOrder') === 'desc' ? 'desc' : 'asc',
-  }), [search]);
+  const query = useMemo<EmployeeQuery>(() => parseEmployeeQuery(search), [search]);
   const [draftFilters, setDraftFilters] = useState<EmployeeFilters>(query);
 
 
@@ -83,6 +73,7 @@ function EmployeeDirectoryContent() {
 
   const activeFilterCount = ['q', 'country', 'department', 'jobRole', 'employmentType']
     .filter((key) => Boolean(query[key as keyof EmployeeQuery])).length;
+  const canCreateEmployee = Boolean(options.data?.countries.length);
 
   return (
     <Stack spacing={3}>
@@ -95,12 +86,20 @@ function EmployeeDirectoryContent() {
             <Button variant="outlined" startIcon={<Download size={18} />} onClick={() => exportRows.mutate()} disabled={exportRows.isPending}>
               {exportRows.isPending ? 'Preparing…' : 'Export matching'}
             </Button>
-            <Button variant="contained" startIcon={<Plus size={18} />} onClick={() => setCreateOpen(true)}>Add employee</Button>
+            <Button variant="contained" startIcon={<Plus size={18} />} onClick={() => setCreateOpen(true)} disabled={!canCreateEmployee}>Add employee</Button>
           </>
         }
       />
       {(options.isError || exportRows.isError) && (
-        <Alert severity="error" role="alert">
+        <Alert
+          severity="error"
+          role="alert"
+          action={options.isError ? (
+            <Button color="inherit" onClick={() => options.refetch()} disabled={options.isFetching}>
+              {options.isFetching ? 'Retrying…' : 'Retry filter choices'}
+            </Button>
+          ) : undefined}
+        >
           {options.isError ? 'Some filter choices could not be loaded. You can retry the page.' : 'The employee export could not be prepared. Please try again.'}
         </Alert>
       )}
@@ -129,7 +128,7 @@ function EmployeeDirectoryContent() {
             <EmptyState
               title="No employees found"
               description={activeFilterCount ? 'Change or clear the filters to widen your search.' : 'Add the first employee or migrate records from a CSV file.'}
-              action={<Button variant="contained" onClick={() => setCreateOpen(true)}>Add employee</Button>}
+              action={<Button variant="contained" onClick={() => setCreateOpen(true)} disabled={!canCreateEmployee}>Add employee</Button>}
             />
           ) : employees.data && (
             <EmployeeTable employees={employees.data.data} sortBy={query.sortBy!} sortOrder={query.sortOrder!} onSort={sortBy} />

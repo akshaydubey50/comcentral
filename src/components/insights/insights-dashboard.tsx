@@ -14,6 +14,7 @@ import { PageHeader } from '@/components/page-header';
 import { EmployeeFilterBar } from '@/components/employees/employee-filters';
 import { api } from '@/lib/api-client';
 import { formatDate, formatDateTime } from '@/lib/formatters';
+import { parseInsightsQuery } from '@/lib/query-state';
 import type { CurrencyMode, EmployeeFilters, GroupBy, InsightsQuery } from '@/shared/contracts';
 import { DistributionSection, TenureSection } from './distribution-sections';
 import { OutlierSection } from './outlier-section';
@@ -66,16 +67,7 @@ function InsightsDashboardContent() {
   const router = useRouter();
   const pathname = usePathname();
   const search = useSearchParams();
-  const query = useMemo<InsightsQuery>(() => ({
-    q: search.get('q') || undefined,
-    country: search.get('country') || undefined,
-    department: search.get('department') || undefined,
-    jobRole: search.get('jobRole') || undefined,
-    employmentType: (search.get('employmentType') as InsightsQuery['employmentType']) || undefined,
-    status: (search.get('status') as InsightsQuery['status']) || 'ACTIVE',
-    currencyMode: search.get('currencyMode') === 'USD' ? 'USD' : 'NATIVE',
-    groupBy: (['country', 'department', 'jobRole'].includes(search.get('groupBy') ?? '') ? search.get('groupBy') : 'country') as GroupBy,
-  }), [search]);
+  const query = useMemo<InsightsQuery>(() => parseInsightsQuery(search), [search]);
   const [draftFilters, setDraftFilters] = useState<EmployeeFilters>(query);
 
 

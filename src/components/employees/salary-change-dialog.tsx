@@ -23,11 +23,12 @@ export function SalaryChangeDialog(props: SalaryChangeDialogProps) {
 
 function SalaryChangeContent({ employee: currentEmployee, open, onClose }: SalaryChangeDialogProps) {
   // Keep the salary and version the HR manager actually opened together.
-  const [employee] = useState(currentEmployee);
+  const [employee, setEmployee] = useState(currentEmployee);
   const queryClient = useQueryClient();
   const [salary, setSalary] = useState(employee.salary);
   const [currency, setCurrency] = useState<Currency>(employee.currency);
   const [reason, setReason] = useState('');
+  const [reloadNotice, setReloadNotice] = useState(false);
 
 
   const change = useMutation({
@@ -40,6 +41,19 @@ function SalaryChangeContent({ employee: currentEmployee, open, onClose }: Salar
       onClose();
     },
   });
+  const reloadLatest = useMutation({
+    mutationFn: () => api.employee(employee.id),
+    onSuccess: async (latest) => {
+      queryClient.setQueryData(['employee', latest.id], latest);
+      setEmployee(latest);
+      setSalary(latest.salary);
+      setCurrency(latest.currency);
+      setReason('');
+      setReloadNotice(true);
+      await queryClient.invalidateQueries({ queryKey: ['salary-history', employee.id] });
+      change.reset();
+    },
+  });
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -49,7 +63,7 @@ function SalaryChangeContent({ employee: currentEmployee, open, onClose }: Salar
   const conflict = change.error instanceof ApiClientError && change.error.status === 409;
 
   return (
-    <Dialog open={open} onClose={change.isPending ? undefined : onClose} fullWidth maxWidth="sm" aria-labelledby="salary-change-title">
+    <Dialog open={open} onClose={change.isPending || reloadLatest.isPending ? undefined : onClose} fullWidth maxWidth="sm" aria-labelledby="salary-change-title">
       <Stack component="form" onSubmit={submit}>
         <DialogTitle id="salary-change-title">Change annual salary</DialogTitle>
         <DialogContent dividers>
@@ -57,7 +71,26 @@ function SalaryChangeContent({ employee: currentEmployee, open, onClose }: Salar
             <Typography color="text.secondary">
               Current base salary: <strong>{formatCurrency(employee.salary, employee.currency)}</strong>. The change applies immediately and will be recorded in salary history.
             </Typography>
-            {change.isError && <Alert severity="error" role="alert">{conflict ? 'This record changed after you opened it. Close the dialog, refresh the employee, and try again.' : change.error.message}</Alert>}
+            {conflict && (
+              <Alert
+                severity="error"
+                role="alert"
+                action={
+                  <Button
+                    color="inherit"
+                    onClick={() => reloadLatest.mutate()}
+                    disabled={reloadLatest.isPending}
+                  >
+                    {reloadLatest.isPending ? 'Reloading…' : 'Reload latest'}
+                  </Button>
+                }
+              >
+                This record changed after you opened it. Reload the latest record to review it before submitting again.
+              </Alert>
+            )}
+            {change.isError && !conflict && <Alert severity="error" role="alert">{change.error.message}</Alert>}
+            {reloadLatest.isError && <Alert severity="error" role="alert">The latest employee record could not be loaded. Your draft is still available.</Alert>}
+            {reloadNotice && <Alert severity="info" role="status">The latest employee was loaded. Salary and reason were reset so you can review the new record before submitting.</Alert>}
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
               <TextField
                 autoFocus
@@ -89,8 +122,8 @@ function SalaryChangeContent({ employee: currentEmployee, open, onClose }: Salar
           </Stack>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={onClose} disabled={change.isPending}>Cancel</Button>
-          <Button type="submit" variant="contained" disabled={change.isPending || currentEmployee.status === 'ARCHIVED'}>{change.isPending ? 'Applying…' : 'Apply salary change'}</Button>
+          <Button onClick={onClose} disabled={change.isPending || reloadLatest.isPending}>Cancel</Button>
+          <Button type="submit" variant="contained" disabled={change.isPending || reloadLatest.isPending || conflict || employee.status === 'ARCHIVED'}>{change.isPending ? 'Applying…' : 'Apply salary change'}</Button>
         </DialogActions>
       </Stack>
     </Dialog>

@@ -17,6 +17,12 @@ import { EmployeeFormDialog } from './employee-form-dialog';
 import { SalaryChangeDialog } from './salary-change-dialog';
 import { SalaryHistoryTable } from './salary-history-table';
 
+type StatusIntent = {
+  employeeId: string;
+  version: number;
+  archived: boolean;
+};
+
 function Detail({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <Box>
@@ -30,25 +36,37 @@ export function EmployeeDetails({ id }: { id: string }) {
   const queryClient = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
   const [salaryOpen, setSalaryOpen] = useState(false);
-  const [statusOpen, setStatusOpen] = useState(false);
+  const [statusIntent, setStatusIntent] = useState<StatusIntent | null>(null);
   const employee = useQuery({ queryKey: ['employee', id], queryFn: () => api.employee(id), retry: false });
   const history = useQuery({ queryKey: ['salary-history', id], queryFn: () => api.salaryHistory(id), enabled: employee.isSuccess, retry: false });
   const options = useQuery({ queryKey: ['directory-options'], queryFn: api.options });
   const statusChange = useMutation({
     mutationFn: () => {
-      if (!employee.data) throw new Error('Employee is unavailable.');
-      return api.setArchived(employee.data.id, employee.data.version, employee.data.status === 'ACTIVE');
+      if (!statusIntent) throw new Error('Employee status confirmation is unavailable.');
+      return api.setArchived(statusIntent.employeeId, statusIntent.version, statusIntent.archived);
     },
     onSuccess: async (saved) => {
       queryClient.setQueryData(['employee', id], saved);
       await queryClient.invalidateQueries({ queryKey: ['employees'] });
       await queryClient.invalidateQueries({ queryKey: ['insights'] });
-      setStatusOpen(false);
+      setStatusIntent(null);
+    },
+  });
+  const reloadAfterStatusConflict = useMutation({
+    mutationFn: async () => {
+      const result = await employee.refetch({ throwOnError: true });
+      if (!result.data) throw new Error('Employee is unavailable.');
+      return result.data;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['salary-history', id] });
+      statusChange.reset();
+      setStatusIntent(null);
     },
   });
 
   if (employee.isLoading) return <LoadingState label="Loading employee" />;
-  if (employee.isError) {
+  if (employee.isError && !employee.data) {
     const missing = employee.error instanceof ApiClientError && employee.error.status === 404;
     return missing
       ? <EmptyState title="Employee not found" description="The record may have been removed or the link is no longer valid." action={<Button component={Link} href="/employees">Return to directory</Button>} />
@@ -58,7 +76,26 @@ export function EmployeeDetails({ id }: { id: string }) {
 
   const record = employee.data;
   const archived = record.status === 'ARCHIVED';
+  const optionsReady = (options.data?.countries.length ?? 0) > 0;
   const conflict = statusChange.error instanceof ApiClientError && statusChange.error.status === 409;
+  const confirmingArchive = statusIntent?.archived ?? false;
+
+  function openStatusDialog() {
+    statusChange.reset();
+    reloadAfterStatusConflict.reset();
+    setStatusIntent({
+      employeeId: record.id,
+      version: record.version,
+      archived: record.status === 'ACTIVE',
+    });
+  }
+
+  function closeStatusDialog() {
+    if (statusChange.isPending || reloadAfterStatusConflict.isPending) return;
+    statusChange.reset();
+    reloadAfterStatusConflict.reset();
+    setStatusIntent(null);
+  }
 
   return (
     <Stack spacing={3}>
@@ -70,14 +107,26 @@ export function EmployeeDetails({ id }: { id: string }) {
           description={record.jobRole + ' · ' + record.department}
           actions={
             <>
-              <Button variant="outlined" startIcon={<Pencil size={18} />} onClick={() => setEditOpen(true)}>Edit details</Button>
+              <Button variant="outlined" startIcon={<Pencil size={18} />} onClick={() => setEditOpen(true)} disabled={!optionsReady}>Edit details</Button>
               <Button variant="contained" startIcon={<WalletCards size={18} />} onClick={() => setSalaryOpen(true)} disabled={archived}>Change salary</Button>
             </>
           }
         />
       </Box>
       {archived && <Alert severity="warning">This employee is archived. Restore the record before making a salary change.</Alert>}
-      {statusChange.isError && <Alert severity="error" role="alert">{conflict ? 'This employee changed since the page loaded. Refresh the record before trying again.' : statusChange.error.message}</Alert>}
+      {options.isError && (
+        <Alert
+          severity="error"
+          role="alert"
+          action={
+            <Button color="inherit" onClick={() => options.refetch()} disabled={options.isFetching}>
+              {options.isFetching ? 'Retrying…' : 'Retry options'}
+            </Button>
+          }
+        >
+          Editing is unavailable until directory options load.
+        </Alert>
+      )}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: 'minmax(0, 1.7fr) minmax(290px, .8fr)' }, gap: 3 }}>
         <Card>
           <CardContent sx={{ p: { xs: 2.5, sm: 3 } }}>
@@ -108,7 +157,7 @@ export function EmployeeDetails({ id }: { id: string }) {
               color={archived ? 'primary' : 'error'}
               variant="text"
               startIcon={archived ? <RotateCcw size={18} /> : <Archive size={18} />}
-              onClick={() => setStatusOpen(true)}
+              onClick={openStatusDialog}
             >
               {archived ? 'Restore employee' : 'Archive employee'}
             </Button>
@@ -123,15 +172,37 @@ export function EmployeeDetails({ id }: { id: string }) {
       </Box>
       <EmployeeFormDialog open={editOpen} employee={record} options={options.data} onClose={() => setEditOpen(false)} />
       <SalaryChangeDialog open={salaryOpen} employee={record} onClose={() => setSalaryOpen(false)} />
-      <Dialog open={statusOpen} onClose={() => !statusChange.isPending && setStatusOpen(false)} aria-labelledby="employee-status-title">
-        <DialogTitle id="employee-status-title">{archived ? 'Restore employee?' : 'Archive employee?'}</DialogTitle>
+      <Dialog open={statusIntent !== null} onClose={closeStatusDialog} aria-labelledby="employee-status-title">
+        <DialogTitle id="employee-status-title">{confirmingArchive ? 'Archive employee?' : 'Restore employee?'}</DialogTitle>
         <DialogContent>
-          <Typography>{archived ? 'The employee will return to the active directory and reporting.' : 'The employee will leave active reports, while their record and salary history remain available.'}</Typography>
+          <Stack spacing={2}>
+            {statusChange.isError && (
+              <Alert
+                severity="error"
+                role="alert"
+                action={conflict ? (
+                  <Button
+                    color="inherit"
+                    onClick={() => reloadAfterStatusConflict.mutate()}
+                    disabled={reloadAfterStatusConflict.isPending}
+                  >
+                    {reloadAfterStatusConflict.isPending ? 'Reloading…' : 'Reload latest'}
+                  </Button>
+                ) : undefined}
+              >
+                {conflict
+                  ? 'This employee changed after you opened the confirmation. Reload the latest record and confirm the new status again.'
+                  : statusChange.error.message}
+              </Alert>
+            )}
+            {reloadAfterStatusConflict.isError && <Alert severity="error" role="alert">The latest employee record could not be loaded. Cancel and try again.</Alert>}
+            <Typography>{confirmingArchive ? 'The employee will leave active reports, while their record and salary history remain available.' : 'The employee will return to the active directory and reporting.'}</Typography>
+          </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setStatusOpen(false)} disabled={statusChange.isPending}>Cancel</Button>
-          <Button variant="contained" color={archived ? 'primary' : 'error'} onClick={() => statusChange.mutate()} disabled={statusChange.isPending}>
-            {statusChange.isPending ? 'Saving…' : archived ? 'Restore' : 'Archive'}
+          <Button onClick={closeStatusDialog} disabled={statusChange.isPending || reloadAfterStatusConflict.isPending}>Cancel</Button>
+          <Button variant="contained" color={confirmingArchive ? 'error' : 'primary'} onClick={() => statusChange.mutate()} disabled={statusChange.isPending || reloadAfterStatusConflict.isPending || conflict}>
+            {statusChange.isPending ? 'Saving…' : confirmingArchive ? 'Archive' : 'Restore'}
           </Button>
         </DialogActions>
       </Dialog>

@@ -77,8 +77,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
-    if (!session.isLoading && !session.data?.user) router.replace('/login');
-  }, [router, session.data?.user, session.isLoading]);
+    // A failed session request needs a retry; only a confirmed anonymous response redirects.
+    if (session.isSuccess && !session.data.user) router.replace('/login');
+  }, [router, session.data?.user, session.isSuccess]);
 
   if (session.isLoading) {
     return <Stack sx={{ p: 4 }} spacing={2} aria-label="Loading workspace"><Skeleton width={180} height={42} /><Skeleton variant="rounded" height={420} /></Stack>;
