@@ -1,0 +1,13 @@
+# Reporting decisions
+
+Current annual gross base salary only, active by default, all filtered records before aggregation. Native currency totals never mixed. Use Decimal throughout (no Number for salary), round only displayed results half-up to currency precision. Percentiles use R type7: interpolate at zero-based (n-1)*p. Empty stats null except count/total0. Singletons repeat their value.
+
+Distribution bands are descriptive ranges, not pay grades: USD/EUR/GBP/CAD/AUD/SGD boundaries 0,25000,50000,75000,100000,150000,200000,infinity; INR 0,500000,1000000,1500000,2000000,3000000,5000000,infinity; JPY 0,3000000,5000000,7000000,10000000,15000000,20000000,infinity. Lower inclusive, upper exclusive; retain zero-count bins. USD mode uses USD bands.
+
+Tenure in completed calendar years at visible UTC reporting date: <1,1–<3,3–<5,5–<10,10+. Feb29 anniversary becomes Feb28 in nonleap years. Reject future joining date at creation/import/edit.
+
+Outlier cohorts: country+nativecurrency+jobRole+employmentType inside selected filters. At least10 people; IQR0 means no evaluation. Strictly beyond Q1-1.5IQR or Q3+1.5IQR is a review flag, fence equality is not. Calculate before rounding. Return up to100 flags with total. USD mode does not change native outlier cohorts. These defaults are review aids, never pay equity conclusions.
+
+FX: fetch daily using Frankfurter v2 pinned to ECB. Store one immutable complete snapshot with rate date, fetch timestamp, provider, checksum, and USD per unit convention (USD1). Convert with one snapshot for entire result, aggregate before rounding. Required supported currencies must all be present; no partial totals or fallback rate1. Latest business date acceptable; fetch older than36h is CACHED warning; reference date older than7 calendar days unavailable STALE. Missing snapshot unavailable MISSING. Any refresh failure preserves lastgood snapshot and records safe failure status, exposed as CACHED when still usable. Validate positive finite rates, unique codes, consistent nonfuturedate and complete supportedcoverage. Concurrent refresh is idempotent by checksum; retain provider revision snapshots. No employee/salary data sent externally. Cron once daily at21UTC; authenticated manualretry permitted.
+
+Sources checked2026-10-14: [Frankfurter](https://frankfurter.dev/), [ECB reference rates](https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html), [NIST IQR fences](https://www.itl.nist.gov/div898/handbook/prc/section1/prc16.htm), [R quantiles](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/quantile.html).
