@@ -8,7 +8,7 @@ ComCentral is an independently built HR workspace for annual contractual base pa
 2. Read [architecture.md](architecture.md) for system boundaries, access, salary history, import transactions, routing, security and rejected alternatives.
 3. Use [analytics-rules.md](analytics-rules.md) and the [API contract](api-contract.md) to check exact money, pending-salary, FX, filter and error semantics.
 4. Compare [tasks/todo.md](../tasks/todo.md) with [validation.md](validation.md) to distinguish approved, implemented, locally verified and deployed states.
-5. Read [ai-use.md](ai-use.md) for AI contributions, corrections and uncertainty. Use its task and commit references to inspect the resulting changes; consult the [documentation history](archive/2026-10-15-documentation-history.md) only for superseded context.
+5. Read [ai-use.md](ai-use.md) for AI contributions, corrections and uncertainty. Use its task and commit references with Git history to inspect the resulting changes and earlier versions; the maintained documents describe the current guidance.
 
 ## Implementation entry points
 

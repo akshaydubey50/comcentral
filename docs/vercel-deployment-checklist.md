@@ -29,4 +29,4 @@ Updated 2026-10-15. Tasks: V02/D01/D02. **Priority correction: the initial deplo
 - [ ] Verify data persistence after redeployment.
 - [ ] Record deployed URL/revision/results and stop owned test infrastructure.
 
-The first actual scheduled invocation is a separate D02 follow-up. Manual refresh and configured scheduling must not be described as proof of a scheduled run. Detailed historical readiness results are in [the review](vercel-readiness-2026-10-15.md); actual execution results belong in [validation.md](validation.md).
+The first actual scheduled invocation is a separate D02 follow-up. Manual refresh and configured scheduling must not be described as proof of a scheduled run. Use [the deployment runbook](deployment.md) for procedures and [validation.md](validation.md) for current execution results.

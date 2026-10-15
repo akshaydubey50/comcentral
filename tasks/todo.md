@@ -1,6 +1,6 @@
 # ComCentral task board
 
-Updated 2026-10-15. This is the only active work checklist. Scope: [PROJECT_SPEC.md](../PROJECT_SPEC.md). Current execution and known failures: [validation.md](../docs/validation.md). [Original task acceptance/history](../docs/archive/2026-10-15-documentation-history.md#source-tasks-todo-md) preserves every original task ID and detailed criterion; this consolidation does not cancel pending work or promote old evidence into current acceptance.
+Updated 2026-10-15. This is the only active work checklist. Scope: [PROJECT_SPEC.md](../PROJECT_SPEC.md). Current execution and known failures: [validation.md](../docs/validation.md). Original acceptance details remain in [Git history](https://github.com/akshaydubey50/comcentral/commit/0e1be8a7d2d6d6cc8bdf3ee25b3e8b52bdc57914). This board retains all task IDs; documentation pruning does not cancel pending work or make older checks current.
 
 ## Progress and ownership
 
@@ -47,16 +47,16 @@ Later candidates: richer metric drill-down, chart presentation, a preview-only b
 
 ## F11: Apply the approved dashboard design
 
-User approved the combined [dashboard/pagination preview](../docs/design-previews/dashboard-pagination.html) on 2026-10-15. This presentation slice builds on F10 and retains the existing real reporting contract.
+User approved the dashboard and pagination layout on 2026-10-15; its presentation boundaries remain in [architecture](../docs/architecture.md). This presentation slice builds on F10 and retains the existing real reporting contract.
 
 - [x] Create the HTML/CSS preview and inspect desktop/mobile layout and pagination behavior.
 - [x] Obtain the user's layout preference: Use this overall direction.
-- [x] Deliver the detailed interactive HTML reference (`docs/design-previews/dashboard-reference.html`; active owner handoff), desktop screenshot (`docs/design-previews/dashboard-reference-desktop.png`; active owner handoff), and mobile screenshot (`docs/design-previews/dashboard-reference-mobile.png`; active owner handoff); verify three screen widths, filters, state previews and pagination. See reference evidence (`docs/design-previews/dashboard-reference-validation.md`; active owner handoff).
-- [ ] Integrate compact summaries and a currency-separated P25/P75/median group comparison.
-- [ ] Arrange distribution and tenure panels side by side on wide screens and stack them on phones.
-- [ ] Keep exact accessible tables, report filters, pending-salary exclusions and FX failure states.
+- [x] Deliver and inspect the initial desktop/mobile reference, filters, state previews and pagination. The retired prototypes were later removed at the user's request; this does not count as application verification.
+- [x] Integrate compact summaries and a currency-separated P25/P75/median group comparison with user-selected Recharts 3.10.1 and a native chart-currency selector.
+- [x] Arrange distribution and tenure panels side by side on wide screens and stack them on phones.
+- [x] Keep exact accessible tables, report filters, pending-salary exclusions and FX failure states. [Implementation and current evidence](../docs/dashboard-ui-implementation.md).
 - [ ] Pass focused checks, full type/lint/build and current browser journeys; record actual unit-suite status.
-- [ ] Review and publish a separate incremental implementation commit.
+- [x] Review and publish the Recharts implementation `8030c13` and responsive follow-up `9015a75`; both deployed READY. Targeted deployed dashboard checks pass. Full unit/type/lint/integration/build gates pass in CI; broader browser journeys still fail and remain open above.
 
 F10/current employee workflows were published in `cf3da2b`; the approved preview and then-current verification evidence were pushed as `cadc103`. Remaining full-suite failures and the final build/browser work are explicitly pending, not a green release claim.
 
@@ -81,7 +81,7 @@ Implemented in `abf502b`: the root not-found boundary, scoped CSS and public rea
 
 ## Original audit catalogue
 
-Recorded complete means evidence exists for an earlier named slice, not deployed or current-regression acceptance. Exact commits, execution limits and the chronological results are in validation and the archived acceptance record.
+Recorded complete means evidence exists for an earlier named slice, not deployed or current-regression acceptance. Exact commits, execution limits and the chronological results are in validation and Git history.
 
 | ID | Task | Status |
 |---|---|---|
@@ -120,14 +120,11 @@ Recorded complete means evidence exists for an earlier named slice, not deployed
 | U02 | Decide whether to support multiple organizations | Future scope; decision required |
 | U03 | Decide on recovery, MFA and permission administration | Future scope; decision required |
 
-## Documentation cleanup slice - C02/D04
+## Documentation cleanup slice: C02/D04
 
-- [x] Review PayScope entry points and retain focused document responsibilities instead of copying its stack or claims.
-- [x] Consolidate architecture, domain/API/CSV, operator, performance and reviewer guides; independently source-check important facts.
-- [x] Add portable root setup and a maintained documentation index.
-- [x] Preserve original acceptance, superseded choices, reference audit and execution history in one dated archive.
-- [x] Compact AI contributions, current verification and the task board without losing failure/deployment boundaries.
-- [x] Remove the merged guides/trackers and update remaining links; preserve the deployment owner's active handoff and its archived-readiness pointer.
-- [x] Synchronize and visually verify the requirements PDF: one A4 page, 655 Markdown words, complete text/bounds checks and correct source-derived date.
-- [x] Pass dependency-free link/parser checks and review the scoped diff.
-- [x] Commit only owned documentation/guard changes; preserve the application's dirty files and leave push/deployment to their owner.
+- [x] Review PayScope's phase-oriented AI log and documentation responsibilities.
+- [x] Consolidate maintained scope, architecture, contracts, user/operator guides and current task/results records.
+- [x] Remove the stored history, design prototypes, raw benchmark artifact and obsolete agent-routing logs at the user's request.
+- [x] Rewrite AI-use entries as request, contribution, correction and outcome summaries linked to source/commits.
+- [x] Repair remaining references and verify links, checker regressions and the scoped diff.
+- [x] Commit only this documentation cleanup; preserve concurrent application, dependency and deployment work.

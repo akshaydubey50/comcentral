@@ -53,7 +53,7 @@ Keep the UI/API same-origin and independently test the important boundaries. A r
 
 ## Scope decisions retained
 
-The current release excludes additional roles/tenants, approval chains, scheduled/backdated pay changes, recovery/MFA administration, hourly pay, payroll/tax execution, arbitrary Excel parsing and bulk salary overwrites. U01-U03 are decision tasks for a later product, not authorization to silently redesign current account access. The original reference comparison is retained in the [dated documentation history](docs/archive/2026-10-15-documentation-history.md#source-docs-payscope-comparison-md); current decisions belong in architecture.
+The current release excludes additional roles/tenants, approval chains, scheduled/backdated pay changes, recovery/MFA administration, hourly pay, payroll/tax execution, arbitrary Excel parsing and bulk salary overwrites. U01-U03 are decision tasks for a later product, not authorization to silently redesign current account access. Current decisions and rejected alternatives belong in [architecture.md](docs/architecture.md); Git history retains earlier comparisons and drafts.
 
 ## Delivery and evidence
 

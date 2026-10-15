@@ -31,16 +31,12 @@ These are the maintained project documents. Scope, decisions, operating instruct
 - [AGENTS.md](../AGENTS.md): working agreement, ownership, evidence and quality gates.
 - [CLAUDE.md](../CLAUDE.md): short pointer to the same agreement.
 
-## Historical context
-
-- [Documentation history, 2026-10-15](archive/2026-10-15-documentation-history.md): superseded designs and handoffs retained for traceability. It is not current product guidance or execution status.
-
 ## Maintenance rules
 
 - Change the document that owns the subject instead of copying guidance or status into several files.
 - Record current work once in [tasks/todo.md](../tasks/todo.md) and execution results once in [validation.md](validation.md).
 - Attach a date, commit or source revision, environment and limitations to every execution claim.
-- Archive only superseded material with unique historical value; do not use the archive as current guidance.
+- Use Git history for superseded context. Do not regenerate session routing logs, generated evidence dumps or review screenshots as maintained documentation.
 - Check links and checker behavior after documentation changes:
 
 ```powershell

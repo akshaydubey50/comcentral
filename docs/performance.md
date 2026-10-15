@@ -21,7 +21,7 @@ The report identifies the revision, dirty-tree state, Node/platform/CPU count, e
 
 ## Historical measured baseline: `2a7e3d4`, 2026-10-15 (P01)
 
-The reviewed `2a7e3d4` checkout was clean. The normal production build ran on Windows x64, Node 24.18.1, 12 logical CPUs, with local PostgreSQL 17 and exactly 10,000 active synthetic employees. Heavy validation commands were stopped during measurement. The [aggregate JSON](evidence/benchmark-2026-10-15.json) records the full result and sample counts.
+The reviewed `2a7e3d4` checkout was clean. The normal production build ran on Windows x64, Node 24.18.1, 12 logical CPUs, with local PostgreSQL 17 and exactly 10,000 active synthetic employees. Heavy validation commands were stopped during measurement. The raw aggregate JSON was removed from the maintained documentation at the user's request; the table below retains the reviewed aggregate values, and the original artifact remains available in [Git history at revision `0e1be8a`](https://github.com/akshaydubey50/comcentral/blob/0e1be8a7d2d6d6cc8bdf3ee25b3e8b52bdc57914/docs/evidence/benchmark-2026-10-15.json).
 
 | Operation | First request (ms) | Warm p50 / p95 (ms) | Concurrency 2 p50 / p95 (ms) |
 |---|---:|---:|---:|
