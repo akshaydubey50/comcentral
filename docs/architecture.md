@@ -1,5 +1,11 @@
 # Architecture and decisions
 
+## CSV header compatibility, 2026-10-15 (B01/F08)
+
+The original import rejected any header spelling or order that differed from the template. A source export used fullName/jobTitle/hireDate, an internal id, and no salary. Accept reordered required fields and the three unambiguous name/role/date aliases by resolving a Map of allowed names before building row objects. Reject unknown names, repeated canonical fields (including alias collisions), and missing fields with specific errors. Header spelling stays case-sensitive; arbitrary mapping is outside this slice.
+
+Keep employeeCode and salary mandatory. A source database id is not automatically an HR code, and absence of pay data is not a reason to invent a salary or weaken database constraints. HR must explicitly choose codes and supply annual major-unit amounts. The canonical template/export and JSON EmployeeInput contract stay unchanged; preview and commit already share the parser. Raw-content hashing, confirmation revalidation, decimal validation, limits and atomic transactions remain in place. No schema migration or endpoint change is required.
+
 ```mermaid
 flowchart LR
   HR[HR browser] -->|HTTPS, session cookie| UI[Next.js React UI]

@@ -2,6 +2,12 @@
 
 This is an evidence record, not a collection of reconstructed prompts. Earlier paragraphs are retrospective summaries of the work and results at those checkpoints. Current test/deployment status lives in [validation.md](validation.md). A reviewer can start with [reviewer-guide.md](reviewer-guide.md) and follow task IDs through the checklist and Git history.
 
+## CSV compatibility follow-up, 2026-10-15 (B01/F08/C02)
+
+The user asked to fix the rejected CSV and verify the complete UI/backend/database flow. The coordinator inspected the real parser, services, API routes, UI and isolated-test guards. Ten new parser regressions first produced eight failures against the old exact-header implementation. A bounded header-alias/ordering change then passed all fourteen parser cases. The user subsequently observed the new specific unsupported-id/missing-code/missing-salary errors, confirming that their running app had the updated validator while their original file still lacked required data.
+
+An independent read-only agent reviewed mapping correctness, field collisions, API/schema dependencies and data-integrity boundaries; it found no blocking issues. The coordinator added missing-field UI coverage, real PostgreSQL persistence/rejection cases and a live browser correction/import/reload journey. No source id or missing salary was guessed. Actual checks and environment failures are recorded in [validation.md](validation.md); the implementation and evidence belong to this CSV slice's incremental commit. Unrelated concurrent work was preserved.
+
 ## Audit implementation, 2026-10-14
 
 **User request, summarized:** implement the audit incrementally, update the requirements and Markdown documentation, commit verified slices, and make the engineering judgment and AI contribution understandable to interviewers. The user subsequently confirmed that the independent backend session had stopped and this session may implement backend work too, and authorized continuing routine file/Git work unattended.

@@ -90,6 +90,29 @@ describe('CsvImportWorkflow', () => {
     await waitFor(() => expect(mocks.previewImport).toHaveBeenCalledWith('latest-content'));
   });
 
+  it('shows actionable header errors and blocks import until a corrected file is reviewed', async () => {
+    mocks.previewImport.mockResolvedValue({
+      ...validPreview,
+      valid: false,
+      totalRows: 0,
+      preview: [],
+      errors: [
+        { row: 1, field: 'header', message: 'Missing required column "employeeCode".' },
+        { row: 1, field: 'header', message: 'Missing required column "salary".' },
+      ],
+      errorCount: 2,
+    });
+    const input = renderWorkflow();
+    fireEvent.change(input, { target: { files: [csvFile('missing-salary.csv', () => Promise.resolve('fullName,email'))] } });
+    await screen.findByText(/missing-salary.csv is ready to validate/i);
+    fireEvent.click(screen.getByRole('button', { name: /validate and preview/i }));
+
+    expect(await screen.findByText('Missing required column "employeeCode".')).toBeInTheDocument();
+    expect(screen.getByText('Missing required column "salary".')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /confirm and import/i })).toBeDisabled();
+    expect(mocks.commitImport).not.toHaveBeenCalled();
+  });
+
   it('locks file selection while preview validation is running', async () => {
     let finishPreview!: (value: typeof validPreview) => void;
     mocks.previewImport.mockReturnValue(new Promise((resolve) => { finishPreview = resolve; }));

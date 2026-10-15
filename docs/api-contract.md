@@ -29,7 +29,7 @@ IP throttling assumes the supported Vercel ingress overwrites `X-Forwarded-For`.
 - GET /api/employees/:id/history -> {data: SalaryHistory[]}, newest first.
 - GET /api/employees/export same EmployeeFilters, all matches as downloadable CSV (native amounts).
 - GET /api/imports/template -> CSV template. Columns are EmployeeInput field names in declaration order.
-- POST /api/imports/preview {csvText:string} -> {data: ImportPreview}. Decoded CSV max 2 MiB and 10,000 rows; JSON envelope max 4 MiB + 1 KiB; preview20rows, at most100 returned errors with errorCount. Exact header set; full server validation, duplicates withinfile andDB.
+- POST /api/imports/preview {csvText:string} -> {data: ImportPreview}. Decoded CSV max 2 MiB and 10,000 rows; JSON envelope max 4 MiB + 1 KiB; preview20rows, at most100 returned errors with errorCount. All ten template fields are required exactly once, in any order. Accepted aliases: fullName -> name, jobTitle -> jobRole, hireDate -> joiningDate. Unknown columns and duplicate canonical/alias combinations are rejected. An id is not inferred as employeeCode; salary is never invented. Header spelling remains case-sensitive; full server validation and duplicates withinfile andDB remain enforced.
 - POST /api/imports/commit {csvText,previewHash,confirmed:true} -> {data: ImportResult},201. Server verifies unchanged hash, parses and revalidates all rows and DB uniqueness, then transaction inserts whole batch or none.
 - GET /api/insights InsightsQuery -> {data: Insights}; full filtered set before aggregation, never page-limited.
 - POST /api/fx/refresh -> {data: FxStatus}; authenticated same-origin HR retry. GET /api/cron/fx is separately authenticated with CRON_SECRET Bearer token.

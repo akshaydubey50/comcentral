@@ -1,12 +1,12 @@
 # Getting employee CSV data into ComCentral
 
-The importer accepts employee records supplied by HR. It does not fetch employee or salary data from the internet. For real use, export the organization's authorized HR spreadsheet or HRIS, map its columns to the fixed template, and save as UTF-8 CSV. Excel workbooks must first be exported to CSV.
+The importer accepts employee records supplied by HR. It does not fetch employee or salary data from the internet. For real use, export the organization's authorized HR spreadsheet or HRIS, supply the template's required fields, and save as UTF-8 CSV. Excel workbooks must first be exported to CSV.
 
 ## Use the application
 
 1. Sign in and open `/imports`.
 2. Select **Download template**. The download contains the required header, without employee rows.
-3. Fill the template without renaming or reordering its columns.
+3. Fill every required field. Columns may be in any order. The supported alternatives are `fullName` for `name`, `jobTitle` for `jobRole`, and `hireDate` for `joiningDate`; use only one name for each field.
 4. Select **Choose CSV**, then **Validate and preview**.
 5. Correct every reported error, choose the corrected file, and validate again.
 6. Select **Confirm and import** only after reviewing the preview. Confirmation revalidates the unchanged file and creates the entire batch or none.
@@ -33,7 +33,7 @@ The underlying source is [seed-data.ts](../src/server/domain/seed-data.ts). `npm
 
 ## Required values and limits
 
-- Exact ordered header shown above; at least one employee row.
+- All ten fields shown above, each exactly once, in any order; at least one employee row. Header names are case-sensitive. Only the three documented aliases are accepted; unknown or duplicate mapped columns are rejected with specific errors.
 - Maximum 10,000 rows and 2 MiB per file.
 - Unique employee codes and normalized emails, both within the file and against existing employees.
 - Employee codes: 1-40 characters; letters, numbers, periods, underscores and hyphens, beginning with a letter or number.
@@ -53,12 +53,14 @@ PayScope's export cannot be uploaded unchanged:
 
 | PayScope column | ComCentral column | Conversion |
 |---|---|---|
-| `id` | `employeeCode` | Use a unique stable code satisfying the rules above; its UUID can fit the format |
-| `fullName` | `name` | Preserve the name |
-| `jobTitle` | `jobRole` | Preserve the role |
-| `hireDate` | `joiningDate` | Keep `YYYY-MM-DD` |
+| `id` | Not automatically mapped | Remove the source id column and explicitly supply HR's unique stable `employeeCode`; if HR deliberately chooses the source id as its code, rename it and verify the code rules |
+| `fullName` | `name` | Accepted alias; preserve the name |
+| `jobTitle` | `jobRole` | Accepted alias; preserve the role |
+| `hireDate` | `joiningDate` | Accepted alias; keep `YYYY-MM-DD` |
 | `salary` | `salary` | Convert integer minor units to an exact major-unit decimal string |
-| Other common columns | Same names | Reorder to match the exact ComCentral header |
+| Other common columns | Same names | Retain the required fields; column order does not matter |
+
+An export with `id,fullName,email,jobTitle,department,country,currency,employmentType,hireDate` has no employeeCode or salary. It receives an unsupported-id error and both missing-field errors. Supply actual employee codes and annual salaries before importing; the application does not guess either value. Adding a salary header without values still fails row validation.
 
 For shared two-decimal currencies, `9000000` becomes `90000.00`. JPY uses zero decimal places and is not divided by 100. PayScope's seed also includes France, Brazil/BRL and interns; those values are outside ComCentral's current country/currency/employment-type scope. Exclude unsupported records from a demo import or make an explicit scope decision; silently relabelling them would change the meaning of the data.
 

@@ -71,15 +71,44 @@ export function parseEmployeeCsv(csvText: string, now = new Date()): ParsedEmplo
   }
 
   const header = records[0] ?? [];
-  const exactHeader =
-    header.length === EMPLOYEE_CSV_HEADERS.length &&
-    EMPLOYEE_CSV_HEADERS.every((name, index) => header[index] === name);
-  if (!exactHeader) {
+  // Resolve supported aliases before rejecting ambiguous or missing columns.
+  const headerAliases = new Map<string, string>([
+    ['fullName', 'name'],
+    ['jobTitle', 'jobRole'],
+    ['hireDate', 'joiningDate'],
+  ]);
+  const normalizedHeader = header.map((name) => headerAliases.get(name) ?? name);
+  const requiredHeaders = new Set<string>(EMPLOYEE_CSV_HEADERS);
+  const seenHeaders = new Set<string>();
+
+  for (const name of normalizedHeader) {
+    if (!requiredHeaders.has(name)) {
+      addError(errors, counter, {
+        row: 1,
+        field: 'header',
+        message: `Unsupported column "${name}". Use the employee CSV template.`,
+      });
+      continue;
+    }
+    if (seenHeaders.has(name)) {
+      addError(errors, counter, {
+        row: 1,
+        field: 'header',
+        message: `Duplicate column for "${name}". Use each employee field once.`,
+      });
+    }
+    seenHeaders.add(name);
+  }
+
+  for (const name of EMPLOYEE_CSV_HEADERS) {
+    if (seenHeaders.has(name)) continue;
     addError(errors, counter, {
       row: 1,
       field: 'header',
-      message: `Header must exactly equal: ${EMPLOYEE_CSV_HEADERS.join(',')}`,
+      message: `Missing required column "${name}".`,
     });
+  }
+  if (counter.value > 0) {
     return { totalRows: 0, rows: [], rowNumbers: [], errors, errorCount: counter.value };
   }
 
@@ -116,7 +145,7 @@ export function parseEmployeeCsv(csvText: string, now = new Date()): ParsedEmplo
     }
 
     const raw = Object.fromEntries(
-      EMPLOYEE_CSV_HEADERS.map((name, columnIndex) => [name, values[columnIndex] ?? '']),
+      normalizedHeader.map((name, columnIndex) => [name, values[columnIndex] ?? '']),
     );
     try {
       const employee = normalizeEmployeeInput(raw, now);

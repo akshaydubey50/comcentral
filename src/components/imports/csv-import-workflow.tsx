@@ -55,7 +55,7 @@ export function CsvImportWorkflow() {
       <PageHeader
         eyebrow="Data migration"
         title="Import employees from CSV"
-        description="Use the fixed ACME template to validate up to 10,000 new employee records before saving the entire batch."
+        description="Validate up to 10,000 new employee records before saving the entire batch. Columns may be in any order; employeeCode and salary are required."
         actions={
           <Button
             variant="outlined"
@@ -132,7 +132,7 @@ export function CsvImportWorkflow() {
                   <FileSpreadsheet size={26} color="#0b625e" aria-hidden />
                   <Box>
                     <Typography component="h2" variant="h3">
-                      Choose a completed template
+                      Choose an employee CSV
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       CSV only · maximum 2 MB · maximum 10,000 rows
@@ -158,6 +158,12 @@ export function CsvImportWorkflow() {
                   />
                 </Button>
               </Stack>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                Use the template field names, or fullName for name, jobTitle for
+                jobRole, and hireDate for joiningDate. Include each field once.
+                Salary must be annual base pay in major currency units. An id
+                column does not replace employeeCode.
+              </Typography>
               {csv.fileName && (
                 <Alert severity={csv.fileError ? "error" : "info"} sx={{ mt: 2 }}>
                   {csv.fileError ?? (csv.reading ? "Reading " + csv.fileName + "…" : csv.fileName + " is ready to validate.")}
@@ -260,7 +266,7 @@ export function CsvImportWorkflow() {
           {!previewData && !csv.csvText && (
             <EmptyState
               title="No CSV selected"
-              description="Download the template, enter employee details without changing its headers, and return here to validate the file."
+              description="Download the template and fill every required field, including employee code and annual salary, then choose the file to validate it."
             />
           )}
         </>
