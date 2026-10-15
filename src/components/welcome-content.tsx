@@ -1,42 +1,14 @@
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Chip,
-  Container,
-  Stack,
-  Typography,
-} from '@mui/material';
-import {
-  Building2,
-  ChartNoAxesCombined,
-  FileCheck2,
-  History,
-  SearchCheck,
-} from 'lucide-react';
+import { Button } from '@mui/material';
+import Link from 'next/link';
+import { ArrowDown, ArrowRight, Building2, ChartNoAxesCombined, FileCheck2, History, SearchCheck } from 'lucide-react';
+
+import styles from './welcome-content.module.css';
 
 const capabilities = [
-  {
-    icon: <SearchCheck aria-hidden />,
-    title: 'Keep the directory useful',
-    description: 'Create, update, archive, restore, filter, and export employee records from one workspace.',
-  },
-  {
-    icon: <FileCheck2 aria-hidden />,
-    title: 'Review CSV migrations',
-    description: 'Validate a CSV, inspect row-level issues, and confirm the reviewed file before records are imported.',
-  },
-  {
-    icon: <History aria-hidden />,
-    title: 'Keep salary decisions traceable',
-    description: 'Record each salary change with its reason, previous amount, new amount, author, and date. Revisit the history on the employee record.',
-  },
-  {
-    icon: <ChartNoAxesCombined aria-hidden />,
-    title: 'Understand current pay',
-    description: 'Compare headcount, pay ranges, and tenure groups in native currencies, with dated approximate USD reporting when FX data is available.',
-  },
+  { id: 'directory', icon: <SearchCheck aria-hidden />, label: 'PEOPLE', title: 'Keep the directory useful', description: 'Create, update, archive, restore, filter, and export employee records from one workspace.', detail: 'A clear view of the people behind the numbers.' },
+  { id: 'csv-import', icon: <FileCheck2 aria-hidden />, label: 'MIGRATION', title: 'Review CSV migrations', description: 'Validate a CSV, inspect row-level issues, and confirm the reviewed file before records are imported.', detail: 'Review first. Import with confidence.' },
+  { id: 'salary-history', icon: <History aria-hidden />, label: 'HISTORY', title: 'Keep salary decisions traceable', description: 'Record each salary change with its reason, previous amount, new amount, author, and date. Revisit the history on the employee record.', detail: 'The amount changes. The context stays.' },
+  { id: 'reporting', icon: <ChartNoAxesCombined aria-hidden />, label: 'PERSPECTIVE', title: 'Understand current pay', description: 'Compare headcount, pay ranges, and tenure groups in native currencies, with dated approximate USD reporting when FX data is available.', detail: 'See the bigger picture. Keep the exact figures.' },
 ] as const;
 
 const steps = [
@@ -45,109 +17,126 @@ const steps = [
   { title: 'Maintain and understand pay', description: 'Find employees, record salary changes, and explore reports for the population you select.' },
 ] as const;
 
-/** Public product content shared by the anonymous home and the permanent welcome route. */
+/** A navigable explanation of the product, without invented employee data or metrics. */
+function WorkspaceMap() {
+  return (
+    <aside className={styles.workspaceMap} aria-labelledby="workspace-map-title">
+      <div className={styles.mapHeading}>
+        <span className={styles.eyebrow}>THE CONNECTED RECORD</span>
+        <span className={styles.mapMark} aria-hidden>CC</span>
+      </div>
+      <p id="workspace-map-title" className={styles.mapTitle}>Every number has a story.</p>
+      <nav aria-label="Explore workspace tools">
+        <a href="#directory" className={styles.mapLink} aria-labelledby="directory-link-label" aria-describedby="directory-link-description">
+          <span className={styles.mapIcon}><SearchCheck aria-hidden /></span>
+          <span><strong id="directory-link-label">Employee directory</strong><small id="directory-link-description">The person, role, and place</small></span>
+          <ArrowRight size={18} aria-hidden />
+        </a>
+        <div className={styles.connector} aria-hidden><span />Record the change</div>
+        <a href="#salary-history" className={`${styles.mapLink} ${styles.historyLink}`} aria-labelledby="history-link-label" aria-describedby="history-link-description">
+          <span className={styles.mapIcon}><History aria-hidden /></span>
+          <span><strong id="history-link-label">Salary history</strong><small id="history-link-description">The amount, reason, and author</small></span>
+          <ArrowRight size={18} aria-hidden />
+        </a>
+        <div className={styles.connector} aria-hidden><span />See the context</div>
+        <a href="#reporting" className={styles.mapLink} aria-labelledby="insights-link-label" aria-describedby="insights-link-description">
+          <span className={styles.mapIcon}><ChartNoAxesCombined aria-hidden /></span>
+          <span><strong id="insights-link-label">Pay insights</strong><small id="insights-link-description">The groups, ranges, and patterns</small></span>
+          <ArrowRight size={18} aria-hidden />
+        </a>
+      </nav>
+      <p className={styles.mapCaption}>Explore how the workspace fits together <ArrowDown size={14} aria-hidden /></p>
+    </aside>
+  );
+}
+
+/** Shared public presentation for anonymous home and the permanent welcome route. */
 export function WelcomeContent() {
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+    <div className={styles.page}>
       <Button component="a" className="skip-link" href="#home-content">Skip to content</Button>
-      <Box sx={{
-        position: 'relative',
-        color: 'white',
-        bgcolor: 'primary.dark',
-      }}>
-        <Container maxWidth="lg" sx={{ position: 'relative', py: { xs: 3, md: 4 } }}>
-          <Stack component="header" direction="row" alignItems="center" justifyContent="space-between">
-            <Stack direction="row" alignItems="center" gap={1.25}>
-              <Box sx={{ display: 'grid', placeItems: 'center', width: 40, height: 40, borderRadius: 1.5, bgcolor: 'white', color: 'primary.dark' }}>
-                <Building2 size={22} aria-hidden />
-              </Box>
-              <Box>
-                <Typography fontWeight={800} lineHeight={1.1}>ComCentral</Typography>
-                <Typography variant="caption" sx={{ color: '#c5dad7' }}>HR workspace</Typography>
-              </Box>
-            </Stack>
-            <Stack component="nav" aria-label="Home navigation" direction="row" gap={{ xs: .5, sm: 1 }}>
-              <Button component="a" href="#features" color="inherit" sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>Features</Button>
-              <Button component="a" href="#how-it-works" color="inherit" sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>How it works</Button>
-              <Button component="a" href="/login" color="inherit" variant="outlined" sx={{ borderColor: 'rgba(255,255,255,.55)' }}>Sign in</Button>
-            </Stack>
-          </Stack>
-        </Container>
-      </Box>
-      <Box component="main" id="home-content" tabIndex={-1}>
-        <Box sx={{ bgcolor: 'primary.dark', color: 'white' }}>
-          <Container maxWidth="lg">
-          <Box component="section" aria-labelledby="home-title" sx={{ maxWidth: 820, py: { xs: 6, sm: 8, md: 10 } }}>
-            <Chip label="Built for day-to-day HR operations" sx={{ mb: 2.5, color: 'white', bgcolor: 'rgba(255,255,255,.12)', border: '1px solid rgba(255,255,255,.18)' }} />
-            <Typography component="h1" id="home-title" sx={{ fontSize: 'clamp(2.4rem, 7vw, 4.8rem)', lineHeight: 1.05, fontWeight: 760, letterSpacing: '-.055em', maxWidth: 820 }}>
-              HR records and pay context in one workspace.
-            </Typography>
-            <Typography sx={{ mt: 3, maxWidth: 650, color: '#d9e8e5', fontSize: { xs: '1.05rem', sm: '1.2rem' }, lineHeight: 1.65 }}>
-              Maintain employee details, review salary history, migrate records from CSV, and examine current compensation without losing the underlying figures.
-            </Typography>
-            <Stack component="nav" aria-label="Get started" direction={{ xs: 'column', sm: 'row' }} gap={1.5} sx={{ mt: 4, alignItems: { xs: 'stretch', sm: 'center' } }}>
-              <Button component="a" href="/register" variant="contained" size="large" sx={{ bgcolor: 'white', color: 'primary.dark', '&:hover': { bgcolor: '#edf6f4' } }}>
-                Create account
-              </Button>
-              <Button component="a" href="/login" variant="outlined" size="large" sx={{ color: 'white', borderColor: 'rgba(255,255,255,.55)', '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,.08)' } }}>
-                Sign in
-              </Button>
-            </Stack>
-            <Typography variant="body2" sx={{ mt: 2, color: '#d9e8e5' }}>Create an HR account for immediate access to the shared workspace.</Typography>
-          </Box>
-          </Container>
-        </Box>
+      <header className={`${styles.container} ${styles.header}`}>
+        <Link href="/" aria-label="ComCentral home" className={styles.brand}>
+          <span className={styles.brandIcon}><Building2 size={23} aria-hidden /></span>
+          <span><strong>ComCentral</strong><small>People &amp; pay, connected.</small></span>
+        </Link>
+        <nav aria-label="Home navigation" className={styles.headerNav}>
+          <a href="#features">Features</a>
+          <a href="#how-it-works">How it works</a>
+          <Button component="a" href="/login" variant="outlined">Sign in</Button>
+        </nav>
+      </header>
 
-      <Container maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
-        <Box component="section" id="features" aria-labelledby="features-title" sx={{ scrollMarginTop: 24 }}>
-        <Stack spacing={1} sx={{ maxWidth: 650, mb: { xs: 3, md: 4 } }}>
-          <Typography variant="overline" color="primary.main" fontWeight={800}>What you can do</Typography>
-          <Typography component="h2" id="features-title" sx={{ fontSize: { xs: '1.75rem', md: '2.25rem' }, lineHeight: 1.15, fontWeight: 740, letterSpacing: '-.035em' }}>
-            Practical tools for employee and compensation work
-          </Typography>
-        </Stack>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 2 }}>
-          {capabilities.map((capability) => (
-            <Card key={capability.title} component="article" sx={{ height: '100%', bgcolor: 'background.paper' }}>
-              <CardContent sx={{ p: { xs: 2.5, sm: 3 }, '&:last-child': { pb: { xs: 2.5, sm: 3 } } }}>
-                <Box sx={{ display: 'grid', placeItems: 'center', width: 44, height: 44, borderRadius: 1.5, bgcolor: 'primary.light', color: 'primary.dark', mb: 2.5 }}>
-                  {capability.icon}
-                </Box>
-                <Typography component="h3" variant="h2">{capability.title}</Typography>
-                <Typography color="text.secondary" sx={{ mt: 1.25, lineHeight: 1.7 }}>{capability.description}</Typography>
-              </CardContent>
-            </Card>
-          ))}
-        </Box>
-        </Box>
+      <main id="home-content" tabIndex={-1}>
+        <section className={`${styles.container} ${styles.hero}`} aria-labelledby="home-title">
+          <div className={styles.heroCopy}>
+            <p className={styles.eyebrow}><span className={styles.accentLine} aria-hidden />YOUR PEOPLE. THE FULL PICTURE.</p>
+            <h1 id="home-title" className={styles.heroTitle}>Know your people. <span>Understand their pay.</span></h1>
+            <p className={styles.heroDescription}>Bring employee records, salary decisions, and reporting into a single, traceable workflow. A little less spreadsheet. A lot more context.</p>
+            <nav aria-label="Get started" className={styles.heroActions}>
+              <Button component="a" href="/register" variant="contained" size="large" endIcon={<ArrowRight size={18} aria-hidden />}>Create account</Button>
+              <Button component="a" href="#features" size="large" endIcon={<ArrowDown size={17} aria-hidden />}>Explore the workspace</Button>
+            </nav>
+            <p className={styles.accessNote}>Immediate access. One shared HR workspace.</p>
+          </div>
+          <WorkspaceMap />
+        </section>
 
-        <Box component="section" id="how-it-works" aria-labelledby="workflow-title" sx={{ mt: { xs: 6, md: 8 }, scrollMarginTop: 24 }}>
-          <Typography variant="overline" color="primary.main" fontWeight={800}>How it works</Typography>
-          <Typography component="h2" id="workflow-title" sx={{ fontSize: { xs: '1.75rem', md: '2.25rem' }, fontWeight: 740, letterSpacing: '-.035em' }}>From spreadsheet to daily HR work</Typography>
-          <Box component="ol" sx={{ listStyle: 'none', p: 0, mt: 3, mb: 0, display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: { xs: 3, md: 4 } }}>
+        <section id="features" aria-labelledby="features-title" className={styles.features}>
+          <div className={styles.container}>
+            <div className={styles.sectionIntro}>
+              <p className={styles.eyebrow}>FOUR PARTS. ONE WORKSPACE.</p>
+              <h2 id="features-title">Practical tools for employee and compensation work</h2>
+              <p>Start with a reliable record. Keep the detail that makes it useful.</p>
+            </div>
+            <div>
+              {capabilities.map((capability, index) => (
+                <article id={capability.id} key={capability.id} className={styles.featureRow} aria-labelledby={`${capability.id}-title`}>
+                  <div className={styles.featureNumber} aria-hidden>0{index + 1}</div>
+                  <div className={styles.featureName}>
+                    <span className={styles.featureLabel}>{capability.icon}{capability.label}</span>
+                    <h3 id={`${capability.id}-title`}>{capability.title}</h3>
+                  </div>
+                  <div className={styles.featureDescription}>
+                    <p>{capability.description}</p>
+                    <p className={styles.featureDetail}>{capability.detail}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="how-it-works" aria-labelledby="workflow-title" className={`${styles.container} ${styles.workflow}`}>
+          <div className={styles.sectionIntro}>
+            <p className={styles.eyebrow}>A STRAIGHTFORWARD START</p>
+            <h2 id="workflow-title">From spreadsheet to daily HR work</h2>
+          </div>
+          <ol className={styles.steps}>
             {steps.map((step, index) => (
-              <Box component="li" key={step.title} sx={{ borderTop: '2px solid', borderColor: 'primary.main', pt: 2 }}>
-                <Typography aria-hidden variant="overline" color="primary.main" fontWeight={800}>0{index + 1}</Typography>
-                <Typography component="h3" variant="h2" sx={{ mt: .5 }}>{step.title}</Typography>
-                <Typography color="text.secondary" sx={{ mt: 1, lineHeight: 1.7 }}>{step.description}</Typography>
-              </Box>
+              <li key={step.title}>
+                <span className={styles.stepMarker} aria-hidden>{index + 1}</span>
+                <h3>{step.title}</h3>
+                <p>{step.description}</p>
+              </li>
             ))}
-          </Box>
-        </Box>
+          </ol>
+        </section>
 
-        <Box component="section" aria-labelledby="access-title" sx={{ mt: { xs: 6, md: 8 }, p: { xs: 3, sm: 4 }, borderRadius: 2, bgcolor: 'primary.light' }}>
-          <Typography component="h2" id="access-title" variant="h2">One shared HR workspace</Typography>
-          <Typography sx={{ mt: 1, maxWidth: 760, lineHeight: 1.7 }}>Every registered HR account can view and manage the same organization&apos;s employee and salary records. Registration opens the workspace immediately, with no invitation or approval step.</Typography>
-          <Button component="a" href="/register" variant="contained" sx={{ mt: 2.5 }}>Get started with ComCentral</Button>
-        </Box>
-      </Container>
-      </Box>
-      <Container component="footer" maxWidth="lg" sx={{ pb: 3 }}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ sm: 'center' }} justifyContent="space-between" gap={2} sx={{ pt: 3, borderTop: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="body2" color="text.secondary">ComCentral · Employee records and annual base pay</Typography>
-          <Button component="a" href="/login" variant="text">Open your workspace</Button>
-        </Stack>
-      </Container>
-    </Box>
+        <section aria-labelledby="access-title" className={`${styles.container} ${styles.accessSection}`}>
+          <div className={styles.accessContent}>
+            <p className={styles.eyebrow}>READY WHEN YOU ARE</p>
+            <h2 id="access-title">One shared HR workspace</h2>
+            <p>Every registered HR account can view and manage the same organization&apos;s employee and salary records. Registration opens the workspace immediately, with no invitation or approval step.</p>
+          </div>
+          <Button component="a" href="/register" variant="contained" size="large" endIcon={<ArrowRight size={18} aria-hidden />} sx={{ bgcolor: 'primary.light', color: 'primary.dark', '&:hover': { bgcolor: 'white' } }}>Get started with ComCentral</Button>
+        </section>
+      </main>
+
+      <footer className={`${styles.container} ${styles.footer}`}>
+        <div><strong>ComCentral</strong><p>Employee records. Annual base pay. Clear context.</p></div>
+        <Button component="a" href="/login" endIcon={<ArrowRight size={16} aria-hidden />}>Open your workspace</Button>
+      </footer>
+    </div>
   );
 }

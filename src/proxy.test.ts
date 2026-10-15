@@ -16,6 +16,7 @@ describe('document security policy', () => {
     expect(policy).toContain("script-src 'self' 'nonce-");
     expect(policy).toContain("'strict-dynamic'");
     expect(policy).toContain("style-src-attr 'unsafe-inline'");
+    expect(policy.split('; ').find((directive) => directive.startsWith('style-src '))).toMatch(/^style-src 'self' 'nonce-[A-Za-z0-9+/=]+'$/);
     expect(policy).toContain("frame-ancestors 'none'");
     expect(policy).toContain('upgrade-insecure-requests');
     expect(policy).not.toContain('unsafe-eval');
@@ -27,11 +28,16 @@ describe('document security policy', () => {
     expect(policy).toContain(`'nonce-${nonce}'`);
   });
 
-  it('limits development eval/websocket allowances to development and keeps local HTTP usable', () => {
+  it('allows development toolbar styles, eval and websockets while keeping scripts nonce-bound', () => {
     vi.stubEnv('NODE_ENV', 'development');
     const policy = proxy(new NextRequest('http://localhost:3000/login')).headers.get('content-security-policy')!;
     expect(policy).toContain("'unsafe-eval'");
     expect(policy).toContain('ws: wss:');
+    expect(policy.split('; ').find((directive) => directive.startsWith('style-src '))).toBe("style-src 'self' 'unsafe-inline'");
+    const scripts = policy.split('; ').find((directive) => directive.startsWith('script-src '));
+    expect(scripts).toContain("script-src 'self' 'nonce-");
+    expect(scripts).toContain("'strict-dynamic'");
+    expect(scripts).not.toContain('unsafe-inline');
     expect(policy).not.toContain('upgrade-insecure-requests');
   });
 });

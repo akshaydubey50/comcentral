@@ -4,14 +4,30 @@ The homepage helps an HR visitor understand ComCentral and choose Create account
 
 ## Layout and content
 
-1. **Header:** ComCentral identity, Features and How it works anchors, and Sign in. On narrow screens, keep identity and Sign in; the sections remain in the normal reading order.
-2. **Introduction:** a single clear heading about employee records and pay context, a short description, prominent Create account and secondary Sign in actions. Explain immediate shared-workspace access.
-3. **Capabilities:** employee maintenance and filtered export; CSV validation and confirmation; salary changes with reason/author/date/history; native-currency pay and tenure reporting with conditional dated USD conversion.
+1. **Header:** linked ComCentral identity, Features and How it works anchors, and Sign in. All links stay visible on phones; navigation wraps below the identity.
+2. **Introduction:** "Know your people. Understand their pay." pairs a direct sans-serif heading with an italic serif phrase. Create account leads to registration; Explore the workspace scrolls to capabilities. A connected-record illustration links employee directory, salary history and pay insights to their explanatory sections. It uses concepts, not fabricated application data.
+3. **Capabilities:** four numbered editorial rows explain employee maintenance and filtered export; CSV validation and confirmation; salary changes with reason/author/date/history; native-currency pay and tenure reporting with conditional dated USD conversion.
 4. **Workflow:** create an HR account, add or import employee records, then maintain pay and inspect reports. Three ordered steps describe actual actions without presenting a fabricated dashboard.
 5. **Access explanation:** all HR accounts share the same organization's records. Registration requires no invitation or approval. A final registration action follows this explanation.
 6. **Footer:** product identity and workspace entry for returning users.
 
-Use the existing teal, warm background, typography and Material UI controls. Feature content is two columns from tablet width and one column on phones; workflow steps become three columns on desktop. Keep readable body text, 44px action targets, semantic heading/landmark order, a keyboard skip link and visible focus. Verify at 320, 768 and 1280px.
+Use the existing teal and warm paper palette with restrained copper accents, dotted record paper, connecting lines and an offset paper shadow. These details express ComCentral's record/history/reporting workflow. The desktop hero has two columns; tablet and phone layouts stack it. Feature rows align number, heading and explanation on desktop, with explanations below headings on phones. Workflow steps become three columns on desktop. Scoped CSS keeps presentation separate from application theme and interaction logic; Material UI retains the account controls.
+
+Keep readable body text, 44px action targets, semantic heading/landmark order, a keyboard skip link and visible focus. Honor the existing reduced-motion preference. Verify at 320, 768 and 1280px. The custom layout and copy were authored for ComCentral; the PayScope comparison informed feature analysis, not a copied page or asset.
+
+## Link contract
+
+| Control | Destination |
+|---|---|
+| Skip to content | `#home-content`, focusing the main landmark |
+| ComCentral identity | `/`, preserving session-aware home behavior |
+| Features / Explore the workspace | `#features` |
+| How it works | `#how-it-works` |
+| Employee directory / Salary history / Pay insights | `#directory` / `#salary-history` / `#reporting` |
+| Create account / Get started with ComCentral | `/register` |
+| Sign in / Open your workspace | `/login`; an existing authenticated session returns to `/` |
+
+Browser acceptance follows every control to its destination and checks the resulting heading or section, rather than treating an href assertion alone as successful navigation.
 
 ## Routing and states
 

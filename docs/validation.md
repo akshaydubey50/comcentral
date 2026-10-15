@@ -47,6 +47,20 @@ The clean release snapshot `2a7e3d4` passed every local gate: 207 unit/component
 | Deployed software | Not deployed |
 | Demo video | Script prepared; recording pending verified runtime |
 
+## Welcome refinement checkpoint, 2026-10-15 (F09/S02/V02)
+
+Verification used the isolated release checkout at committed baseline `3bac573` plus exactly six owned welcome/policy source and test files. The active employee/import/shared-contract/schema changes in the main working tree were excluded; this result is not acceptance of those uncommitted changes.
+
+- Normal Prisma generation and Turbopack production build passed.
+- All **43/43 production Chromium journeys passed in 1.7 minutes**, including 13 welcome scenarios that follow every rendered control, section anchors, anonymous/signed-in entry and keyboard skip navigation. The full suite also covers real registration, CSV persistence, employee archive/restore, salary audit/conflicts, reporting and production CSP.
+- Actual welcome screenshots at 320px, 768px and 1280px were visually inspected. There was no horizontal page overflow, and all visible actions measured at least 44px high.
+- Seven focused presentation/session/policy cases passed in 23.77s. The development style-policy regression failed before the fix and passed afterward. Independent frontend and backend-policy reviews found no blocking defect; suggested explicit development nonce assertions were added.
+- The final full local unit attempt produced **211 passes and seven five-second timeouts across 31 files in 638.85s**. Loading modules consumed 315.96s. Failed cases were in employee cards (two), CSV workflow, pay summary, welcome presentation and two session-shell files. A supported isolated single-worker thread retry was stopped after both employee-card cases timed out again. Neither attempt is a complete unit pass; no assertion was removed and no timeout was raised.
+- Host free memory fell below 1 GiB during the failures. Owned development/verification servers were stopped to free resources; unrelated apps/processes were preserved. Resource contention is observed, but the exact cause of every timeout is not proved. A clean CI run remains required.
+- Explicit full TypeScript passed; full ESLint is currently running. Commit and remote CI references will be added after those actions complete.
+
+The first shared-tree development browser attempt also exposed style-policy violations from Next DevTools' unnonced inline styles. Its five failures are superseded for production behavior by the 43/43 built-app pass. After the development-only fix, three of five shared-tree journeys passed and two hit timing/focus failures while other source edits appeared. Those partial runs are not reported as full passes. The isolated built result retains production script/style nonces and does not close S02's deployed HTTPS/cookie requirement.
+
 ## CSV compatibility checkpoint, 2026-10-15 (B01/F08/C02)
 
 Implementation commit: `18b14dd` (`fix(csv): support reordered headers and explicit field aliases`). Tests ran in the shared working tree while unrelated welcome-page work continued separately; this evidence verifies the CSV slice and is not a fresh release qualification of those concurrent changes.

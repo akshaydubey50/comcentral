@@ -8,7 +8,8 @@ export function proxy(request: NextRequest) {
   const policy = [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${development ? " 'unsafe-eval'" : ''}`,
-    `style-src 'self' 'nonce-${nonce}'`,
+    // Next DevTools injects unnonced styles; production keeps nonce-only elements.
+    `style-src 'self' ${development ? "'unsafe-inline'" : `'nonce-${nonce}'`}`,
     // MUI positioning/transitions and React style props require style attributes.
     "style-src-attr 'unsafe-inline'",
     "img-src 'self' data: blob:", "font-src 'self'", "object-src 'none'",

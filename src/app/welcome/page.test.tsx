@@ -7,7 +7,7 @@ describe('WelcomePage', () => {
   it('describes implemented capabilities without requiring application data', () => {
     render(<WelcomePage />);
 
-    expect(screen.getByRole('heading', { level: 1, name: 'HR records and pay context in one workspace.' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Know your people. Understand their pay.' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Keep the directory useful' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Review CSV migrations' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Keep salary decisions traceable' })).toBeInTheDocument();
@@ -22,7 +22,8 @@ describe('WelcomePage', () => {
 
     const actions = within(screen.getByRole('navigation', { name: 'Get started' }));
     expect(actions.getByRole('link', { name: 'Create account' })).toHaveAttribute('href', '/register');
-    expect(actions.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login');
+    expect(actions.getByRole('link', { name: 'Explore the workspace' })).toHaveAttribute('href', '#features');
+    expect(within(screen.getByRole('navigation', { name: 'Home navigation' })).getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login');
     expect(screen.getByRole('link', { name: 'Open your workspace' })).toHaveAttribute('href', '/login');
     expect(metadata.title).toBe('Welcome to ComCentral');
   });
