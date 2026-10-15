@@ -12,7 +12,7 @@ Use Node.js 24 and npm. From Git Bash:
 
 ```bash
 cd /d/akshay/comcentral
-npm install
+npm ci
 test -f .env || cp .env.example .env
 ```
 
@@ -26,7 +26,7 @@ COMCENTRAL_SEED_TARGET=demo COMCENTRAL_SEED_DATABASE_ACK=comcentral_demo npm run
 npm run dev
 ```
 
-For that seed command, DATABASE_URL must name `comcentral_demo`; change the acknowledgment to the exact name of your dedicated database ending `_demo`. Seeding refuses production mode, missing acknowledgment and unrelated populated targets. Count checks and insertion run under one transaction and table lock; subsequent normal demo imports remain allowed. A repeat seed refuses a changed population instead of deleting records. Open http://localhost:3000 and sign in or create an account at /register. Use synthetic data only.
+For that seed command, DATABASE_URL must name `comcentral_demo`; change the acknowledgment to the exact name of your dedicated database ending `_demo`. Seeding refuses production mode, missing acknowledgment and unrelated populated targets. Count checks and insertion run under one transaction and table lock; subsequent normal demo imports remain allowed. A repeat seed refuses a changed population instead of deleting records. Open http://localhost:3000/welcome for the product introduction, or sign in at /login and create an account at /register. The existing / dashboard and employee deep links remain unchanged. Use synthetic data only.
 
 ## Verification
 
@@ -39,6 +39,8 @@ npm run build
 
 Unit/component tests run offline. Database tests require an isolated TEST_DATABASE_URL and a separate empty SEED_TEST_DATABASE_URL (both ending `_test`, migrated with `npm run db:migrate`): `npm run test:integration`. Neither may target the application database. Browser journeys need a locally running application backed by a local `_test` database, E2E_EMAIL and E2E_PASSWORD; install Chromium with `npx playwright install chromium`, then run `npm run test:e2e`. Enable the real signup case with E2E_ALLOW_REGISTRATION=true. Never use real employee data in tests.
 
+On a memory-constrained machine, run `npm test -- --maxWorkers=1 --no-file-parallelism` and avoid simultaneous builds/browser suites. The assertion timeouts remain unchanged. After building, `npm run test:production` checks bounded database readiness and stops its own temporary server; supply isolated `DATABASE_URL` and `BETTER_AUTH_SECRET` through the process environment. `npm run test:benchmark` checks benchmark target guards and statistics offline. Workload execution requires separately acknowledged local test databases; see [performance](docs/performance.md).
+
 ## Product and engineering artifacts
 
 - [One-page requirements](docs/requirements.pdf) / [Markdown](docs/requirements.md)
@@ -48,5 +50,6 @@ Unit/component tests run offline. Database tests require an isolated TEST_DATABA
 - [Implementation plan](docs/implementation-plan.md) and [AI-use record](docs/ai-use.md)
 - [Full PayScope audit](docs/payscope-comparison.md), [original reference notes](docs/reference-review.md), and [audit checklist](tasks/todo.md)
 - [Deployment runbook](docs/deployment.md), [validation evidence](docs/validation.md), [demo script](docs/demo-script.md)
+- [Dependency review and version holds](docs/dependencies.md), [workload measurement](docs/performance.md)
 
 The requirements PDF is generated from its Markdown source with `python scripts/render-requirements.py` using the optional documentation tools ReportLab and PyMuPDF. The script checks that every paragraph is present, fits on one page, and stays inside the page bounds, then writes a preview to the operating system's temporary directory. These Python tools are not application runtime dependencies.

@@ -50,6 +50,8 @@ S03 (`d20c42f`, `a4b9c3b`): seven isolated PostgreSQL integration cases passed f
 
 F06/F08: all three additional built-browser cases passed in 8.3s. They verify CSV replacement invalidates the old preview, exact reviewed text/hash reaches commit, preview-error retry and pending/conflict recovery work, and mobile outlier reports retain cohort explanations, exact native values, filter context and a keyboard-operable employee link. Together with the earlier 14-case frontend/security run and real employee/registration journeys this closes the selected frontend accessibility/recovery acceptance. The final combined release gate remains V02.
 
+V02 dependency/setup checkpoint, 2026-10-15: `csv-parse` is pinned to 7.0.3 (`bca6038`) after primary-source advisory/changelog review. Four CSV domain tests and five isolated import integration tests passed after the upgrade. The remaining Prisma CLI/Studio and Vitest/tooling findings have explicit exposure/version-hold notes in [dependencies.md](dependencies.md); no zero-vulnerability claim is made. A fresh detached checkout was created for the release gate. Its first install was cancelled under severe host memory pressure (about 0.5 GiB free of 15.7 GiB); this is not a successful install result. The owned preview and development servers were stopped temporarily, and installation restarted from the lockfile using cached packages. Final clean-install/gate results will follow.
+
 ## Earlier verification checkpoints
 
 These dated records describe earlier snapshots. Pending work and limitations in this section are superseded by the current evidence above when a later result is recorded.
