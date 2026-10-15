@@ -1,10 +1,13 @@
-import { test, expect, type APIRequestContext } from '@playwright/test';
+import type { APIRequestContext } from '@playwright/test';
+import { test, expect } from './browser-fixture';
 import { randomUUID } from 'node:crypto';
 import { requireLocalBrowserTestTarget } from './test-target';
 
 const email = process.env.E2E_EMAIL;
 const password = process.env.E2E_PASSWORD;
 const origin = process.env.E2E_BASE_URL || 'http://localhost:3000';
+// These requests carry real test credentials/cookies; do not retain request artifacts.
+test.use({ trace: 'off', screenshot: 'off', video: 'off' });
 test.beforeAll(() => requireLocalBrowserTestTarget());
 
 async function signIn(request: APIRequestContext) {

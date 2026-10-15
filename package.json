@@ -17,6 +17,7 @@
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:e2e": "playwright test",
     "test:production": "node scripts/smoke-production.mjs",
+    "test:benchmark": "node --test scripts/benchmark-helpers.test.mjs",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
