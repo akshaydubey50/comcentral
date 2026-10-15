@@ -1,7 +1,8 @@
 import {
-  Box, Card, CardContent, Table, TableBody, TableCell, TableContainer, TableHead,
-  TableRow, Typography,
+  Accordion, AccordionDetails, AccordionSummary, Box, Card, CardContent, Table,
+  TableBody, TableCell, TableContainer, TableHead, TableRow, Typography,
 } from '@mui/material';
+import { ChevronDown } from 'lucide-react';
 
 import { formatCurrency, formatDate } from '@/lib/formatters';
 import type { Insights } from '@/shared/contracts';
@@ -20,7 +21,7 @@ export function TenureSection({ insights }: { insights: Insights }) {
       <Box sx={{ mb: 1.5 }}>
         <Typography id="tenure-title" component="h2" variant="h2">Pay by tenure</Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          Completed calendar years at {formatDate(insights.asOf)} UTC. Buckets: under 1 year, 1–under 3, 3–under 5, 5–under 10, and 10+ years.
+          Completed calendar years at {formatDate(insights.asOf)} UTC. Buckets: under 1 year, 1-under 3, 3-under 5, 5-under 10, and 10+ years.
         </Typography>
       </Box>
       {approximateUsd && !hasUsableFx ? (
@@ -29,7 +30,7 @@ export function TenureSection({ insights }: { insights: Insights }) {
         <Card><CardContent><Typography role="status">No tenure data is available for this filtered population.</Typography></CardContent></Card>
       ) : (
         <>
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', xl: currencies.length > 1 ? 'repeat(2, minmax(0, 1fr))' : '1fr' }, gap: 2 }}>
+          <Box sx={{ display: 'grid', gap: 2 }}>
             {currencies.map((currency) => {
               const buckets = insights.tenure.filter((bucket) => bucket.currency === currency);
               const headcountItems = buckets.map<HorizontalBarItem>((bucket) => ({
@@ -44,15 +45,17 @@ export function TenureSection({ insights }: { insights: Insights }) {
                 visualValue: decimalStringToVisualValue(bucket.median),
                 displayValue: formatCurrency(bucket.median, bucket.currency),
               }));
-              const headcountLabel = `${currency} headcount by tenure chart. ${headcountItems.map((item) => `${item.label}: ${item.displayValue} ${item.visualValue === 1 ? 'person' : 'people'}`).join('; ')}.`;
-              const medianLabel = `${currency} median annual pay by tenure chart. ${medianItems.map((item) => `${item.label}: ${item.displayValue}`).join('; ')}.`;
+              const headcountLabel = currency + ' headcount by tenure chart. '
+                + headcountItems.map((item) => item.label + ': ' + item.displayValue + ' ' + (item.visualValue === 1 ? 'person' : 'people')).join('; ') + '.';
+              const medianLabel = currency + ' median annual pay by tenure chart. '
+                + medianItems.map((item) => item.label + ': ' + item.displayValue).join('; ') + '.';
 
               return (
                 <Card key={currency} sx={{ minWidth: 0 }}>
                   <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
                     <Typography component="h3" variant="h3">{approximateUsd ? 'Approximate USD tenure' : currency + ' tenure'}</Typography>
                     {approximateUsd && insights.fx.rateDate && <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.75 }}>Rate date: {formatDate(insights.fx.rateDate)}</Typography>}
-                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }, gap: 3, mt: 2.5 }}>
+                    <Box sx={{ display: 'grid', gap: 3, mt: 2.5 }}>
                       <Box sx={{ minWidth: 0 }}>
                         <Typography component="h4" variant="subtitle2" sx={{ mb: 1.5 }}>Headcount</Typography>
                         <HorizontalBarChart ariaLabel={headcountLabel} items={headcountItems} />
@@ -68,22 +71,29 @@ export function TenureSection({ insights }: { insights: Insights }) {
             })}
           </Box>
           <Card sx={{ overflow: 'hidden', mt: 2 }}>
-            <TableContainer className="data-table-wrap">
-              <Table aria-label={approximateUsd ? 'Approximate USD pay by tenure bucket' : 'Pay by tenure bucket'} sx={{ minWidth: 720 }}>
-                <TableHead><TableRow><TableCell>Tenure</TableCell><TableCell>Currency</TableCell><TableCell align="right">People</TableCell><TableCell align="right">Average</TableCell><TableCell align="right">Median</TableCell></TableRow></TableHead>
-                <TableBody>
-                  {insights.tenure.map((bucket) => (
-                    <TableRow key={bucket.bucket + '-' + bucket.currency}>
-                      <TableCell component="th" scope="row" sx={{ fontWeight: 700 }}>{bucket.bucket}</TableCell>
-                      <TableCell>{bucket.currency}</TableCell>
-                      <TableCell align="right">{bucket.count.toLocaleString()}</TableCell>
-                      <TableCell align="right">{formatCurrency(bucket.average, bucket.currency)}</TableCell>
-                      <TableCell align="right">{formatCurrency(bucket.median, bucket.currency)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+            <Accordion disableGutters elevation={0} slotProps={{ transition: { unmountOnExit: true } }} sx={{ '&:before': { display: 'none' } }}>
+              <AccordionSummary expandIcon={<ChevronDown size={18} />}>
+                <Typography fontWeight={700}>Show exact tenure data</Typography>
+              </AccordionSummary>
+              <AccordionDetails sx={{ p: 0 }}>
+                <TableContainer className="data-table-wrap">
+                  <Table aria-label={approximateUsd ? 'Approximate USD pay by tenure bucket' : 'Pay by tenure bucket'} sx={{ minWidth: 720 }}>
+                    <TableHead><TableRow><TableCell>Tenure</TableCell><TableCell>Currency</TableCell><TableCell align="right">People</TableCell><TableCell align="right">Average</TableCell><TableCell align="right">Median</TableCell></TableRow></TableHead>
+                    <TableBody>
+                      {insights.tenure.map((bucket) => (
+                        <TableRow key={bucket.bucket + '-' + bucket.currency}>
+                          <TableCell component="th" scope="row" sx={{ fontWeight: 700 }}>{bucket.bucket}</TableCell>
+                          <TableCell>{bucket.currency}</TableCell>
+                          <TableCell align="right">{bucket.count.toLocaleString()}</TableCell>
+                          <TableCell align="right">{formatCurrency(bucket.average, bucket.currency)}</TableCell>
+                          <TableCell align="right">{formatCurrency(bucket.median, bucket.currency)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </AccordionDetails>
+            </Accordion>
           </Card>
         </>
       )}

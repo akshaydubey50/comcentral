@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
+import '../../../tests/chart-resize-observer';
 
 import type { Insights } from '@/shared/contracts';
 import { GroupSection, SummarySection } from './summary-sections';
@@ -18,16 +19,17 @@ const insights: Insights = {
 };
 
 describe('Grouped pay statistics', () => {
-  it('shows the complete salary range alongside the average and quartiles', () => {
+  it('explains an all-pending population without an empty chart or exact table', () => {
+    render(<GroupSection insights={{ ...insights, salaryPendingCount: 2, groups: [] }} />);
+    expect(screen.getByRole('status')).toHaveTextContent('No recorded salaries');
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+  it('keeps the exact headcount alternative behind an accessible disclosure', () => {
     render(<GroupSection insights={insights} />);
-    const table = screen.getByRole('table', { name: 'Salary statistics by department' });
-    expect(within(table).getByRole('columnheader', { name: 'Minimum' })).toBeInTheDocument();
-    expect(within(table).getByRole('columnheader', { name: 'Maximum' })).toBeInTheDocument();
-    const row = within(table).getByRole('row', { name: /Engineering/ });
-    expect(within(row).getByText('USD 60,000.00')).toBeInTheDocument();
-    expect(within(row).getByText('USD 100,000.00')).toBeInTheDocument();
-    expect(within(row).getByText('USD 70,000.00')).toBeInTheDocument();
-    expect(within(row).getByText('USD 90,000.00')).toBeInTheDocument();
+    expect(screen.queryByRole('table', { name: 'Headcount by department' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Show exact department headcount' }));
+    expect(screen.getByRole('table', { name: 'Headcount by department' })).toBeInTheDocument();
   });
 
   it('shows exact filtered headcounts aggregated across currency rows', () => {
@@ -54,8 +56,9 @@ describe('Grouped pay statistics', () => {
     expect(screen.getByRole('img', {
       name: 'Headcount by department chart. Engineering: 5 people; People: 1 person.',
     })).toBeInTheDocument();
-    expect(screen.getByText('6 matching people across 2 departments. Currency rows are combined in these counts.')).toBeInTheDocument();
+    expect(screen.getByText(/6 matching people across 2 departments/)).toHaveTextContent('Native currency rows are combined only for these headcounts.');
 
+    fireEvent.click(screen.getByRole('button', { name: 'Show exact department headcount' }));
     const headcountTable = screen.getByRole('table', { name: 'Headcount by department' });
     const engineering = within(headcountTable).getByRole('row', { name: 'Engineering 5' });
     const people = within(headcountTable).getByRole('row', { name: 'People 1' });
@@ -65,6 +68,16 @@ describe('Grouped pay statistics', () => {
 });
 
 describe('Pay summary charts', () => {
+  it('retains exact population statistics separately from the grouped ranges', () => {
+    render(<SummarySection insights={{ ...insights, summaries: [insights.groups[0]] }} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Show exact USD summary' }));
+    const summary = screen.getByRole('table', { name: 'USD population salary statistics' });
+    for (const label of ['Minimum', 'Maximum', 'Average', 'Median', 'P25', 'P75']) {
+      expect(within(summary).getByRole('columnheader', { name: label })).toBeInTheDocument();
+    }
+    expect(within(summary).getByText('USD 60,000.00')).toBeInTheDocument();
+    expect(within(summary).getByText('USD 100,000.00')).toBeInTheDocument();
+  });
   it('reports all-pending headcount and explains why pay statistics have no records', () => {
     render(<SummarySection insights={{ ...insights, headcount: 3, salaryPendingCount: 3, groups: [] }} />);
     expect(screen.getByText('3 employees have salary pending.')).toBeInTheDocument();
@@ -72,7 +85,7 @@ describe('Pay summary charts', () => {
     expect(screen.getByText(/no recorded salaries match these filters/i)).toBeInTheDocument();
   });
 
-  it('keeps native-currency statistics in separate labelled charts with exact text', () => {
+  it('keeps native annual commitments in separate currency cards with exact totals', () => {
     const nativeInsights: Insights = {
       ...insights,
       headcount: 3,
@@ -91,9 +104,14 @@ describe('Pay summary charts', () => {
 
     render(<SummarySection insights={nativeInsights} />);
 
-    expect(screen.getByRole('img', { name: /USD pay statistics chart/ })).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: /INR pay statistics chart/ })).toHaveAccessibleName(/INR 12,345,678,901,234,567,890\.12/);
+    expect(screen.getByRole('heading', { name: 'USD annual commitment' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'INR annual commitment' })).toBeInTheDocument();
+    expect(screen.getByText('USD 160,000.00')).toBeInTheDocument();
     expect(screen.getAllByText('INR 12,345,678,901,234,567,890.12').length).toBeGreaterThan(0);
+    const matching = screen.getByText('Matching employees').closest('.MuiCard-root')!;
+    const pending = screen.getByText('Salaries pending').closest('.MuiCard-root')!;
+    expect(within(matching as HTMLElement).getByText('3')).toBeInTheDocument();
+    expect(within(pending as HTMLElement).getByText('0')).toBeInTheDocument();
   });
 
   it('labels approximate USD statistics with their rate date', () => {
@@ -106,7 +124,7 @@ describe('Pay summary charts', () => {
 
     render(<SummarySection insights={usdInsights} />);
 
-    expect(screen.getByRole('heading', { name: 'Approximate USD salaries' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Approximate USD annual commitment' })).toBeInTheDocument();
     expect(screen.getByText('Rate date: 14 Oct 2026')).toBeInTheDocument();
   });
 });

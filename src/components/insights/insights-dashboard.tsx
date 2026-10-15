@@ -15,11 +15,13 @@ import { EmployeeFilterBar } from '@/components/employees/employee-filters';
 import { api } from '@/lib/api-client';
 import { formatDate, formatDateTime } from '@/lib/formatters';
 import { parseInsightsQuery } from '@/lib/query-state';
-import type { CurrencyMode, EmployeeFilters, GroupBy, InsightsQuery } from '@/shared/contracts';
-import { DistributionSection, TenureSection } from './distribution-sections';
+import type { Currency, CurrencyMode, EmployeeFilters, GroupBy, InsightsQuery } from '@/shared/contracts';
+import { DistributionSection } from './distribution-sections';
 import { OutlierSection } from './outlier-section';
+import { PayRangeChart } from './pay-range-chart';
 import { GroupSection, SummarySection } from './summary-sections';
 import { DataReadiness } from './data-readiness';
+import { TenureSection } from './tenure-section';
 
 function FxPanel({
   mode,
@@ -70,6 +72,7 @@ function InsightsDashboardContent() {
   const search = useSearchParams();
   const query = useMemo<InsightsQuery>(() => parseInsightsQuery(search), [search]);
   const [draftFilters, setDraftFilters] = useState<EmployeeFilters>(query);
+  const [nativeCurrency, setNativeCurrency] = useState<Currency | ''>('');
 
 
   const insights = useQuery({ queryKey: ['insights', query], queryFn: () => api.insights(query), retry: false });
@@ -90,6 +93,16 @@ function InsightsDashboardContent() {
 
   const mode = query.currencyMode ?? 'NATIVE';
   const groupBy = query.groupBy ?? 'country';
+  const nativeCurrencies = [...new Set(insights.data?.summaries.map((summary) => summary.currency) ?? [])];
+  const chartCurrency = nativeCurrencies.includes(nativeCurrency as Currency)
+    ? nativeCurrency : nativeCurrencies.includes('USD') ? 'USD' : nativeCurrencies[0] ?? '';
+  // Keep readiness and headcount on the full filter population; only pay charts select a currency.
+  const chartInsights = insights.data && mode === 'NATIVE' ? {
+    ...insights.data,
+    groups: insights.data.groups.filter((group) => group.currency === chartCurrency),
+    bands: insights.data.bands.filter((band) => band.currency === chartCurrency),
+    tenure: insights.data.tenure.filter((bucket) => bucket.currency === chartCurrency),
+  } : insights.data;
   const activeFilters = ['q', 'country', 'department', 'jobRole', 'employmentType', 'salaryStatus']
     .filter((key) => Boolean(query[key as keyof InsightsQuery])).length;
   const populationLabel = query.status === 'ARCHIVED'
@@ -117,6 +130,14 @@ function InsightsDashboardContent() {
                 <ToggleButton value="NATIVE">Native currencies</ToggleButton>
                 <ToggleButton value="USD">Approximate USD</ToggleButton>
               </ToggleButtonGroup>
+              {mode === 'NATIVE' && nativeCurrencies.length > 0 && (
+                <FormControl sx={{ minWidth: 170 }}>
+                  <InputLabel id="chart-currency-label">Chart currency</InputLabel>
+                  <Select labelId="chart-currency-label" label="Chart currency" value={chartCurrency} onChange={(event) => setNativeCurrency(event.target.value as Currency)}>
+                    {nativeCurrencies.map((currency) => <MenuItem key={currency} value={currency}>{currency}</MenuItem>)}
+                  </Select>
+                </FormControl>
+              )}
               <FormControl sx={{ minWidth: 190 }}>
                 <InputLabel id="group-by-label">Group results by</InputLabel>
                 <Select labelId="group-by-label" label="Group results by" value={groupBy} onChange={(event) => navigate({ groupBy: event.target.value as GroupBy })}>
@@ -163,6 +184,7 @@ function InsightsDashboardContent() {
         insights.isError ? <ErrorState message="We could not load pay insights. Please try again." onRetry={() => insights.refetch()} /> :
         insights.data && (
           <>
+            {insights.data.headcount > 0 && <SummarySection insights={insights.data} />}
             <DataReadiness insights={insights.data} filters={query} />
             <FxPanel mode={mode} status={insights.data.fx} refreshing={refreshFx.isPending} onRefresh={() => refreshFx.mutate()} />
             {refreshFx.isError && <Alert severity="error" role="alert">The rate refresh failed. The last good snapshot is preserved; the status above shows whether it remains usable.</Alert>}
@@ -173,12 +195,14 @@ function InsightsDashboardContent() {
               <EmptyState title="No employees match these filters" description="Clear one or more report filters to widen the matching population." />
             ) : (
               <>
-                <SummarySection insights={insights.data} />
                 {insights.data.reportingAvailable && (
                   <>
+                    <PayRangeChart insights={chartInsights!} />
                     <GroupSection insights={insights.data} />
-                    <DistributionSection insights={insights.data} />
-                    <TenureSection insights={insights.data} />
+                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0, 1fr)', lg: 'repeat(2, minmax(0, 1fr))' }, gap: 3.5, alignItems: 'start' }}>
+                      <DistributionSection insights={chartInsights!} />
+                      <TenureSection insights={chartInsights!} />
+                    </Box>
                   </>
                 )}
                 <OutlierSection insights={insights.data} />

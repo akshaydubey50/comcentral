@@ -1,8 +1,10 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+import '../../../tests/chart-resize-observer';
 
 import type { Insights } from '@/shared/contracts';
-import { DistributionSection, TenureSection } from './distribution-sections';
+import { DistributionSection } from './distribution-sections';
+import { TenureSection } from './tenure-section';
 
 const insights: Insights = {
   headcount: 3,
@@ -39,6 +41,8 @@ describe('Salary distribution charts', () => {
     expect(screen.getByLabelText(/USD salary distribution chart/).getAttribute('aria-label')).toMatch(/USD 50,000\+: 0 people/);
     expect(screen.getByLabelText(/INR salary distribution chart/)).toBeInTheDocument();
 
+    expect(screen.queryByRole('table', { name: 'USD salary bands' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Show exact USD salary bands' }));
     const usdTable = screen.getByLabelText('USD salary bands');
     expect(within(usdTable).getByText('USD 0.00')).toBeInTheDocument();
     expect(within(usdTable).getAllByText('USD 50,000.00')).toHaveLength(2);
@@ -57,6 +61,7 @@ describe('Salary distribution charts', () => {
 
     expect(screen.getByRole('heading', { name: 'Approximate USD ranges' })).toBeInTheDocument();
     expect(screen.getByText('Rate date: 14 Oct 2026')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Show exact approximate USD salary bands' }));
     expect(screen.getByRole('table', { name: 'Approximate USD salary bands' })).toBeInTheDocument();
 
     rerender(<DistributionSection insights={{ ...approximateUsd, reportingAvailable: false, fx: { ...approximateUsd.fx, state: 'STALE' } }} />);
@@ -104,6 +109,8 @@ describe('Tenure charts', () => {
     expect(screen.getByLabelText(/USD headcount by tenure chart/).getAttribute('aria-label')).toMatch(/1–under 3 years: 1 person/);
     expect(screen.getByLabelText(/USD median annual pay by tenure chart/).getAttribute('aria-label')).toMatch(/USD 12,345,678,901,234,567,890\.12/);
 
+    expect(screen.queryByRole('table', { name: 'Pay by tenure bucket' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Show exact tenure data' }));
     const table = screen.getByLabelText('Pay by tenure bucket');
     expect(within(table).getAllByText('1–under 3 years').length).toBeGreaterThan(0);
     expect(within(table).getAllByText('USD 12,345,678,901,234,567,890.12')).toHaveLength(2);
