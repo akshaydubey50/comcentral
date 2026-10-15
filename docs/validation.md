@@ -2,6 +2,8 @@
 
 ## Salary-pending CSV checkpoint, 2026-10-15 (B01/B02/B03/B04/F08/C02)
 
+Implementation commit: `1b4e1a5` (`feat(csv): persist salary-pending imports and assign first salary`). The owned disposable PostgreSQL container and private connection-state files were removed after verification; the prepared CSV delivery files are retained.
+
 Current CSV slice: source id mapping, optional imported salary, FR/BR/BRL/INTERN coverage and initial salary audit are implemented and locally verified. The applied configured-database migration is verified separately below. Tests ran in the shared working tree while unrelated welcome/policy/deployment work continued; this is CSV evidence, not qualification of every concurrent change or a hosted deployment. The preceding alias-only checkpoint `18b14dd` is historical and superseded for the approved draft behavior.
 
 | Execution | Actual result |
