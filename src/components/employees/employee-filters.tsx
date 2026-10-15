@@ -44,8 +44,8 @@ export function EmployeeFilterBar({
       </Stack>
       <Stack direction="row" gap={1.25} flexWrap="wrap">
         <FormControl sx={{ minWidth: 160, flex: { xs: '1 1 150px', md: '0 0 190px' } }}>
-          <InputLabel id="salary-status-filter-label">Salary status</InputLabel>
-          <Select labelId="salary-status-filter-label" label="Salary status" value={filters.salaryStatus ?? ''} onChange={(event) => onChange({ ...filters, salaryStatus: event.target.value as EmployeeFilters['salaryStatus'] || undefined })}>
+          <InputLabel id="salary-status-filter-label" shrink>Salary status</InputLabel>
+          <Select displayEmpty labelId="salary-status-filter-label" label="Salary status" value={filters.salaryStatus ?? ''} onChange={(event) => onChange({ ...filters, salaryStatus: event.target.value as EmployeeFilters['salaryStatus'] || undefined })}>
             <MenuItem value="">All salaries</MenuItem>
             <MenuItem value="PENDING">Salary pending</MenuItem>
             <MenuItem value="RECORDED">Salary recorded</MenuItem>

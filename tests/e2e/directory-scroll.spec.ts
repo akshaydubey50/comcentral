@@ -59,7 +59,9 @@ for (const width of [1024, 1440]) {
     await page.keyboard.press('Tab');
     await expect(table.getByRole('button', { name: 'Edit employee details for Scroll Employee 25', exact: true })).toBeFocused();
     await page.keyboard.press('Tab');
-    await expect(page.getByRole('combobox', { name: 'Rows per page', exact: true })).toBeFocused();
+    // MUI includes the selected value in the select's accessible name.
+    await expect(page.getByRole('combobox', { name: /^Rows per page\b/ })).toBeFocused();
+    await page.screenshot({ path: testInfo.outputPath(`directory-scrolled-${width}.png`), fullPage: true });
     await page.getByRole('button', { name: 'Next', exact: true }).click();
     await expect(page).toHaveURL(/page=2/);
     await expect(table.getByRole('row')).toHaveCount(2);
