@@ -294,6 +294,8 @@ Estimated scope: M: 3-5 files.
 - [x] Existing dashboard URLs, session redirects and deep links remain valid; moving / requires a separate explicit decision.
 - [x] No unsupported production/security claims, real employee data or fabricated customer statistics appear.
 
+Follow-up approved 2026-10-15: make the public introduction the normal signed-out `/` entry while preserving the authenticated overview. Expand navigation, salary-history explanation, workflow and shared-access copy according to [homepage-design.md](../docs/homepage-design.md). Implementation is in review; the earlier `/welcome` acceptance remains complete, and root-route browser verification is pending.
+
 Verification: Verify public/signed-in navigation and mobile/keyboard layout against the actual app; update scope only if selected.
 
 ## P01: Measure the intended workload

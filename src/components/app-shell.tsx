@@ -12,6 +12,7 @@ import { BarChart3, Building2, LogOut, Menu, Upload, Users, X } from 'lucide-rea
 
 import { api } from '@/lib/api-client';
 import { ErrorState } from './feedback';
+import { WelcomeContent } from './welcome-content';
 
 const drawerWidth = 248;
 const navigation = [
@@ -77,9 +78,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
-    // A failed session request needs a retry; only a confirmed anonymous response redirects.
-    if (session.isSuccess && !session.data.user) router.replace('/login');
-  }, [router, session.data?.user, session.isSuccess]);
+    // Failed checks need a retry; only confirmed anonymous access to protected routes redirects.
+    if (session.isSuccess && !session.data.user && pathname !== '/') router.replace('/login');
+  }, [pathname, router, session.data?.user, session.isSuccess]);
 
   if (session.isLoading) {
     return <Stack sx={{ p: 4 }} spacing={2} aria-label="Loading workspace"><Skeleton width={180} height={42} /><Skeleton variant="rounded" height={420} /></Stack>;
@@ -88,6 +89,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     return <Box sx={{ maxWidth: 680, mx: 'auto', mt: 8, px: 2 }}><ErrorState message="We could not verify your session." onRetry={() => session.refetch()} /></Box>;
   }
   if (!session.data?.user) {
+    if (pathname === '/') return <WelcomeContent />;
     return <Typography role="status" sx={{ p: 4 }}>Taking you to sign in…</Typography>;
   }
 

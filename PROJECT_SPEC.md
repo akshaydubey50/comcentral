@@ -24,7 +24,7 @@ The current product has one shared organization and one HR access level. Public 
 | FR-10 | Use the app on phones and keyboards | Mobile employee cards, readable charts with exact-data alternatives, labelled inputs, focus management, 44px touch targets and usable loading/empty/error/recovery states | F02-F06 |
 | FR-11 | Understand the product before signing in | A concise public introduction with working login/register links; preserve existing dashboard/deep-link routes and accurately describe implemented capabilities | F09 |
 
-Search refinement and the public introduction are presentation improvements approved in the audit implementation request. They must preserve existing links and filter semantics. Select a separate public welcome route rather than moving the dashboard without a product reason.
+Search refinement and the public introduction are presentation improvements approved in the audit implementation request. Signed-out visitors see the product introduction at `/`; signed-in visitors retain the dashboard at `/`. The permanent `/welcome` route also serves the introduction. Other protected deep links retain their login gate. Explain employee records, salary history, CSV import, reporting, the three-step workflow and immediate shared HR access; keep all existing links and filter semantics. The [homepage design](docs/homepage-design.md) records the layout and content decisions.
 
 ## Engineering requirements
 

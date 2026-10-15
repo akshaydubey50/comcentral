@@ -2,14 +2,14 @@
 
 Checkpoints through 2026-10-15 with Node 24.18.1, Next.js 16.4.0, Prisma 7.10.0 and TypeScript 5.9.3.
 
-These results identify separate working-tree checkpoints. F01 resolved the salary-dialog timeout with a 125-test full-suite pass. The latest clean-checkout run had 179 passes and two AppShell timeouts; the focused correction now passes, but the combined current unit gate remains pending. Current five-character registration has real PostgreSQL and built-browser evidence. Older results remain in the historical sections and must not be added to overlapping current runs. Nothing is deployed yet.
+These results identify separate working-tree checkpoints. F01 resolved the salary-dialog timeout with a 125-test full-suite pass. The latest clean-checkout run at `a814f3a` had 200 passes and three employee-directory timeouts; all AppShell cases now pass. The directory's focused correction passes, but the combined current unit gate remains pending. Current five-character registration has real PostgreSQL and built-browser evidence. Older results remain in the historical sections and must not be added to overlapping current runs. Nothing is deployed yet.
 
 | Check | Current evidence |
 |---|---|
 | One-page requirements | 642 words after the approved audit usability/delivery additions; rendered one-page A4 PDF, text and page bounds checked against Markdown, and preview visually inspected |
 | Public registration | Implemented and verified: real signup persists credentials, establishes a session, opens the shared workspace, and supports logout/login |
 | Prisma generation/schema | Client generation and Prisma validate passed |
-| Unit/component tests | Clean checkout: 179 passed, 2 AppShell timeouts across 30 files in 258.64s. Focused correction passed 3/3; combined rerun pending. Earlier 143/144 and F01 125/125 results are historical |
+| Unit/component tests | Clean checkout at `a814f3a`: 200 passed, 3 employee-directory timeouts across 30 files in 208.32s. Focused directory correction passed 7/7 at the default timeout; combined rerun pending. AppShell cases now pass. Earlier counts are historical |
 | TypeScript | `npm run typecheck` passed, including after restoring the pre-existing generated Next.js type imports changed by the build |
 | Lint | Full ESLint check passed with no errors or warnings |
 | Production build | Clean-checkout default Turbopack build passed at `0b6e210`, including /login, /register and /welcome; nonce-bearing documents render dynamically |
@@ -60,7 +60,12 @@ F09/V02 built-browser rerun: all **31/31** Chromium journeys passed in **1.2 min
 
 V02 clean-checkout checkpoint, 2026-10-15: `npm ci --prefer-offline --no-audit --no-fund` completed, installing 668 packages from the lockfile. Prisma generation, full TypeScript and full ESLint passed. The first serial unit run at `caa4563` produced 179 passes and two AppShell timeouts across 30 files in 258.64s. An instrumented focused run of the same behavior passed 3/3; slow setup/collection and host memory pressure remained visible. The session tests now isolate third-party Drawer portal/transition work and use the sign-out button's accessible label (`0b6e210`), preserving the content, cache, retry and redirect assertions and the five-second limit. Independent review found no lost session coverage; real drawer behavior remains in browser tests. The changed focused file passed 3/3 in the clean checkout. A normal Turbopack production build at `0b6e210` then passed, including login, registration and welcome; the final combined unit/browser/database gates remain pending.
 
+V02 current unit follow-up: the serial release run at `a814f3a` passed 200/203 across 30 files in 208.32s. Three directory cases hit the unchanged five-second limit; AppShell and salary-dialog cases passed. The directory test now isolates its unused employee-form module (`3cab980`). All seven focused cases passed in 14.87s total, with the three previously timing-out scenarios at 1.10s, 1.42s and 1.72s. This focused result does not replace the combined gate.
+
+F09 root refinement: six focused presentation/session-gate cases passed in 16.78s after adding anonymous `/` entry, preserving authenticated `/`, and expanding navigation, capabilities, workflow and shared-access content. Targeted ESLint passed. A separate reviewer identified and corrected a session-loading race in the new keyboard browser scenario. The new root/layout built-browser check is pending; the prior 31/31 browser result covers the earlier `/welcome` implementation.
+
 ## Earlier verification checkpoints
+
 
 These dated records describe earlier snapshots. Pending work and limitations in this section are superseded by the current evidence above when a later result is recorded.
 

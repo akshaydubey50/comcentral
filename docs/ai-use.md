@@ -30,6 +30,12 @@ Current audit corrections: F01 timings separated MUI modal-shell cost from salar
 
 **Runtime acceptance:** the first combined browser run caught a welcome-page error that its unit test and production build had not detected: a function-valued Link component crossed the Server/Client Component boundary. The frontend worker changed the three entry links to native anchors without moving the page to the client (`3873b7c`). Coordinator inspection of the installed NextRequest implementation also explained why IP-based loopback origins failed strict mutation checks; only local test/benchmark configuration changed (`976872e`). The corrected combined browser run passed 31/31. These are examples of runtime evidence correcting generated implementation and environment assumptions, rather than treating a successful build as sufficient.
 
+## Homepage refinement and release harness, 2026-10-15
+
+**User request, summarized:** make the homepage the normal entry, think through its layout/content using the prior PayScope comparison, and continue the priority work. A bounded frontend worker implemented session-aware root presentation; the coordinator expanded product content, navigation, salary-history coverage, workflow and shared-access explanation. No reference code, fictional data or unverified production claims were added. Independent review found a keyboard test racing the session-loading state; it now waits for the actual public heading before testing focus. Six focused home/presentation checks and targeted lint passed; built-browser acceptance is recorded separately.
+
+The full release run at `a814f3a` passed 200/203 with three directory timeouts and all AppShell cases passing. The worker isolated the unrelated employee-form module in directory tests (`3cab980`) while preserving the real filter controls, seven behavioral cases, assertions and default timeout. The focused run passed 7/7 in 14.87s; this is bounded test-isolation evidence, not proof that all host resource sensitivity is removed. Full-suite evidence remains required.
+
 ## Earlier implementation and review history
 
 2026-10-14: User authorized parallel frontend/backend implementation. Coordinator applied agent-skills incremental-implementation and test-driven-development, plus coding-orchestrator routing. Shared contract established before workers. PayScope README used only to identify feature coverage; no source code copied. User confirmed validated CSV import and automatic daily FX. Agent outputs require integration checks.
