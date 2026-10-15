@@ -42,6 +42,8 @@ S01 (`1b1678b`), 2026-10-15: isolated registration plus session-boundary integra
 
 F08 (`04db88f`): CSV file-read/preview ownership and result tables are extracted. Four focused tests passed, including replacement invalidation, out-of-order reads, locked preview, and immutable reviewed content/hash at commit. Focused lint and TypeScript passed. Built-browser preview/confirm verification remains pending.
 
+S02/F06 local browser checkpoint, 2026-10-15: the corrected serial run passed all 14 frontend/security-policy cases in 2.6 minutes. It verifies fresh matching script nonces and rejection of parser-injected inline script, all three directory/chart widths, mobile drawer focus trap/restore, pending salary-save dismissal protection, salary conflict reload, session retry and options retry. Journey fixtures fail on unexpected CSP violations and unhandled browser exceptions. The same-drive snapshot passed `npm run build -- --webpack`; the webpack flag is required because default Turbopack refuses the external node_modules junction used by this isolated Windows snapshot. Nonce-based documents are dynamically rendered. Preview HTTPS/cookie checks remain pending; F06 still needs CSV/outlier coverage and S02 is not marked fully complete.
+
 ## Earlier verification checkpoints
 
 These dated records describe earlier snapshots. Pending work and limitations in this section are superseded by the current evidence above when a later result is recorded.

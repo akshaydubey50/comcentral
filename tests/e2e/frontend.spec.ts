@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './browser-fixture';
 import type { DirectoryOptions, Employee, Insights } from '../../src/shared/contracts';
 
 // Browser-only contract fixtures keep these UI journeys independent of database setup.
@@ -96,7 +96,7 @@ test('malformed directory URL uses valid defaults and required form choices can 
   await expect(page.getByRole('option', { name: 'United States' })).toBeVisible();
 });
 
-test('native reports show complete group statistics and missing FX withholds converted totals', async ({ page }, testInfo) => {
+test('native reports show complete group statistics and missing FX withholds converted totals', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Current annual commitments' })).toBeVisible();
   const table = page.getByRole('table', { name: 'Salary statistics by country' });
@@ -109,7 +109,6 @@ test('native reports show complete group statistics and missing FX withholds con
   await expect(page.getByRole('heading', { name: 'Current annual commitments' })).toHaveCount(0);
   await page.getByRole('button', { name: 'Native currencies', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Current annual commitments' })).toBeVisible();
-  await page.screenshot({ path: testInfo.outputPath('pay-overview.png'), fullPage: true });
 });
 
 test('salary conflicts require an explicit reload and fresh review before another submission', async ({ page }) => {
@@ -155,3 +154,97 @@ test('mobile navigation opens and closes while retaining a usable directory', as
   expect(errors).toEqual([]);
   await page.screenshot({ path: testInfo.outputPath('mobile-imports.png'), fullPage: true });
 });
+
+for (const width of [360, 768, 1280]) {
+  test(`employee directory preserves detail and sorting at ${width}px`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/employees');
+    const cards = page.getByRole('list', { name: 'Employee directory cards' });
+    if (width < 900) {
+      await expect(cards).toBeVisible();
+      await expect(cards.getByText('USD 60,000.00', { exact: true })).toBeVisible();
+      await expect(cards.getByText('Active', { exact: true })).toBeVisible();
+      await expect(page.getByRole('table')).toBeHidden();
+      const sort = page.getByRole('combobox', { name: 'Sort employees' });
+      const searchBounds = await page.getByRole('textbox', { name: 'Search employees' }).boundingBox();
+      const statusBounds = await page.getByRole('combobox', { name: 'Status' }).boundingBox();
+      expect(statusBounds!.y - (searchBounds!.y + searchBounds!.height)).toBeLessThan(40);
+      await sort.focus();
+      await page.keyboard.press('Enter');
+      await page.getByRole('option', { name: 'Annual salary', exact: true }).click();
+      await expect(page).toHaveURL(/sortBy=salary/);
+      const direction = page.getByRole('button', { name: 'Change sort direction to descending' });
+      await direction.focus();
+      await page.keyboard.press('Enter');
+      await expect(page).toHaveURL(/sortOrder=desc/);
+      const details = cards.getByRole('link', { name: `View employee details for ${employee.name}` });
+      const bounds = await details.boundingBox();
+      expect(bounds!.height).toBeGreaterThanOrEqual(44);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      await page.screenshot({ path: testInfo.outputPath(`employee-cards-${width}.png`), fullPage: true });
+      await details.focus();
+      await page.keyboard.press('Enter');
+    } else {
+      await expect(cards).toBeHidden();
+      await page.getByRole('table').getByRole('link', { name: employee.name }).click();
+    }
+    await expect(page).toHaveURL(/\/employees\/ui-employee$/);
+    await expect(page.getByRole('button', { name: 'Change salary', exact: true })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  });
+}
+
+
+test('mobile drawer traps keyboard focus and returns it after Escape', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 900 });
+  await page.goto('/employees');
+  const open = page.getByRole('button', { name: 'Open navigation' });
+  await open.focus();
+  await page.keyboard.press('Enter');
+  const close = page.getByRole('button', { name: 'Close navigation' });
+  await expect(close).toBeVisible();
+  await close.focus();
+  await page.keyboard.press('Shift+Tab');
+  await expect(page.getByRole('link', { name: 'CSV migration', exact: true })).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(close).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(close).toBeHidden();
+  await expect(open).toBeFocused();
+});
+
+test('a pending salary save stays visible and restores focus after completion', async ({ page }) => {
+  let finishSave!: () => void;
+  const saving = new Promise<void>((resolve) => { finishSave = resolve; });
+  await page.route('**/api/employees/ui-employee/salary', async (route) => {
+    await saving;
+    await route.fulfill({ json: { data: { ...employee, salary: '70000.00', version: 2 } } });
+  });
+  await page.goto('/employees/ui-employee');
+  const trigger = page.getByRole('button', { name: 'Change salary', exact: true });
+  await trigger.click();
+  const dialog = page.getByRole('dialog', { name: 'Change annual salary' });
+  await dialog.getByLabel('New annual base salary').fill('70000.00');
+  await dialog.getByLabel('Reason for change').fill('Annual review');
+  await dialog.getByRole('button', { name: 'Apply salary change' }).click();
+  await expect(dialog.getByRole('button', { name: 'Cancel', exact: true })).toBeDisabled();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeVisible();
+  finishSave();
+  await expect(dialog).toBeHidden();
+  await expect(trigger).toBeFocused();
+});
+
+for (const width of [360, 768, 1280]) {
+  test(`report charts retain exact tables without overflow at ${width}px`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/');
+    await expect(page.getByRole('img', { name: /Headcount by country chart/ })).toBeVisible();
+    await expect(page.getByRole('table', { name: 'Headcount by country', exact: true })).toBeVisible();
+    await expect(page.getByRole('img', { name: /USD pay statistics chart/ })).toBeVisible();
+    await expect(page.getByRole('table', { name: 'USD salary bands', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Pay by tenure', exact: true })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath(`reports-${width}.png`), fullPage: true });
+  });
+}

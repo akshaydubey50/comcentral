@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page } from './browser-fixture';
 
 const hr = { id: 'new-hr', name: 'Ada HR', email: 'ada@example.test' };
 

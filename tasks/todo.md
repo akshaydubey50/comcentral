@@ -173,8 +173,8 @@ Dependencies: Production build baseline; B07 where readiness is included.
 Likely files: next.config.ts; middleware/proxy only if required by installed Next guidance; browser checks; deployment docs.
 Estimated scope: M: 3-5 files.
 
-- [ ] A documented CSP strategy supports the installed Next/MUI rendering and approved resources without a blanket bypass.
-- [ ] Login, registration, dashboard, dialogs and charts render and function under the policy.
+- [x] A documented CSP strategy supports the installed Next/MUI rendering and approved resources without a blanket bypass.
+- [x] Login, registration, dashboard, dialogs and charts render and function under the policy.
 - [ ] Preview HTTPS responses verify intended headers and cookie protections; local-only evidence is labelled accurately.
 
 Verification: Read installed framework guidance during implementation; test built pages and inspect actual preview response headers/console.

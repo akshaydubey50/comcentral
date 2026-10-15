@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
-import { expect, test } from '@playwright/test';
+import { expect, test } from './browser-fixture';
 import { requireLocalBrowserTestTarget } from './test-target';
 
 // Explicit opt-in: this journey persists a user in the disposable application database.
