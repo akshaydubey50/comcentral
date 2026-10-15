@@ -53,6 +53,15 @@ function parseSeedDatabaseName(databaseUrl: string): string {
       'DATABASE_URL must be a valid PostgreSQL target for synthetic seeding',
     );
   }
+  // pg treats these exact keys as authority replacements (or a nested URL).
+  // TLS, schema, and options parameters do not select a different target.
+  for (const key of parsed.searchParams.keys()) {
+    if (key === 'host' || key === 'port' || key === 'connectionString') {
+      throw new SeedSafetyError(
+        'DATABASE_URL must not override its seed target through URL parameters',
+      );
+    }
+  }
 
   let databaseName: string;
   try {

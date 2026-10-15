@@ -1,6 +1,13 @@
 type BrowserTestEnvironment = Readonly<Record<string, string | undefined>>;
 
 const loopbackHosts = new Set(['localhost', '127.0.0.1', '[::1]']);
+// pg treats these exact keys as authority replacements (or a nested URL).
+// TLS, schema, and options parameters do not select a different target.
+const targetOverrideParameters = new Set(['host', 'port', 'connectionString']);
+
+function rejectsTargetOverrides(target: URL): boolean {
+  return [...target.searchParams.keys()].some((key) => targetOverrideParameters.has(key));
+}
 
 /** Real browser writes are supported only by a locally started app with a local test database. */
 export function requireLocalBrowserTestTarget(environment: BrowserTestEnvironment = process.env): void {
@@ -10,7 +17,7 @@ export function requireLocalBrowserTestTarget(environment: BrowserTestEnvironmen
     const database = new URL(environment.DATABASE_URL || '');
     for (const raw of [environment.DATABASE_URL, environment.DIRECT_URL].filter(Boolean)) {
       const target = new URL(raw!);
-      if (!['postgres:', 'postgresql:'].includes(target.protocol) || !loopbackHosts.has(target.hostname) || !decodeURIComponent(target.pathname).endsWith('_test')) throw new Error();
+      if (!['postgres:', 'postgresql:'].includes(target.protocol) || !loopbackHosts.has(target.hostname) || !decodeURIComponent(target.pathname).endsWith('_test') || rejectsTargetOverrides(target)) throw new Error();
       if (target.pathname !== database.pathname || (target.port || '5432') !== (database.port || '5432')) throw new Error();
     }
   } catch {

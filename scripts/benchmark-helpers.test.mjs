@@ -4,12 +4,40 @@ import test from 'node:test';
 import { isolatedBenchmarkTarget, summarizeSamples } from './benchmark-helpers.mjs';
 
 test('isolatedBenchmarkTarget accepts an acknowledged loopback test database', () => {
-  const url = 'postgresql://benchmark:private@127.0.0.1:5439/comcentral_benchmark_test';
+  const url = 'postgresql://benchmark:private@127.0.0.1:5439/comcentral_benchmark_test?sslmode=require&schema=public&options=-c%20search_path%3Dpublic';
   assert.equal(isolatedBenchmarkTarget({
     url,
     variableName: 'BENCHMARK_DATABASE_URL',
     confirmation: 'YES',
   }), url);
+  const encodedAuthorityUrl =
+    'postgresql://benchmark:private@%6cocalhost:5439/comcentral_benchmark_test';
+  assert.equal(isolatedBenchmarkTarget({
+    url: encodedAuthorityUrl,
+    variableName: 'BENCHMARK_DATABASE_URL',
+    confirmation: 'YES',
+  }), encodedAuthorityUrl);
+});
+
+test('isolatedBenchmarkTarget rejects parser target overrides including encoded and duplicate keys', () => {
+  const urls = [
+    'postgresql://benchmark:private@127.0.0.1/comcentral_test?host=remote.example',
+    'postgresql://benchmark:private@127.0.0.1/comcentral_test?%68ost=remote.example',
+    'postgresql://benchmark:private@127.0.0.1/comcentral_test?host=&host=remote.example',
+    'postgresql://benchmark:private@127.0.0.1/comcentral_test?port=6432',
+    'postgresql://benchmark:private@127.0.0.1/comcentral_test?%70ort=6432',
+    'postgresql://benchmark:private@127.0.0.1/comcentral_test?connectionString=postgresql%3A%2F%2Fremote.example%2Fproduction',
+  ];
+  for (const url of urls) {
+    assert.throws(
+      () => isolatedBenchmarkTarget({
+        url,
+        variableName: 'BENCHMARK_DATABASE_URL',
+        confirmation: 'YES',
+      }),
+      /must not override its target through URL parameters/,
+    );
+  }
 });
 
 test('isolatedBenchmarkTarget rejects unsafe or reused targets without exposing credentials', () => {
@@ -22,6 +50,11 @@ test('isolatedBenchmarkTarget rejects unsafe or reused targets without exposing 
       url: 'postgresql://benchmark:private-secret@localhost/comcentral_test',
       confirmation: 'YES',
       applicationUrls: ['postgresql://app:different-secret@127.0.0.1/comcentral_test'],
+    },
+    {
+      url: 'postgresql://benchmark:private-secret@localhost/comcentral_test',
+      confirmation: 'YES',
+      applicationUrls: ['postgresql://app:different-secret@%6cocalhost/comcentral_test'],
     },
   ];
   for (const input of cases) {

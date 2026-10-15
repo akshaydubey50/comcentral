@@ -26,6 +26,15 @@ function databaseIdentity(raw, variableName) {
   if (!['postgres:', 'postgresql:'].includes(parsed.protocol)) {
     throw new BenchmarkSafetyError(`${variableName} must use PostgreSQL`);
   }
+  // pg treats these exact keys as authority replacements (or a nested URL).
+  // TLS, schema, and options parameters do not select a different target.
+  for (const key of parsed.searchParams.keys()) {
+    if (key === 'host' || key === 'port' || key === 'connectionString') {
+      throw new BenchmarkSafetyError(
+        `${variableName} must not override its target through URL parameters`,
+      );
+    }
+  }
   let databaseName;
   try {
     databaseName = decodeURIComponent(parsed.pathname.replace(/^\//, ''));
@@ -35,8 +44,15 @@ function databaseIdentity(raw, variableName) {
   if (!parsed.hostname || !databaseName) {
     throw new BenchmarkSafetyError(`${variableName} must include a host and database name`);
   }
+  let hostname;
+  try {
+    // pg-connection-string decodes non-special PostgreSQL URL hostnames.
+    hostname = decodeURIComponent(parsed.hostname);
+  } catch {
+    throw new BenchmarkSafetyError(`${variableName} must include a valid host`);
+  }
   return {
-    host: normalizedHost(parsed.hostname),
+    host: normalizedHost(hostname),
     port: parsed.port || '5432',
     databaseName,
   };

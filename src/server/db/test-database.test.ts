@@ -58,6 +58,22 @@ describe('requireIsolatedTestDatabaseUrl', () => {
     );
   });
 
+  it.each([
+    'postgresql://localhost/payroll_test?host=remote.example',
+    'postgresql://localhost/payroll_test?%68ost=remote.example',
+    'postgresql://localhost/payroll_test?host=&host=remote.example',
+    'postgresql://localhost/payroll_test?port=6432',
+    'postgresql://localhost/payroll_test?%70ort=6432',
+    'postgresql://localhost/payroll_test?connectionString=postgresql%3A%2F%2Fremote.example%2Fproduction',
+  ])('rejects a test URL target override without echoing it: %s', (databaseUrl) => {
+    process.env.TEST_DATABASE_URL = databaseUrl;
+
+    expect(() => requireIsolatedTestDatabaseUrl()).toThrow(
+      'TEST_DATABASE_URL must not override its target through URL parameters',
+    );
+    expect(() => requireIsolatedTestDatabaseUrl()).not.toThrow(databaseUrl);
+  });
+
   it('requires a test suffix unless the target is explicitly disposable', () => {
     process.env.TEST_DATABASE_URL = 'postgresql://localhost/payroll';
 
@@ -90,7 +106,34 @@ describe('requireIsolatedTestDatabaseUrl', () => {
     process.env.DATABASE_URL =
       'postgresql://application:first@db.example.com:5432/payroll_test?schema=public&sslmode=require';
     process.env.TEST_DATABASE_URL =
-      'postgres://integration:second@DB.EXAMPLE.COM/payroll_test?schema=isolated&connect_timeout=5';
+      'postgres://integration:second@DB.EXAMPLE.COM/payroll_test?schema=isolated&connect_timeout=5&options=-c%20search_path%3Disolated';
+
+    expect(() => requireIsolatedTestDatabaseUrl()).toThrow(
+      'Refusing database tests: TEST_DATABASE_URL targets the application database',
+    );
+  });
+
+  it('rejects a target override in an application comparison URL', () => {
+    process.env.DATABASE_URL = 'postgresql://localhost/application?host=remote.example';
+    process.env.TEST_DATABASE_URL = 'postgresql://localhost/payroll_test';
+
+    expect(() => requireIsolatedTestDatabaseUrl()).toThrow(
+      'DATABASE_URL must not override its target through URL parameters',
+    );
+  });
+
+  it.each([
+    {
+      testUrl: 'postgresql://%6cocalhost/payroll_test',
+      applicationUrl: 'postgresql://localhost/payroll_test',
+    },
+    {
+      testUrl: 'postgresql://localhost/payroll_test',
+      applicationUrl: 'postgresql://%6cocalhost/payroll_test',
+    },
+  ])('decodes PostgreSQL authority hosts before comparing targets', ({ testUrl, applicationUrl }) => {
+    process.env.DATABASE_URL = applicationUrl;
+    process.env.TEST_DATABASE_URL = testUrl;
 
     expect(() => requireIsolatedTestDatabaseUrl()).toThrow(
       'Refusing database tests: TEST_DATABASE_URL targets the application database',

@@ -52,6 +52,20 @@ describe('requireSafeSeedDatabaseUrl', () => {
   });
 
   it.each([
+    'postgresql://localhost/comcentral_demo?host=remote.example',
+    'postgresql://localhost/comcentral_demo?%68ost=remote.example',
+    'postgresql://localhost/comcentral_demo?host=&host=remote.example',
+    'postgresql://localhost/comcentral_demo?port=6432',
+    'postgresql://localhost/comcentral_demo?%70ort=6432',
+    'postgresql://localhost/comcentral_demo?connectionString=postgresql%3A%2F%2Fremote.example%2Fproduction',
+  ])('rejects a seed target override without exposing it: %s', (databaseUrl) => {
+    expect(() => requireSafeSeedDatabaseUrl(seedEnvironment({ DATABASE_URL: databaseUrl }))).toThrow(
+      'DATABASE_URL must not override its seed target through URL parameters',
+    );
+    expect(() => requireSafeSeedDatabaseUrl(seedEnvironment({ DATABASE_URL: databaseUrl }))).not.toThrow(databaseUrl);
+  });
+
+  it.each([
     ['demo', 'comcentral_test'],
     ['test', 'comcentral_demo'],
     ['demo', 'comcentral'],
@@ -76,7 +90,7 @@ describe('requireSafeSeedDatabaseUrl', () => {
     ['demo', 'comcentral_demo'],
     ['test', 'comcentral_test'],
   ])('returns an explicitly acknowledged %s database URL', (target, databaseName) => {
-    const databaseUrl = `postgresql://seed-user:secret@localhost:5432/${databaseName}`;
+    const databaseUrl = `postgresql://seed-user:secret@localhost:5432/${databaseName}?sslmode=require&schema=public&options=-c%20search_path%3Dpublic`;
 
     expect(requireSafeSeedDatabaseUrl(seedEnvironment({
       DATABASE_URL: databaseUrl,
