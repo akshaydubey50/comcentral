@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ComponentProps } from 'react';
 
 const mocks = vi.hoisted(() => ({
   replace: vi.fn(),
@@ -13,6 +14,18 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: mocks.replace }),
 }));
 vi.mock('@/lib/api-client', () => ({ api: { session: mocks.session, signOut: mocks.signOut } }));
+
+// Session recovery owns the content gate and cache lifecycle, not MUI's drawer
+// portals/transitions. Real drawer focus and responsive behavior run in Playwright.
+vi.mock('@mui/material', async (importOriginal) => {
+  const material = await importOriginal<typeof import('@mui/material')>();
+  return {
+    ...material,
+    Drawer: ({ variant, open, children }: ComponentProps<typeof material.Drawer>) => (
+      variant === 'permanent' || open ? <aside>{children}</aside> : null
+    ),
+  };
+});
 
 import { AppShell } from './app-shell';
 
@@ -60,7 +73,7 @@ describe('AppShell session recovery', () => {
     client.setQueryData(['employee', 'private-record'], { name: 'Cached employee' });
     await screen.findByText('Employee workspace', { selector: 'h1' });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Sign out' }));
+    fireEvent.click(screen.getByLabelText('Sign out', { selector: 'button' }));
     expect(await screen.findByText('Sign out failed. Your session is still active.')).toBeInTheDocument();
     expect(mocks.replace).not.toHaveBeenCalled();
     expect(client.getQueryData(['employee', 'private-record'])).toBeDefined();
