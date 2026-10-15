@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import {
   Box,
   Button,
@@ -75,10 +74,10 @@ export default function WelcomePage() {
               Maintain employee details, review salary history, migrate records from CSV, and examine current compensation without losing the underlying figures.
             </Typography>
             <Stack direction={{ xs: 'column', sm: 'row' }} gap={1.5} sx={{ mt: 4, alignItems: { xs: 'stretch', sm: 'center' } }}>
-              <Button component={Link} href="/register" variant="contained" size="large" sx={{ bgcolor: 'white', color: 'primary.dark', '&:hover': { bgcolor: '#edf6f4' } }}>
+              <Button component="a" href="/register" variant="contained" size="large" sx={{ bgcolor: 'white', color: 'primary.dark', '&:hover': { bgcolor: '#edf6f4' } }}>
                 Create account
               </Button>
-              <Button component={Link} href="/login" variant="outlined" size="large" sx={{ color: 'white', borderColor: 'rgba(255,255,255,.55)', '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,.08)' } }}>
+              <Button component="a" href="/login" variant="outlined" size="large" sx={{ color: 'white', borderColor: 'rgba(255,255,255,.55)', '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,.08)' } }}>
                 Sign in
               </Button>
             </Stack>
@@ -112,7 +111,7 @@ export default function WelcomePage() {
             <History size={20} aria-hidden />
             <Typography color="text.secondary">Salary changes retain their reason and history for later review.</Typography>
           </Stack>
-          <Button component={Link} href="/login" variant="text">Open your workspace</Button>
+          <Button component="a" href="/login" variant="text">Open your workspace</Button>
         </Stack>
       </Container>
     </Box>
