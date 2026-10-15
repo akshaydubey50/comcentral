@@ -12,6 +12,13 @@ export function OutlierSection({ insights }: { insights: Insights }) {
   const evaluated = insights.outliers.cohorts.filter((cohort) => cohort.state === 'EVALUATED').length;
   const insufficient = insights.outliers.cohorts.filter((cohort) => cohort.state === 'INSUFFICIENT_DATA').length;
   const zeroSpread = insights.outliers.cohorts.filter((cohort) => cohort.state === 'ZERO_IQR').length;
+  const emptyReview = insights.headcount === 0
+    ? { title: 'No employees match these filters', description: 'Adjust the filters to choose an employee population for outlier review.' }
+    : insights.salaryPendingCount === insights.headcount
+      ? { title: 'No recorded salaries for outlier review', description: 'All matching employees have salary pending. Add recorded salaries before their cohorts can be evaluated.' }
+      : evaluated === 0
+        ? { title: 'No cohorts could be evaluated', description: 'The matching salary cohorts are below the minimum size or have zero spread. No outlier conclusion was made.' }
+        : { title: 'No salaries need outlier review', description: 'No employee falls strictly outside the IQR fences in the evaluated cohorts for these filters.' };
 
   return (
     <Box component="section" aria-labelledby="outlier-title">
@@ -34,7 +41,7 @@ export function OutlierSection({ insights }: { insights: Insights }) {
       </Stack>
       <Card sx={{ overflow: 'hidden' }}>
         {!insights.outliers.data.length ? (
-          <EmptyState title="No salaries need outlier review" description="No employee falls strictly outside the IQR fences in an eligible cohort for these filters." />
+          <EmptyState title={emptyReview.title} description={emptyReview.description} />
         ) : (
           <TableContainer className="data-table-wrap">
             <Table aria-label="Native salary outlier review" sx={{ minWidth: 1050 }}>

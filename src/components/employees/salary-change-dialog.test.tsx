@@ -68,7 +68,7 @@ describe('SalaryChangeDialog', () => {
     render(<QueryClientProvider client={client}><SalaryChangeDialog employee={draft} open onClose={onClose} /></QueryClientProvider>);
     const dialog = within(screen.getByRole('dialog', { name: /add annual salary/i }));
     expect(dialog.getByLabelText(/new annual base salary/i)).toHaveValue('');
-    expect(dialog.getByText('Salary pending')).toBeInTheDocument();
+    expect(dialog.getByText('Salary pending (BRL)')).toBeInTheDocument();
     fireEvent.change(dialog.getByLabelText(/new annual base salary/i), { target: { value: '12345.67' } });
     fireEvent.change(dialog.getByLabelText(/reason for change/i), { target: { value: 'Initial compensation confirmed' } });
     fireEvent.click(dialog.getByRole('button', { name: 'Add salary' }));

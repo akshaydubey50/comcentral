@@ -4,6 +4,7 @@ export type Currency = typeof CURRENCIES[number];
 export const EMPLOYMENT_TYPES = ['FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERN'] as const;
 export type EmploymentType = typeof EMPLOYMENT_TYPES[number];
 export type EmployeeStatus = 'ACTIVE' | 'ARCHIVED';
+export type SalaryStatus = 'PENDING' | 'RECORDED';
 export interface HrUser { id: string; name: string; email: string }
 export interface EmployeeInput {
   employeeCode: string; name: string; email: string; country: string;
@@ -24,6 +25,8 @@ export interface SalaryHistory {
 export interface EmployeeFilters {
   q?: string; country?: string; department?: string; jobRole?: string;
   employmentType?: EmploymentType; status?: EmployeeStatus | 'ALL';
+  /** Omitted includes all salaries; pending means null, never zero. */
+  salaryStatus?: SalaryStatus;
 }
 export type EmployeeSort = 'name' | 'employeeCode' | 'joiningDate' | 'salary' | 'updatedAt';
 export interface EmployeeQuery extends EmployeeFilters {

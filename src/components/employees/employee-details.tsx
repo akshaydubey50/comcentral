@@ -7,7 +7,7 @@ import {
   DialogTitle, Divider, Stack, Typography,
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Archive, ArrowLeft, Pencil, RotateCcw, WalletCards } from 'lucide-react';
+import { ArrowLeft, Pencil, RotateCcw, Trash2, WalletCards } from 'lucide-react';
 
 import { EmptyState, ErrorState, LoadingState } from '@/components/feedback';
 import { PageHeader } from '@/components/page-header';
@@ -109,6 +109,14 @@ export function EmployeeDetails({ id }: { id: string }) {
             <>
               <Button variant="outlined" startIcon={<Pencil size={18} />} onClick={() => setEditOpen(true)} disabled={!optionsReady}>Edit details</Button>
               <Button variant="contained" startIcon={<WalletCards size={18} />} onClick={() => setSalaryOpen(true)} disabled={archived}>{record.salary === null ? 'Add salary' : 'Change salary'}</Button>
+            <Button
+              color={archived ? 'primary' : 'error'}
+              variant="text"
+              startIcon={archived ? <RotateCcw size={18} aria-hidden /> : <Trash2 size={18} aria-hidden />}
+              onClick={openStatusDialog}
+            >
+              {archived ? 'Restore employee' : 'Delete employee'}
+            </Button>
             </>
           }
         />
@@ -157,14 +165,7 @@ export function EmployeeDetails({ id }: { id: string }) {
                 : 'Gross contractual commitment. Payroll, bonus, tax, and deductions are outside this view.'}
             </Typography>
             <Divider sx={{ my: 2.5 }} />
-            <Button
-              color={archived ? 'primary' : 'error'}
-              variant="text"
-              startIcon={archived ? <RotateCcw size={18} /> : <Archive size={18} />}
-              onClick={openStatusDialog}
-            >
-              {archived ? 'Restore employee' : 'Archive employee'}
-            </Button>
+
           </CardContent>
         </Card>
       </Box>
@@ -177,7 +178,7 @@ export function EmployeeDetails({ id }: { id: string }) {
       <EmployeeFormDialog open={editOpen} employee={record} options={options.data} onClose={() => setEditOpen(false)} />
       <SalaryChangeDialog open={salaryOpen} employee={record} onClose={() => setSalaryOpen(false)} />
       <Dialog open={statusIntent !== null} onClose={closeStatusDialog} aria-labelledby="employee-status-title">
-        <DialogTitle id="employee-status-title">{confirmingArchive ? 'Archive employee?' : 'Restore employee?'}</DialogTitle>
+        <DialogTitle id="employee-status-title">{confirmingArchive ? 'Delete employee?' : 'Restore employee?'}</DialogTitle>
         <DialogContent>
           <Stack spacing={2}>
             {statusChange.isError && (
@@ -200,13 +201,13 @@ export function EmployeeDetails({ id }: { id: string }) {
               </Alert>
             )}
             {reloadAfterStatusConflict.isError && <Alert severity="error" role="alert">The latest employee record could not be loaded. Cancel and try again.</Alert>}
-            <Typography>{confirmingArchive ? 'The employee will leave active reports, while their record and salary history remain available.' : 'The employee will return to the active directory and reporting.'}</Typography>
+            <Typography>{confirmingArchive ? 'Deleting archives this employee and removes them from the active directory and reports. Their record and salary history are kept, and you can restore them later.' : 'The employee will return to the active directory and reporting.'}</Typography>
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={closeStatusDialog} disabled={statusChange.isPending || reloadAfterStatusConflict.isPending}>Cancel</Button>
           <Button variant="contained" color={confirmingArchive ? 'error' : 'primary'} onClick={() => statusChange.mutate()} disabled={statusChange.isPending || reloadAfterStatusConflict.isPending || conflict}>
-            {statusChange.isPending ? 'Saving…' : confirmingArchive ? 'Archive' : 'Restore'}
+            {statusChange.isPending ? 'Saving…' : confirmingArchive ? 'Delete' : 'Restore'}
           </Button>
         </DialogActions>
       </Dialog>

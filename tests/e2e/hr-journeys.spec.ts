@@ -54,8 +54,9 @@ test('salary update is audited, stale edits fail, and cross-origin writes are bl
   expect(stale.status()).toBe(409);
   const history = await request.get('/api/employees/' + record.id + '/history');
   const entries = (await history.json()).data;
-  expect(entries).toHaveLength(1);
+  expect(entries).toHaveLength(2);
   expect(entries[0]).toMatchObject({ previousSalary: '80000.00', salary: '90000.00', reason: 'Annual salary review' });
+  expect(entries[1]).toMatchObject({ previousSalary: null, salary: '80000.00', reason: 'Initial salary recorded at employee creation' });
 
   const refreshed = (await (await request.get('/api/employees/' + record.id)).json()).data;
   const archived = await request.post('/api/employees/' + record.id + '/archive', {
@@ -63,7 +64,7 @@ test('salary update is audited, stale edits fail, and cross-origin writes are bl
   });
   expect((await archived.json()).data.status).toBe('ARCHIVED');
   const retained = await request.get('/api/employees/' + record.id + '/history');
-  expect((await retained.json()).data).toHaveLength(1);
+  expect((await retained.json()).data).toHaveLength(2);
 });
 
 test('invalid CSV import creates no employees', async ({ request }) => {

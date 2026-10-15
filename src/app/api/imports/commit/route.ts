@@ -18,7 +18,7 @@ export const POST = route(async (request: Request) => {
   const body = await readJson(request, MAX_IMPORT_REQUEST_BYTES);
   const input = importCommitBodySchema.parse(body);
   return Response.json(
-    { data: await commitImport(input.csvText, input.previewHash) },
+    { data: await commitImport(input.csvText, input.previewHash, actor) },
     { status: 201 },
   );
 });

@@ -18,6 +18,12 @@ import { requireIsolatedTestDatabaseUrl } from './test-database';
 
 const CLEAN_CODE_PREFIX = 'B02-CLEAN-';
 const CLEAN_EMAIL_PREFIX = 'b02-clean-';
+const INITIAL_CREATE_REASON = 'Initial salary recorded at employee creation';
+const creationActor: HrUser = {
+  id: `b02-creation-user-${randomUUID()}`,
+  name: 'B02 Creation Actor',
+  email: `b02-creation-${randomUUID()}@example.invalid`,
+};
 
 let prisma: PrismaClient;
 let initialized = false;
@@ -45,6 +51,7 @@ function employeeInput(testKey: string, overrides: Partial<EmployeeInput> = {}):
 async function removeDisposableFixtures(): Promise<void> {
   await prisma.employee.deleteMany({
     where: {
+      histories: { none: {} },
       OR: [
         { employeeCode: { startsWith: CLEAN_CODE_PREFIX } },
         { email: { startsWith: CLEAN_EMAIL_PREFIX } },
@@ -53,6 +60,7 @@ async function removeDisposableFixtures(): Promise<void> {
   });
   await prisma.user.deleteMany({
     where: {
+      salaryHistories: { none: {} },
       OR: [
         { id: { startsWith: 'b02-clean-' } },
         { email: { startsWith: CLEAN_EMAIL_PREFIX } },
@@ -68,6 +76,7 @@ describe.sequential('employee persistence', () => {
     prisma = createPrismaClient(testDatabaseUrl);
     initialized = true;
     await removeDisposableFixtures();
+    await prisma.user.create({ data: { ...creationActor, emailVerified: true } });
   });
 
   afterEach(async () => {
@@ -83,7 +92,7 @@ describe.sequential('employee persistence', () => {
 
   it('rejects a stale metadata write without replacing the committed update', async () => {
     const testKey = key();
-    const created = await createEmployee(employeeInput(testKey));
+    const created = await createEmployee(employeeInput(testKey), creationActor);
     const firstUpdate: EmployeeUpdate = {
       employeeCode: created.employeeCode,
       name: 'Committed Metadata',
@@ -111,6 +120,31 @@ describe.sequential('employee persistence', () => {
       currency: 'USD',
     });
     expect(stored.salary?.toFixed(2)).toBe('100000.00');
+    expect(await getSalaryHistory(created.id)).toEqual([
+      expect.objectContaining({
+        previousSalary: null,
+        previousCurrency: 'USD',
+        salary: '100000.00',
+        currency: 'USD',
+        reason: INITIAL_CREATE_REASON,
+        actor: creationActor,
+      }),
+    ]);
+  });
+
+  it('rolls back manual creation when its initial provenance cannot be recorded', async () => {
+    const testKey = key();
+    const input = employeeInput(testKey, {
+      employeeCode: `B02-ROLLBACK-${testKey}`,
+      email: `b02-rollback-${testKey}@example.invalid`,
+    });
+
+    await expect(createEmployee(input, {
+      ...creationActor,
+      id: `missing-b02-creation-user-${testKey}`,
+    })).rejects.toThrow();
+
+    expect(await prisma.employee.count({ where: { employeeCode: input.employeeCode } })).toBe(0);
   });
 
   it('preserves salary history through archive and restore and blocks archived salary changes', async () => {
@@ -127,7 +161,7 @@ describe.sequential('employee persistence', () => {
       ...employeeInput(testKey),
       employeeCode: `B02-HISTORY-${testKey}`,
       email: `b02-history-${testKey}@example.invalid`,
-    });
+    }, actor);
     const changed = await changeSalary(created.id, {
       salary: '110000.25',
       currency: 'USD',
@@ -138,6 +172,9 @@ describe.sequential('employee persistence', () => {
 
     const archived = await archiveEmployee(created.id, changed.version, true);
     expect(archived).toMatchObject({ status: 'ARCHIVED', version: changed.version + 1 });
+    expect((await listEmployees({ q: created.employeeCode })).pagination.total).toBe(0);
+    expect((await listEmployees({ q: created.employeeCode, status: 'ARCHIVED' })).data)
+      .toEqual([expect.objectContaining({ id: created.id, status: 'ARCHIVED' })]);
     await expect(changeSalary(created.id, {
       salary: '120000.25',
       currency: 'USD',
@@ -148,15 +185,24 @@ describe.sequential('employee persistence', () => {
 
     const restored = await archiveEmployee(created.id, archived.version, false);
     expect(restored).toMatchObject({ status: 'ACTIVE', version: archived.version + 1 });
+    expect((await listEmployees({ q: created.employeeCode })).data)
+      .toEqual([expect.objectContaining({ id: created.id, status: 'ACTIVE' })]);
     expect(await getSalaryHistory(created.id)).toEqual(historyBeforeArchive);
-    expect(historyBeforeArchive).toEqual([
+    expect(historyBeforeArchive).toHaveLength(2);
+    expect(historyBeforeArchive).toEqual(expect.arrayContaining([
       expect.objectContaining({
         previousSalary: '100000.00',
         salary: '110000.25',
         reason: 'B02 archive persistence',
         actor,
       }),
-    ]);
+      expect.objectContaining({
+        previousSalary: null,
+        salary: '100000.00',
+        reason: INITIAL_CREATE_REASON,
+        actor,
+      }),
+    ]));
   });
 
   it('keeps filtered tied pages stable and exports every match with exact safe cells', async () => {

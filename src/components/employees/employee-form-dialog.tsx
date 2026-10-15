@@ -99,20 +99,23 @@ function EmployeeFormContent({ open, employee, options, onClose, onSaved }: Empl
     },
   });
 
+  const versionConflict = save.error instanceof ApiClientError && save.error.code === 'VERSION_CONFLICT';
+  const duplicateEmployee = save.error instanceof ApiClientError && save.error.code === 'DUPLICATE_EMPLOYEE';
+  const busy = save.isPending || reloadLatest.isPending;
+  const errorMessage = duplicateEmployee
+    ? 'An employee already uses this code or work email. Use a unique value and try again.'
+    : save.error instanceof Error ? save.error.message : null;
+
   function close() {
+    if (busy) return;
     if (!dirty || window.confirm('Discard your unsaved employee changes?')) onClose();
   }
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (busy || versionConflict) return;
     save.mutate();
   }
-
-  const versionConflict = save.error instanceof ApiClientError && save.error.code === 'VERSION_CONFLICT';
-  const duplicateEmployee = save.error instanceof ApiClientError && save.error.code === 'DUPLICATE_EMPLOYEE';
-  const errorMessage = duplicateEmployee
-    ? 'An employee already uses this code or work email. Use a unique value and try again.'
-    : save.error instanceof Error ? save.error.message : null;
 
   return (
     <Dialog open={open} onClose={close} fullWidth maxWidth="md" aria-labelledby="employee-form-title">
@@ -169,8 +172,8 @@ function EmployeeFormContent({ open, employee, options, onClose, onSaved }: Empl
           </Stack>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={close}>Cancel</Button>
-          <Button type="submit" variant="contained" disabled={save.isPending || reloadLatest.isPending}>{save.isPending ? 'Saving…' : employee ? 'Save changes' : 'Add employee'}</Button>
+          <Button onClick={close} disabled={busy}>Cancel</Button>
+          <Button type="submit" variant="contained" disabled={busy || versionConflict}>{save.isPending ? 'Saving…' : employee ? 'Save changes' : 'Add employee'}</Button>
         </DialogActions>
       </Stack>
     </Dialog>

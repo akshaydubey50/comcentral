@@ -19,7 +19,8 @@ describe('formatCurrency', () => {
 
 describe('formatSalary', () => {
   it('distinguishes pending compensation from a numerical amount', () => {
-    expect(formatSalary(null, 'BRL')).toBe('Salary pending');
+    expect(formatSalary(null, 'BRL')).toBe('Salary pending (BRL)');
+    expect(formatSalary(null, 'EUR')).toBe('Salary pending (EUR)');
     expect(formatSalary('12345.67', 'BRL')).toBe('BRL 12,345.67');
   });
 });

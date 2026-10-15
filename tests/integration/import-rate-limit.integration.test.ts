@@ -132,6 +132,11 @@ describe.sequential('durable authenticated import admission limits', () => {
     expect(Number(denied.headers.get('retry-after'))).toBeLessThanOrEqual(60);
     expect(mocks.previewImport).toHaveBeenCalledTimes(3);
     expect(mocks.commitImport).toHaveBeenCalledTimes(3);
+    expect(mocks.commitImport).toHaveBeenCalledWith(
+      validCommitBody.csvText,
+      validCommitBody.previewHash,
+      { id: mocks.userId, name: 'Limit Tester', email: 's03@example.invalid' },
+    );
 
     await previewPost(request('still not JSON', '192.0.2.25', true));
     const deniedRow = await prisma.rateLimit.findUniqueOrThrow({ where: { key: admittedRow.key } });

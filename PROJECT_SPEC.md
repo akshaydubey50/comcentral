@@ -10,10 +10,12 @@ The current product has one shared organization and one HR access level. Public 
 
 ## Requirements and acceptance
 
+Dashboard follow-up F10, approved 2026-10-15: explain full-population recorded/pending salary coverage, actual FX state and outlier-evaluation coverage. Matching/recorded/pending employee links preserve applied filters. An optional salary-status filter has consistent list, report and export semantics. Empty populations and unavailable USD conversion remain explicit. This slice adds no salary writes; budget simulation and saved report snapshots remain later candidates.
+
 | ID | User outcome | Acceptance boundary | Audit tasks |
 |---|---|---|---|
 | FR-01 | Register, sign in and sign out | Name/work email/password/confirmation; normalized identity, raw 5-128-character password, independent reveal controls; duplicate/invalid writes create no partial account; confirm the session before entering the workspace | V01, S01 |
-| FR-02 | Find and maintain employees | Server pagination and stable sorting; URL-backed search/filters; create/edit/detail; archive/restore; unique employee code and email; salary changes use their dedicated flow | B02, F02, F07 |
+| FR-02 | Find and maintain employees | Server pagination and stable sorting; visible First/Previous/Next/Last with disabled boundaries; URL-backed search/filters retained across pages; Apply/Enter resets page one, Clear removes filters, selected choices stay visible while loading, and stale pages recover without losing criteria; create/edit/detail; archive/restore; unique employee code and email; salary changes use their dedicated flow | B02, F02, F07 |
 | FR-03 | Change salary with evidence | First assignment or change uses exact amount/currency; reason, actor, timestamp and before/after history in one transaction; previousSalary is null for first assignment; immutable history; reject archived/stale edits; preserve drafts until an explicit reload | F01, B02 |
 | FR-04 | Migrate a spreadsheet safely | Canonical CSV template; reordered fields with id/employeeCode, fullName/name, jobTitle/jobRole and hireDate/joiningDate aliases; omitted/blank salary saves a pending employee, never invented pay; include FR, BR/BRL and INTERN; reject missing required, unknown or duplicate fields; row errors, 2 MiB/10,000-row limits; preview/revalidate/insert atomically; no salary overwrite through import | B01, F08 |
 | FR-05 | Export the matching directory | All matching rows, documented ordering and native amounts; exact decimal strings; spreadsheet-formula protection; failures are observable | B02, P02 |

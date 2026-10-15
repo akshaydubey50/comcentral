@@ -19,6 +19,7 @@ import type { CurrencyMode, EmployeeFilters, GroupBy, InsightsQuery } from '@/sh
 import { DistributionSection, TenureSection } from './distribution-sections';
 import { OutlierSection } from './outlier-section';
 import { GroupSection, SummarySection } from './summary-sections';
+import { DataReadiness } from './data-readiness';
 
 function FxPanel({
   mode,
@@ -89,7 +90,7 @@ function InsightsDashboardContent() {
 
   const mode = query.currencyMode ?? 'NATIVE';
   const groupBy = query.groupBy ?? 'country';
-  const activeFilters = ['q', 'country', 'department', 'jobRole', 'employmentType']
+  const activeFilters = ['q', 'country', 'department', 'jobRole', 'employmentType', 'salaryStatus']
     .filter((key) => Boolean(query[key as keyof InsightsQuery])).length;
   const populationLabel = query.status === 'ARCHIVED'
     ? 'Archived employees'
@@ -125,6 +126,21 @@ function InsightsDashboardContent() {
                 </Select>
               </FormControl>
             </Stack>
+            {options.isError && (
+              <Alert
+                severity="error"
+                role="alert"
+                action={
+                  <Button color="inherit" onClick={() => options.refetch()} disabled={options.isFetching}>
+                    {options.isFetching ? 'Retrying…' : 'Retry filter choices'}
+                  </Button>
+                }
+              >
+                {options.data
+                  ? 'Some report filter choices could not be refreshed. Previously loaded filter choices remain available and may be incomplete.'
+                  : 'Report filter choices could not be loaded. Search and status filters remain available while you retry.'}
+              </Alert>
+            )}
             <EmployeeFilterBar
               filters={draftFilters}
               options={options.data}
@@ -132,7 +148,7 @@ function InsightsDashboardContent() {
               onApply={() => navigate(draftFilters)}
               onClear={() => {
                 setDraftFilters({ status: 'ACTIVE' });
-                navigate({ q: undefined, country: undefined, department: undefined, jobRole: undefined, employmentType: undefined, status: 'ACTIVE' });
+                navigate({ q: undefined, country: undefined, department: undefined, jobRole: undefined, employmentType: undefined, salaryStatus: undefined, status: 'ACTIVE' });
               }}
             />
           </Stack>
@@ -147,6 +163,7 @@ function InsightsDashboardContent() {
         insights.isError ? <ErrorState message="We could not load pay insights. Please try again." onRetry={() => insights.refetch()} /> :
         insights.data && (
           <>
+            <DataReadiness insights={insights.data} filters={query} />
             <FxPanel mode={mode} status={insights.data.fx} refreshing={refreshFx.isPending} onRefresh={() => refreshFx.mutate()} />
             {refreshFx.isError && <Alert severity="error" role="alert">The rate refresh failed. The last good snapshot is preserved; the status above shows whether it remains usable.</Alert>}
             {mode === 'USD' && !insights.data.reportingAvailable && (

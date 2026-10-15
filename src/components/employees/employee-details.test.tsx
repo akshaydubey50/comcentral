@@ -92,7 +92,7 @@ describe('EmployeeDetails', () => {
     mocks.employee.mockResolvedValue({ ...employee, salary: null });
     renderDetails();
 
-    expect(await screen.findByText('Salary pending')).toBeInTheDocument();
+    expect(await screen.findByText('Salary pending (GBP)')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Add salary' })).toBeEnabled();
     expect(screen.getByText(/excluded from pay statistics until a salary is added/i)).toBeInTheDocument();
     expect(screen.queryByText(/starting salary is current/i)).not.toBeInTheDocument();
@@ -141,9 +141,9 @@ describe('EmployeeDetails', () => {
     const client = renderDetails();
     await screen.findByRole('heading', { name: 'Ada Lovelace' });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Archive employee' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete employee' }));
     client.setQueryData(['employee', 'emp-1'], archivedEmployee);
-    fireEvent.click(screen.getByRole('button', { name: 'Archive' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
 
     await waitFor(() => expect(mocks.setArchived).toHaveBeenCalledWith('emp-1', 7, true));
   });
@@ -172,8 +172,8 @@ describe('EmployeeDetails', () => {
     await screen.findByRole('heading', { name: 'Ada Lovelace' });
     await screen.findByText('No salary changes yet');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Archive employee' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Archive' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete employee' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
     fireEvent.click(await screen.findByRole('button', { name: /reload latest/i }));
 
     await waitFor(() => expect(mocks.employee).toHaveBeenCalledTimes(2));
@@ -197,14 +197,14 @@ describe('EmployeeDetails', () => {
     renderDetails();
     await screen.findByRole('heading', { name: 'Ada Lovelace' });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Archive employee' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Archive' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete employee' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
     fireEvent.click(await screen.findByRole('button', { name: /reload latest/i }));
 
     expect(await screen.findByText(/latest employee record could not be loaded/i)).toBeInTheDocument();
     // MUI hides the background from assistive technology while this confirmation is open.
     expect(screen.getByText('Ada Lovelace')).toBeInTheDocument();
-    expect(screen.getByText('Archive employee?')).toBeInTheDocument();
+    expect(screen.getByText('Delete employee?')).toBeInTheDocument();
     expect(mocks.setArchived).toHaveBeenCalledTimes(1);
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(await screen.findByRole('heading', { name: 'Ada Lovelace' })).toBeInTheDocument();

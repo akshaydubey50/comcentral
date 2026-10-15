@@ -32,6 +32,31 @@ describe('buildQuery', () => {
   });
 });
 
+describe('employee deletion transport', () => {
+  it.each(['deleteEmployee', 'setArchived'] as const)('uses authenticated version-checked DELETE through %s', async (operation) => {
+    const employee = { id: 'employee/1', status: 'ARCHIVED', version: 4 };
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ data: employee })));
+    vi.stubGlobal('fetch', fetchMock);
+    const result = operation === 'deleteEmployee'
+      ? await api.deleteEmployee('employee/1', 3)
+      : await api.setArchived('employee/1', 3, true);
+    expect(result).toEqual(employee);
+    expect(fetchMock).toHaveBeenCalledExactlyOnceWith('/api/employees/employee%2F1', expect.objectContaining({
+      method: 'DELETE', credentials: 'same-origin', body: JSON.stringify({ version: 3 }),
+      headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
+    }));
+  });
+
+  it('restores using the existing archive endpoint and current version', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ data: { status: 'ACTIVE' } })));
+    vi.stubGlobal('fetch', fetchMock);
+    await api.setArchived('employee-1', 4, false);
+    expect(fetchMock).toHaveBeenCalledExactlyOnceWith('/api/employees/employee-1/archive', expect.objectContaining({
+      method: 'POST', body: JSON.stringify({ version: 4, archived: false }),
+    }));
+  });
+});
+
 describe('ApiClientError', () => {
   it('keeps the response code, status, and safe field details', () => {
     const error = new ApiClientError(409, {

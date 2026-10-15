@@ -1,5 +1,19 @@
 # Architecture and decisions
 
+## F10: Dashboard data readiness, 2026-10-15
+
+The user approved the interview-focused dashboard improvements. The first slice explains coverage of the full filtered population and opens its matching employees. Recorded/pending counts come from Insights, never a directory page. Salary coverage remains visible when approximate USD reporting is unavailable. Outlier coverage distinguishes evaluated cohorts, groups below the minimum size and zero-IQR groups; flags remain a review aid.
+
+The shared optional `salaryStatus=PENDING|RECORDED` filter selects current null/non-null salaries. Omission includes both. Apply it before directory pagination/counting, report calculation and CSV export. Both filter bars expose it; Clear removes it. Dashboard links preserve applied employee filters and archive status, reset the directory page and omit report-only controls. No schema migration is needed.
+
+Rejected alternatives: treating pending pay as zero, counting a directory page, rounding partial coverage to 100%, inventing a readiness score, or creating a second reporting API. Metric drill-down, a preview-only budget simulator and saved report snapshots remain later slices.
+
+## Directory pagination and filter state, 2026-10-15 (F02/B02)
+
+Keep URL query parameters as the applied filter/pagination/sort state and local state as the unsubmitted filter draft. Copy only actual filter fields into that draft so captured page/sort values cannot overwrite later navigation. Retain explicit Apply/Enter semantics; clearing removes every filter and resets page one while retaining page size and sorting. Individual dropdowns are not cascading, and valid combinations may have no matches.
+
+Add labelled First/Previous/Next/Last controls with disabled boundaries and retain numeric page links. If an old URL points beyond the current page count, explain that matching records still exist and offer first-page recovery preserving filters. Do not change the API response or silently remove criteria. Keep selected dropdown values as fallback options while choices are loading, failed or no longer listed; a blank select must not misrepresent an applied filter. Server validation remains authoritative.
+
 ## Salary-pending CSV records, 2026-10-15 (B01/B02/B03/B04/F08)
 
 After inspection of the actual download, the user approved source id as employeeCode, missing salaries as pending records, France, Brazil/BRL and interns. The user explicitly retained the 10,000-row batch limit. This supersedes the mandatory-salary/source-id decision below. The source has 10,001 records; prepare an exact-value 10,000-row file and a separate one-row remainder rather than silently dropping data or raising the limit.
@@ -98,3 +112,13 @@ Browser inspection traced development-only style policy violations to Next DevTo
 ## Fixed local development address, 2026-10-15 (F06/V02)
 
 Use the installed Next.js development server with an explicit `--port 3000`. Its Fast Refresh mechanism recompiles saved source; `next start` serves only an existing production build. The explicit port disables Next's automatic fallback to another port and makes an occupied port a visible startup error. Keep one local development process and the matching localhost authentication origin. Reject a custom file watcher, automatic production rebuild loop or repeated alternate ports: Next already owns development reloads. Environment and Prisma schema changes still require the relevant restart/generation/migration; the address stays the same.
+
+## Employee pagination presentation and action icons, 2026-10-15 (F02/F06)
+
+The user identified the pagination layout as the problem and requested action icons. Keep pagination inside the results card: show the returned record range and a labelled page-size selector; use controlled Material UI numbered pages on desktop and compact First/Previous/Next/Last icon controls on phones. Keep the API's one-based page convention, server totals, existing filter/sort navigation and first-page reset when page size changes. Retain valid bookmarked sizes alongside the common 10/25/50/100 options. Do not invent ranges for empty results. This supersedes the four large text-button presentation described above. The pattern follows [Material UI pagination](https://v7.mui.com/material-ui/react-pagination/).
+
+Use Eye/Pencil/Trash icons on existing View/Edit/Delete controls with readable labels and employee-specific accessible names. Delete still archives and preserves history; its confirmation remains on the detail page. Reject unlabeled icon-only data actions and a new deletion behavior for a visual request. During phone inspection the Next development indicator overlapped the page counter; use the documented `devIndicators: false` option, which hides that indicator while Next continues to report compilation/runtime errors.
+
+## Employee table scrolling, 2026-10-15 (F02/F06)
+
+The user explicitly confirmed the Employee directory table should keep 25 records per page with scrolling. Preserve the existing server pagination and default page size; bound the desktop table to the smaller of 65vh and 40rem. Keep pagination outside the scrolling area, use sticky column headers, and expose a named, keyboard-focusable region with a visible focus outline. Scroll padding keeps row controls clear of the fixed header and action column. Mobile retains the existing readable cards. Do not truncate fetched records or replace the native table with a virtualized grid for this request. This follows the installed MUI 7 sticky-header API and [scroll-container keyboard accessibility guidance](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/overflow#accessibility).

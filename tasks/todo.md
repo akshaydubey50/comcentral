@@ -1,5 +1,7 @@
 # ComCentral audit implementation checklist
 
+Current user-requested feature test run: [browser verification tracker, 2026-10-15](browser-verification-2026-10-15.md).
+
 Updated 2026-10-15. This extends the existing project checklist. The original backend tasks are preserved through the mapping in [plan.md](plan.md). Scope and audit dispositions are in [the delivery plan](../docs/implementation-plan.md); actual execution results are in [validation.md](../docs/validation.md).
 
 Latest CSV priority: `1b4e1a5` implements the approved salary-pending flow, verified with the actual prepared 10,000-row file, full unit/type/lint/build gates, 53 isolated database cases and four reproducible CSV browser journeys. The configured Neon forward migration is applied; downloaded records remain unimported there. Source id mapping, FR/BR/BRL/INTERN support and the retained 10,000-row cap are current decisions. This supersedes the earlier alias-only salary-required follow-up.
@@ -9,6 +11,31 @@ Current checkpoint: **21 of 34 tasks verified complete** (C01, F01-F09, V01, B01
 The user has authorized audit implementation and incremental commits, and prioritized all 20 remaining delivery tasks as P0 on 2026-10-15. Conditional P02/P03 and future U01-U03 remain outside this delivery batch. C01 represents completed planning; other boxes track acceptance work still to implement or verify, including checks of existing features. Recommended frontend/delivery improvements are selected for implementation. Conditional performance changes require measurements; future account/tenant decision tasks retain the approved scope boundary. Existing registration, employee, salary, CSV and analytics code is retained.
 
 Owners: Frontend and Backend follow the agreed file ownership. Additional employee/import/schema edits are currently appearing in the shared checkout, so the coordinator preserves them and verifies a fixed isolated snapshot before final integration. Coordinator owns contracts/configuration/docs/CI/integration and delivery. Do not overlap writers. For every implementation task, use isolated database/browser targets, keep secrets out of output and run the applicable required gates from the delivery plan. Estimated file counts are bounds: split any task that grows beyond them.
+
+## F10: Explain dashboard data readiness and open matching employees
+
+Design direction and implemented/proposed boundaries: [dashboard-design.md](../docs/dashboard-design.md).
+
+Owner: Coordinator integrating frontend/backend. User approved development on 2026-10-15 after the interview-focused dashboard discussion. This is an additional dashboard slice, tracked separately from the original 34-task audit totals. Status: implementation written; verification in progress.
+
+- [x] Define salaryStatus=PENDING|RECORDED; omission includes both, null identifies pending pay.
+- [x] Implement full-population recorded/pending salary coverage, actual FX status and outlier cohort coverage.
+- [x] Link matching, recorded and pending employees while preserving applied employee filters.
+- [x] Retain salary status in directory/report filters, pagination, sorting and CSV export; Clear removes it.
+- [x] Demonstrate failing tests for the missing filter and component before implementation.
+- [x] Pass focused component/contract tests: 13/13, including empty/unavailable-USD states and partial-coverage rounding.
+- [x] Verify persisted list/report/export populations: all 74 integration cases passed, including four readiness cases and the 15-case directory filter matrix, on separate disposable local databases.
+- [ ] Verify keyboard/mobile layout and dashboard-to-directory behavior in a browser.
+- [ ] Pass the full npm test suite. The first combined run was stopped after timing failures and a stale help-text assertion; no full-pass claim.
+- [x] Pass npm run typecheck after correcting five unsupported Testing Library options.
+- [x] Pass npm run lint.
+- [ ] Pass npm run build.
+- [x] Record the design direction, shared contract, architecture decisions and AI contributions.
+- [x] Complete independent code review; correct coverage rounding and shared filter help.
+- [ ] Record final execution results and commit the reviewed project changes.
+- [ ] Push all reviewed project code to the existing GitHub branch, as explicitly requested by the user.
+
+Later candidates: richer metric drill-down, chart presentation, a preview-only budget simulator and reproducible saved reports. They are not included in F10 completion.
 
 ## Execution board
 

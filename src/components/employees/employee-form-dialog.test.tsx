@@ -58,6 +58,12 @@ const options = {
   currencies: ['GBP' as const],
 };
 
+function deferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  const promise = new Promise<T>((next) => { resolve = next; });
+  return { promise, resolve };
+}
+
 function renderDialog(client = new QueryClient({ defaultOptions: { mutations: { retry: false } } }), onClose = vi.fn()) {
   render(
     <QueryClientProvider client={client}>
@@ -100,11 +106,64 @@ describe('EmployeeFormDialog', () => {
 
     expect(screen.getByLabelText(/employee code/i)).toHaveAttribute('maxlength', '40');
     expect(screen.getByLabelText(/full name/i)).toHaveAttribute('maxlength', '160');
-    fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+    const save = screen.getByRole('button', { name: /save changes/i });
+    fireEvent.click(save);
 
-    fireEvent.click(await screen.findByRole('button', { name: /reload latest/i }));
+    const reload = await screen.findByRole('button', { name: /reload latest/i });
+    expect(save).toBeDisabled();
+    fireEvent.click(save);
+    expect(mocks.updateEmployee).toHaveBeenCalledTimes(1);
+    fireEvent.click(reload);
     await waitFor(() => expect(mocks.employee).toHaveBeenCalledWith('emp-1'));
     expect(await screen.findByDisplayValue('Grace Hopper')).toBeInTheDocument();
+  });
+
+  it('keeps the dialog open without a discard prompt while a save is pending', async () => {
+    const pendingSave = deferred<typeof latest>();
+    mocks.updateEmployee.mockReturnValue(pendingSave.promise);
+    const { onClose } = renderDialog();
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    fireEvent.change(screen.getByLabelText(/full name/i), { target: { value: 'Draft name' } });
+    fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+    await waitFor(() => expect(mocks.updateEmployee).toHaveBeenCalledOnce());
+
+    expect(screen.getByRole('button', { name: /cancel/i })).toBeDisabled();
+    const dialog = screen.getByRole('dialog', { name: /edit employee details/i });
+    fireEvent.keyDown(dialog, { key: 'Escape', code: 'Escape' });
+    expect(confirm).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(dialog).toBeInTheDocument();
+
+    pendingSave.resolve(latest);
+    await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
+    confirm.mockRestore();
+  });
+
+  it('keeps the dialog open and actions blocked while a conflict reload is pending', async () => {
+    const pendingReload = deferred<typeof latest>();
+    mocks.updateEmployee.mockRejectedValue(new ApiClientError(409, {
+      error: { code: 'VERSION_CONFLICT', message: 'Employee changed' },
+    }));
+    mocks.employee.mockReturnValue(pendingReload.promise);
+    const { onClose } = renderDialog();
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    fireEvent.change(screen.getByLabelText(/full name/i), { target: { value: 'Draft name' } });
+    fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /reload latest/i }));
+    await waitFor(() => expect(mocks.employee).toHaveBeenCalledOnce());
+
+    expect(screen.getByRole('button', { name: /cancel/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /save changes/i })).toBeDisabled();
+    fireEvent.keyDown(screen.getByRole('dialog', { name: /edit employee details/i }), { key: 'Escape', code: 'Escape' });
+    expect(confirm).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+
+    pendingReload.resolve(latest);
+    expect(await screen.findByDisplayValue('Grace Hopper')).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+    confirm.mockRestore();
   });
 
   it('explains duplicate employee conflicts without stale-record guidance', async () => {

@@ -17,6 +17,8 @@ import { getPrisma } from '@/server/db/prisma';
 import type { Prisma } from '@/server/generated/prisma/client';
 import { CURRENCIES, EMPLOYMENT_TYPES } from '@/shared/contracts';
 
+const INITIAL_SALARY_CREATION_REASON = 'Initial salary recorded at employee creation';
+
 type EmployeeRecord = {
   id: string;
   employeeCode: string;
@@ -63,6 +65,8 @@ export function employeeWhere(filters: EmployeeFilters): Prisma.EmployeeWhereInp
   if (filters.department) where.department = filters.department;
   if (filters.jobRole) where.jobRole = filters.jobRole;
   if (filters.employmentType) where.employmentType = filters.employmentType;
+  if (filters.salaryStatus === 'PENDING') where.salary = null;
+  if (filters.salaryStatus === 'RECORDED') where.salary = { not: null };
   if (filters.q) {
     where.OR = [
       { employeeCode: { contains: filters.q, mode: 'insensitive' } },
@@ -124,15 +128,34 @@ export async function getEmployee(id: string): Promise<Employee> {
   return serializeEmployee(record);
 }
 
-export async function createEmployee(input: EmployeeInput): Promise<Employee> {
+export async function createEmployee(input: EmployeeInput, actor: HrUser): Promise<Employee> {
+  const prisma = getPrisma();
   try {
-    const record = await getPrisma().employee.create({
-      data: {
-        ...input,
-        joiningDate: new Date(`${input.joiningDate}T00:00:00.000Z`),
-      },
+    return await prisma.$transaction(async (tx) => {
+      const record = await tx.employee.create({
+        data: {
+          ...input,
+          joiningDate: new Date(`${input.joiningDate}T00:00:00.000Z`),
+        },
+      });
+      if (record.salary === null) {
+        throw new Error('Manual employee creation requires an initial salary');
+      }
+      await tx.salaryHistory.create({
+        data: {
+          employeeId: record.id,
+          previousSalary: null,
+          previousCurrency: record.currency,
+          salary: record.salary,
+          currency: record.currency,
+          reason: INITIAL_SALARY_CREATION_REASON,
+          actorId: actor.id,
+          actorName: actor.name,
+          actorEmail: actor.email,
+        },
+      });
+      return serializeEmployee(record);
     });
-    return serializeEmployee(record);
   } catch (error) {
     translateWriteError(error);
   }

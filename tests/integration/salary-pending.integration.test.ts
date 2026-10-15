@@ -37,6 +37,7 @@ describe.sequential('salary-pending imports and first salary assignment', () => 
 
   it('imports source ids without salaries, returns drafts in the directory, and exports blank pay', async () => {
     const key = randomUUID().slice(0, 8);
+    const hr = await actor();
     const csv = [
       'id,fullName,email,jobTitle,department,country,currency,employmentType,hireDate',
       `DRAFT-${key}-FR,France Intern,fr-${key}@example.invalid,Analyst,Draft-${key},FR,EUR,INTERN,2020-01-01`,
@@ -44,7 +45,7 @@ describe.sequential('salary-pending imports and first salary assignment', () => 
     ].join('\n');
     const preview = await previewImport(csv, NOW);
     expect(preview).toMatchObject({ valid: true, totalRows: 2, salaryPendingCount: 2, errorCount: 0 });
-    await expect(commitImport(csv, preview.previewHash, NOW)).resolves.toEqual({ imported: 2 });
+    await expect(commitImport(csv, preview.previewHash, hr, NOW)).resolves.toEqual({ imported: 2 });
     const directory = await listEmployees({ department: 'Draft-' + key });
     expect(directory.pagination.total).toBe(2);
     expect(directory.data.every((employee) => employee.salary === null && employee.status === 'ACTIVE')).toBe(true);
@@ -52,6 +53,9 @@ describe.sequential('salary-pending imports and first salary assignment', () => 
       { country: 'BR', currency: 'BRL' }, { country: 'FR', currency: 'EUR' },
     ]);
     expect((await getEmployee(directory.data[0]!.id)).salary).toBeNull();
+    expect(await prisma!.salaryHistory.count({
+      where: { employee: { department: 'Draft-' + key } },
+    })).toBe(0);
     const exported = await exportEmployees({ department: 'Draft-' + key });
     expect(exported).toContain('2020-01-01,,BRL');
     expect(exported).toContain('2020-01-01,,EUR');

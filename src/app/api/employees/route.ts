@@ -9,7 +9,7 @@ export const GET = route(async (request: Request) => {
 });
 
 export const POST = route(async (request: Request) => {
-  const { body } = await mutationBody(request);
+  const { actor, body } = await mutationBody(request);
   const input = normalizeEmployeeInput(body);
-  return Response.json({ data: await createEmployee(input) }, { status: 201 });
+  return Response.json({ data: await createEmployee(input, actor) }, { status: 201 });
 });

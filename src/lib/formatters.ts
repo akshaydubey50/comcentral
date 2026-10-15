@@ -33,7 +33,7 @@ export function formatCurrency(value: string | null, currency: Currency): string
 
 /** Missing compensation is a draft state, never a zero amount. */
 export function formatSalary(value: string | null, currency: Currency): string {
-  return value === null ? 'Salary pending' : formatCurrency(value, currency);
+  return value === null ? `Salary pending (${currency})` : formatCurrency(value, currency);
 }
 
 export function formatDate(value: string): string {

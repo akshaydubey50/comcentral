@@ -127,7 +127,7 @@ describe('CsvImportWorkflow', () => {
     await screen.findByText(/drafts.csv is ready to validate/i);
     fireEvent.click(screen.getByRole('button', { name: /validate and preview/i }));
 
-    expect(await screen.findByText('Salary pending')).toBeInTheDocument();
+    expect(await screen.findByText('Salary pending (BRL)')).toBeInTheDocument();
     expect(screen.getByText(/1 employee will be saved with salary pending/i)).toBeInTheDocument();
     expect(screen.getByText(/excluded from pay statistics until a salary is added/i)).toBeInTheDocument();
     expect(mocks.commitImport).not.toHaveBeenCalled();

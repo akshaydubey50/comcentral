@@ -16,6 +16,7 @@ const employeeSorts: readonly EmployeeSort[] = [
   'updatedAt',
 ];
 const groupings = ['country', 'department', 'jobRole'] as const;
+const salaryStatuses = ['PENDING', 'RECORDED'] as const;
 
 function optionalValue(search: SearchParamsReader, key: string): string | undefined {
   return search.get(key) || undefined;
@@ -43,7 +44,9 @@ function positiveInteger(
 
 /** Normalizes directory URL enums and pagination while retaining supported filters. */
 export function parseEmployeeQuery(search: SearchParamsReader): EmployeeQuery {
+  const salaryStatus = allowedValue(search.get('salaryStatus'), salaryStatuses);
   return {
+    ...(salaryStatus ? { salaryStatus } : {}),
     q: optionalValue(search, 'q'),
     country: optionalValue(search, 'country'),
     department: optionalValue(search, 'department'),
@@ -59,7 +62,9 @@ export function parseEmployeeQuery(search: SearchParamsReader): EmployeeQuery {
 
 /** Normalizes report URL enums while retaining supported employee filters. */
 export function parseInsightsQuery(search: SearchParamsReader): InsightsQuery {
+  const salaryStatus = allowedValue(search.get('salaryStatus'), salaryStatuses);
   return {
+    ...(salaryStatus ? { salaryStatus } : {}),
     q: optionalValue(search, 'q'),
     country: optionalValue(search, 'country'),
     department: optionalValue(search, 'department'),

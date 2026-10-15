@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, FormControl, InputLabel, MenuItem, Select, Stack, TextField } from '@mui/material';
+import { Button, FormControl, InputLabel, MenuItem, Select, Stack, TextField, Typography } from '@mui/material';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 
 import type { DirectoryOptions, EmployeeFilters } from '@/shared/contracts';
@@ -19,8 +19,9 @@ export function EmployeeFilterBar({
   onApply: () => void;
   onClear: () => void;
 }) {
+  // Keep URL-selected values visible while choices load or the option list changes.
   return (
-    <Stack component="form" onSubmit={(event) => { event.preventDefault(); onApply(); }} gap={1.5}>
+    <Stack component="form" aria-describedby="employee-filter-help" onSubmit={(event) => { event.preventDefault(); onApply(); }} gap={1.5}>
       <Stack direction={{ xs: 'column', md: 'row' }} gap={1.25}>
         <TextField
           label="Search employees"
@@ -38,14 +39,25 @@ export function EmployeeFilterBar({
             <MenuItem value="ALL">All</MenuItem>
           </Select>
         </FormControl>
-        <Button type="submit" variant="contained" startIcon={<SlidersHorizontal size={18} />}>Apply filters</Button>
-        <Button onClick={onClear} startIcon={<X size={18} />}>Clear</Button>
+        <Button type="submit" variant="contained" startIcon={<SlidersHorizontal size={18} />} sx={{ minHeight: 44 }}>Apply filters</Button>
+        <Button type="button" onClick={onClear} startIcon={<X size={18} />} sx={{ minHeight: 44 }}>Clear</Button>
       </Stack>
       <Stack direction="row" gap={1.25} flexWrap="wrap">
+        <FormControl sx={{ minWidth: 160, flex: { xs: '1 1 150px', md: '0 0 190px' } }}>
+          <InputLabel id="salary-status-filter-label">Salary status</InputLabel>
+          <Select labelId="salary-status-filter-label" label="Salary status" value={filters.salaryStatus ?? ''} onChange={(event) => onChange({ ...filters, salaryStatus: event.target.value as EmployeeFilters['salaryStatus'] || undefined })}>
+            <MenuItem value="">All salaries</MenuItem>
+            <MenuItem value="PENDING">Salary pending</MenuItem>
+            <MenuItem value="RECORDED">Salary recorded</MenuItem>
+          </Select>
+        </FormControl>
         <FormControl sx={{ minWidth: 150, flex: { xs: '1 1 140px', md: '0 0 180px' } }}>
           <InputLabel id="country-filter-label">Country</InputLabel>
           <Select labelId="country-filter-label" label="Country" value={filters.country ?? ''} onChange={(event) => onChange({ ...filters, country: event.target.value || undefined })}>
             <MenuItem value="">All countries</MenuItem>
+            {filters.country && !options?.countries.some((country) => country.code === filters.country) && (
+              <MenuItem value={filters.country}>{filters.country}</MenuItem>
+            )}
             {options?.countries.map((country) => <MenuItem key={country.code} value={country.code}>{country.name}</MenuItem>)}
           </Select>
         </FormControl>
@@ -53,6 +65,9 @@ export function EmployeeFilterBar({
           <InputLabel id="department-filter-label">Department</InputLabel>
           <Select labelId="department-filter-label" label="Department" value={filters.department ?? ''} onChange={(event) => onChange({ ...filters, department: event.target.value || undefined })}>
             <MenuItem value="">All departments</MenuItem>
+            {filters.department && !options?.departments.includes(filters.department) && (
+              <MenuItem value={filters.department}>{filters.department}</MenuItem>
+            )}
             {options?.departments.map((department) => <MenuItem key={department} value={department}>{department}</MenuItem>)}
           </Select>
         </FormControl>
@@ -60,6 +75,9 @@ export function EmployeeFilterBar({
           <InputLabel id="role-filter-label">Job role</InputLabel>
           <Select labelId="role-filter-label" label="Job role" value={filters.jobRole ?? ''} onChange={(event) => onChange({ ...filters, jobRole: event.target.value || undefined })}>
             <MenuItem value="">All roles</MenuItem>
+            {filters.jobRole && !options?.jobRoles.includes(filters.jobRole) && (
+              <MenuItem value={filters.jobRole}>{filters.jobRole}</MenuItem>
+            )}
             {options?.jobRoles.map((role) => <MenuItem key={role} value={role}>{role}</MenuItem>)}
           </Select>
         </FormControl>
@@ -67,10 +85,16 @@ export function EmployeeFilterBar({
           <InputLabel id="type-filter-label">Employment type</InputLabel>
           <Select labelId="type-filter-label" label="Employment type" value={filters.employmentType ?? ''} onChange={(event) => onChange({ ...filters, employmentType: event.target.value as EmployeeFilters['employmentType'] || undefined })}>
             <MenuItem value="">All types</MenuItem>
+            {filters.employmentType && !options?.employmentTypes.includes(filters.employmentType) && (
+              <MenuItem value={filters.employmentType}>{formatEmploymentType(filters.employmentType)}</MenuItem>
+            )}
             {options?.employmentTypes.map((type) => <MenuItem key={type} value={type}>{formatEmploymentType(type)}</MenuItem>)}
           </Select>
         </FormControl>
       </Stack>
+      <Typography id="employee-filter-help" variant="caption" color="text.secondary">
+        Choose search and filter values, then select Apply filters to update the results.
+      </Typography>
     </Stack>
   );
 }

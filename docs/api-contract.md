@@ -1,5 +1,9 @@
 # API contract v1
 
+## F10 salary readiness filter
+
+`EmployeeFilters` adds optional `salaryStatus=PENDING|RECORDED`. Omission includes both. `PENDING` selects current `salary=null`; `RECORDED` selects a supplied current salary. Combine with search, country, department, job role, employment type and employee status using AND. The same filter applies to `/api/employees`, `/api/employees/export` and `/api/insights` before pagination or aggregation. Unsupported API values use the existing validation error; unsupported browser URL values normalize to the inclusive default. Money and response shapes are unchanged.
+
 ## Request correlation
 
 Every application API response includes `X-Request-ID`. A caller may send a UUID-shaped ID (RFC variant, version 1-8); other or missing values are replaced with a generated UUID. This is diagnostic context, never an authentication or authorization input. Responses retain the existing JSON shapes, cookies and cache controls.

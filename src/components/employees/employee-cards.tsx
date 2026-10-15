@@ -5,7 +5,7 @@ import {
   Box, Button, Card, CardContent, Chip, FormControl, InputLabel, MenuItem, Select,
   Stack, Typography,
 } from '@mui/material';
-import { ArrowDown, ArrowUp, ChevronRight } from 'lucide-react';
+import { ArrowDown, ArrowUp, Eye, Pencil } from 'lucide-react';
 
 import { formatSalary, formatDate, formatEmploymentType } from '@/lib/formatters';
 import type { Employee, EmployeeSort } from '@/shared/contracts';
@@ -38,11 +38,17 @@ export function EmployeeCards({
   sortBy,
   sortOrder,
   onSort,
+  onEdit,
+  editDisabled,
+  editUnavailableReason,
 }: {
   employees: Employee[];
   sortBy: EmployeeSort;
   sortOrder: 'asc' | 'desc';
   onSort: (key: EmployeeSort) => void;
+  onEdit: (employee: Employee) => void;
+  editDisabled: boolean;
+  editUnavailableReason: string;
 }) {
   const nextSortOrder = sortOrder === 'asc' ? 'descending' : 'ascending';
 
@@ -119,16 +125,31 @@ export function EmployeeCards({
                       </Detail>
                       <Detail label="Updated">{formatDate(employee.updatedAt)}</Detail>
                     </Box>
-                    <Button
-                      component={Link}
-                      href={'/employees/' + employee.id}
-                      variant="outlined"
-                      endIcon={<ChevronRight size={18} aria-hidden />}
-                      aria-label={`View employee details for ${employee.name}`}
-                      sx={{ minHeight: 44 }}
-                    >
-                      View employee details
-                    </Button>
+                    <Stack direction="row" gap={1}>
+                      <Button
+                        component={Link}
+                        href={'/employees/' + employee.id}
+                        variant="outlined"
+                        startIcon={<Eye size={18} aria-hidden />}
+                        aria-label={`View employee details for ${employee.name}`}
+                        fullWidth
+                        sx={{ minHeight: 44 }}
+                      >
+                        View
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        startIcon={<Pencil size={17} aria-hidden />}
+                        aria-label={`Edit employee details for ${employee.name}`}
+                        onClick={() => onEdit(employee)}
+                        disabled={editDisabled}
+                        title={editDisabled ? editUnavailableReason : undefined}
+                        fullWidth
+                        sx={{ minHeight: 44 }}
+                      >
+                        Edit
+                      </Button>
+                    </Stack>
                   </Stack>
                 </CardContent>
               </Card>

@@ -43,18 +43,22 @@ const employees: Employee[] = [
 
 describe('EmployeeCards', () => {
   it('shows a pending salary without converting it to zero', () => {
-    render(<EmployeeCards employees={[{ ...employees[0], salary: null }]} sortBy="name" sortOrder="asc" onSort={vi.fn()} />);
-    expect(screen.getByText('Salary pending')).toBeInTheDocument();
+    render(<EmployeeCards employees={[{ ...employees[0], salary: null }]} sortBy="name" sortOrder="asc" onSort={vi.fn()} onEdit={vi.fn()} editDisabled={false} editUnavailableReason="" />);
+    expect(screen.getByText('Salary pending (GBP)')).toBeInTheDocument();
     expect(screen.queryByText('GBP 0.00')).not.toBeInTheDocument();
   });
 
   it('shows the desktop-directory fields, native salary, status, and accessible detail links', () => {
+    const onEdit = vi.fn();
     render(
       <EmployeeCards
         employees={employees}
         sortBy="name"
         sortOrder="asc"
         onSort={vi.fn()}
+        onEdit={onEdit}
+        editDisabled={false}
+        editUnavailableReason=""
       />,
     );
 
@@ -72,6 +76,8 @@ describe('EmployeeCards', () => {
       .toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'View employee details for Ada Lovelace' }))
       .toHaveAttribute('href', '/employees/employee-1');
+    fireEvent.click(screen.getByRole('button', { name: 'Edit employee details for Ada Lovelace' }));
+    expect(onEdit).toHaveBeenCalledWith(employees[0]);
   });
 
   it('routes mobile sort field and direction changes through the existing callback', async () => {
@@ -82,6 +88,9 @@ describe('EmployeeCards', () => {
         sortBy="name"
         sortOrder="asc"
         onSort={onSort}
+        onEdit={vi.fn()}
+        editDisabled={false}
+        editUnavailableReason=""
       />,
     );
 

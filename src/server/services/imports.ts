@@ -1,11 +1,19 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
 
-import type { EmployeeFilters, ImportError, ImportPreview, ImportResult } from '@/shared/contracts';
+import type {
+  EmployeeFilters,
+  HrUser,
+  ImportError,
+  ImportPreview,
+  ImportResult,
+} from '@/shared/contracts';
 import { currencyPrecision } from '@/shared/validation';
 import { EMPLOYEE_CSV_HEADERS, parseEmployeeCsv, toCsv } from '@/server/domain/csv';
 import { getPrisma } from '@/server/db/prisma';
 import { ApiError } from '@/server/http';
 import { employeeWhere } from '@/server/services/employees';
+
+const INITIAL_SALARY_IMPORT_REASON = 'Initial salary recorded from CSV import';
 
 export function importHash(csvText: string): string {
   return createHash('sha256').update(csvText, 'utf8').digest('hex');
@@ -73,6 +81,7 @@ export async function previewImport(csvText: string, now = new Date()): Promise<
 export async function commitImport(
   csvText: string,
   previewHash: string,
+  actor: HrUser,
   now = new Date(),
 ): Promise<ImportResult> {
   const actualHash = importHash(csvText);
@@ -98,7 +107,28 @@ export async function commitImport(
             ...row,
             joiningDate: new Date(`${row.joiningDate}T00:00:00.000Z`),
           }));
-          await tx.employee.createMany({ data: batch });
+          const created = await tx.employee.createManyAndReturn({
+            data: batch,
+            select: { id: true, salary: true, currency: true },
+          });
+          const initialSalaryHistory = created.flatMap((employee) =>
+            employee.salary === null
+              ? []
+              : [{
+                  employeeId: employee.id,
+                  previousSalary: null,
+                  previousCurrency: employee.currency,
+                  salary: employee.salary,
+                  currency: employee.currency,
+                  reason: INITIAL_SALARY_IMPORT_REASON,
+                  actorId: actor.id,
+                  actorName: actor.name,
+                  actorEmail: actor.email,
+                }],
+          );
+          if (initialSalaryHistory.length > 0) {
+            await tx.salaryHistory.createMany({ data: initialSalaryHistory });
+          }
         }
       },
       { isolationLevel: 'Serializable', timeout: 120_000 },

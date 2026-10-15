@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { test, expect } from './browser-fixture';
+import { test, expect } from './live-session';
 import { requireLocalBrowserTestTarget } from './test-target';
 
 // This journey uses real test credentials and cookies; retain no request artifacts.
@@ -10,12 +10,6 @@ test('HR corrects an incompatible CSV, previews aliases and saves exact values t
   const suffix = randomUUID().slice(0, 8);
   const employeeCode = 'CSV-LIVE-' + suffix;
   const email = 'employee-' + suffix + '@example.test';
-  const origin = process.env.E2E_BASE_URL || 'http://localhost:3000';
-  const signup = await page.request.post('/api/auth/sign-up/email', {
-    headers: { Origin: origin },
-    data: { name: 'CSV Verification HR', email: 'hr-' + suffix + '@example.test', password: randomUUID() },
-  });
-  expect(signup.status()).toBe(200);
   await page.goto('/imports');
 
   const input = page.locator('input[type="file"]');
@@ -66,12 +60,6 @@ test('HR corrects an incompatible CSV, previews aliases and saves exact values t
 test('HR imports all 10000 salary-pending employees and reads them after reload', async ({ page }) => {
   test.setTimeout(120_000);
   const prefix = 'DRAFT-' + randomUUID().slice(0, 8) + '-';
-  const origin = process.env.E2E_BASE_URL || 'http://localhost:3000';
-  const signup = await page.request.post('/api/auth/sign-up/email', {
-    headers: { Origin: origin },
-    data: { name: 'Draft Import HR', email: prefix.toLowerCase() + 'hr@example.test', password: randomUUID() },
-  });
-  expect(signup.status()).toBe(200);
   const rows = Array.from({ length: 10_000 }, (_, index) => {
     const code = prefix + String(index + 1).padStart(5, '0');
     const [country, currency] = index % 2 === 0 ? ['BR', 'BRL'] : ['FR', 'EUR'];
@@ -89,7 +77,7 @@ test('HR imports all 10000 salary-pending employees and reads them after reload'
   const preview = await previewResponse;
   expect(preview.status()).toBe(200);
   expect((await preview.json()).data).toMatchObject({ valid: true, totalRows: 10_000, salaryPendingCount: 10_000, errorCount: 0 });
-  await expect(page.getByRole('table', { name: 'Employee import preview' }).getByText('Salary pending', { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole('table', { name: 'Employee import preview' }).getByText(/^Salary pending \([A-Z]{3}\)$/).first()).toBeVisible();
   await page.getByRole('button', { name: 'Confirm and import 10,000 employees' }).click();
   await expect(page.getByRole('heading', { name: 'Import complete' })).toBeVisible({ timeout: 30_000 });
 
@@ -117,7 +105,7 @@ test('HR imports all 10000 salary-pending employees and reads them after reload'
   await page.reload();
   const visibleRow = page.getByRole('row').filter({ hasText: prefix + '00001' });
   await expect(visibleRow).toBeVisible();
-  await expect(visibleRow.getByText('Salary pending', { exact: true })).toBeVisible();
+  await expect(visibleRow.getByText(/^Salary pending \([A-Z]{3}\)$/)).toBeVisible();
 
   const insightResponse = await page.request.get('/api/insights?q=' + prefix);
   expect(insightResponse.status()).toBe(200);

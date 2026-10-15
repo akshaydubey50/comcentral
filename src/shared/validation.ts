@@ -191,7 +191,7 @@ export function normalizeSalaryChange(input: unknown): SalaryChangeInput {
   return parsed;
 }
 
-const filterKeys = ['q', 'country', 'department', 'jobRole', 'employmentType', 'status'] as const;
+const filterKeys = ['q', 'country', 'department', 'jobRole', 'employmentType', 'status', 'salaryStatus'] as const;
 
 export function parseEmployeeFilters(searchParams: URLSearchParams): EmployeeFilters {
   const result: Record<string, string> = {};
@@ -207,6 +207,7 @@ export function parseEmployeeFilters(searchParams: URLSearchParams): EmployeeFil
       jobRole: z.string().max(100).optional(),
       employmentType: employmentTypeSchema.optional(),
       status: z.enum(['ACTIVE', 'ARCHIVED', 'ALL']).optional(),
+      salaryStatus: z.enum(['PENDING', 'RECORDED']).optional(),
     })
     .strict()
     .parse(result);

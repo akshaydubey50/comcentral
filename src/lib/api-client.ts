@@ -69,7 +69,7 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-function json(method: 'POST' | 'PATCH', body: JsonValue = {}): RequestInit {
+function json(method: 'POST' | 'PATCH' | 'DELETE', body: JsonValue = {}): RequestInit {
   return { method, body: JSON.stringify(body) };
 }
 
@@ -101,11 +101,15 @@ export const api = {
   updateEmployee: (id: string, input: EmployeeUpdate) =>
     request<{ data: Employee }>('/api/employees/' + encodeURIComponent(id), json('PATCH', input as unknown as JsonValue))
       .then((body) => body.data),
+  deleteEmployee: (id: string, version: number) =>
+    request<{ data: Employee }>('/api/employees/' + encodeURIComponent(id), json('DELETE', { version }))
+      .then((body) => body.data),
   changeSalary: (id: string, input: SalaryChangeInput) =>
     request<{ data: Employee }>('/api/employees/' + encodeURIComponent(id) + '/salary', json('POST', input as unknown as JsonValue))
       .then((body) => body.data),
   setArchived: (id: string, version: number, archived: boolean) =>
-    request<{ data: Employee }>('/api/employees/' + encodeURIComponent(id) + '/archive', json('POST', { version, archived }))
+    request<{ data: Employee }>('/api/employees/' + encodeURIComponent(id) + (archived ? '' : '/archive'),
+      archived ? json('DELETE', { version }) : json('POST', { version, archived: false }))
       .then((body) => body.data),
   salaryHistory: (id: string) =>
     request<{ data: SalaryHistory[] }>('/api/employees/' + encodeURIComponent(id) + '/history').then((body) => body.data),
