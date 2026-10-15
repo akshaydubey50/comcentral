@@ -34,6 +34,9 @@ vi.mock('./employee-cards', () => ({
     <div>Employee cards: {employees[0]?.id}</div>
   ),
 }));
+vi.mock('./employee-form-dialog', () => ({
+  EmployeeFormDialog: () => null,
+}));
 
 import { EmployeeDirectory } from './employee-directory';
 
