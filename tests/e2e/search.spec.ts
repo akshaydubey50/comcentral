@@ -72,6 +72,7 @@ test('keyboard submit, clear, and browser history keep the URL draft and results
   await expect(page).not.toHaveURL(/q=/);
   await expect(page).toHaveURL(/page=1/);
   await expect(search).toHaveValue('');
+  await expect(page.getByRole('link', { name: 'All employees', exact: true })).toBeVisible();
 
   await page.goBack();
   await expect(page).toHaveURL(/q=Grace/);
@@ -87,4 +88,5 @@ test('keyboard submit, clear, and browser history keep the URL draft and results
   await page.goForward();
   await expect(page).toHaveURL(/q=Grace/);
   await expect(search).toHaveValue('Grace');
+  await expect(page.getByRole('link', { name: 'Grace', exact: true })).toBeVisible();
 });
