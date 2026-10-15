@@ -1,5 +1,23 @@
 # Verification evidence
 
+## Directory pagination and filters, 2026-10-15 (F02/B02/V02/C02)
+
+The feature slice is verified in an isolated checkout based on `c7a0dd2`; the shared main checkout contains concurrent work and an index owned by another session. The feature commit therefore uses its own branch and explicit file staging. These results describe local execution, not deployment.
+
+| Check | Actual result |
+|---|---|
+| Focused directory/filter regressions | 27/27 passed in the shared checkout; new boundary/recovery/selection cases reproduced the original defects before implementation |
+| Earlier shared-checkout full unit suite | 280/280 across 36 files passed; subsequent scoped changes were covered by focused checks |
+| Isolated database filter matrix | 15/15 passed in 4.94 seconds against disposable local PostgreSQL; individual/combined filters, case-insensitive search, pending salaries, stable pagination and stale URLs |
+| Built-app browser journeys | 2/2 passed in 28.0 seconds: real API/database results, all six filters individually and together, First/Previous/Next/Last boundaries, browser history, reload, clear, mobile recovery and no horizontal overflow/unhandled browser errors |
+| Isolated normal production build | Prisma generation and Turbopack build passed, including TypeScript compilation and static page generation |
+| Final isolated unit/type/lint gates | Final execution pending; see the task tracker |
+| Independent review | No blocking defect found; numeric pagination retained for existing journeys, database guards and fixture cleanup reviewed |
+
+The owned temporary checkout shares installed dependencies through a junction. Initial cross-drive builds could not resolve those dependencies; a same-drive checkout and temporary common Turbopack root resolved this. The linked Vitest configuration initially resolved the shared setup path incorrectly; explicit isolated setup/root paths were used for verification only. One sandbox integration attempt failed with Vitest realpath EPERM before assertions; approved execution passed. Temporary absolute configuration paths are excluded from the feature commit. No assertions were skipped or weakened.
+
+No configured application records or private downloaded employee files were changed by these checks. Browser fixtures were scoped and removed; disposable infrastructure cleanup is tracked in [the directory task](../tasks/directory-pagination-2026-10-15.md). Selected dropdowns apply on **Apply filters**, and Enter submits search. Noncascading filter combinations can legitimately match zero employees.
+
 ## F10 data readiness: current verification, 2026-10-15
 
 Publication checkpoint: the user explicitly requested committing and pushing all current work promptly, with remaining checks reported rather than waiting for the historical snapshot run. The latest full unit attempt completed with **298 passes and four failures across 302 tests**: three directory cases need current pagination/timing investigation and one insights options-recovery case timed out. Normal production compilation passed in 39.7 seconds, then TypeScript rejected four newly added Testing Library `exact` options in pagination tests; those options are corrected, with the final build still pending. These results are not a green release claim. The standalone approved dashboard/pagination preview passed 320/768/1440px overflow, local pagination, page-size reset and boundary checks without script exceptions.
