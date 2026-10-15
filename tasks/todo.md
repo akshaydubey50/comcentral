@@ -2,7 +2,7 @@
 
 Updated 2026-10-15. This extends the existing project checklist. The original backend tasks are preserved through the mapping in [plan.md](plan.md). Scope and audit dispositions are in [the delivery plan](../docs/implementation-plan.md); actual execution results are in [validation.md](../docs/validation.md).
 
-Current checkpoint: **19 of 34 tasks verified complete** (C01, F01-F08, V01, B01-B07, S01, S03). The **15 open items** comprise **9 delivery tasks**, **2 conditional optimizations** (P02/P03), **3 future product decisions** (U01-U03), and **1 recurring evidence task** (C02). Eleven of the 20 delivery tasks prioritized on 2026-10-15 are now closed. Search passed built-browser acceptance; the welcome page has a runtime rendering correction in progress. S02 has local browser evidence and still needs deployed HTTPS verification. The current user deadline prioritizes local release checks and performance results within 2-3 hours; deployment, scheduled-job, alert and recovery evidence remain the following milestone.
+Current checkpoint: **20 of 34 tasks verified complete** (C01, F01-F09, V01, B01-B07, S01, S03). The **14 open items** comprise **8 delivery tasks**, **2 conditional optimizations** (P02/P03), **3 future product decisions** (U01-U03), and **1 recurring evidence task** (C02). Twelve of the 20 delivery tasks prioritized on 2026-10-15 are now closed. All 31 built-browser journeys passed; the two remaining local-release tasks are P01 measurements and the V02 combined gate. S02 still needs deployed HTTPS verification. The current user deadline prioritizes local release checks and performance results within 2-3 hours; deployment, scheduled-job, alert and recovery evidence remain the following milestone.
 
 The user has authorized audit implementation and incremental commits, and prioritized all 20 remaining delivery tasks as P0 on 2026-10-15. Conditional P02/P03 and future U01-U03 remain outside this delivery batch. C01 represents completed planning; other boxes track acceptance work still to implement or verify, including checks of existing features. Recommended frontend/delivery improvements are selected for implementation. Conditional performance changes require measurements; future account/tenant decision tasks retain the approved scope boundary. Existing registration, employee, salary, CSV and analytics code is retained.
 
@@ -290,9 +290,9 @@ Dependencies: Decide route and copy; retain authenticated dashboard behavior.
 Likely files: proposed src/app/welcome/page.tsx; small landing components; route/CTA tests.
 Estimated scope: M: 3-5 files.
 
-- [ ] An agreed public route explains actual capabilities with working login/register calls to action.
-- [ ] Existing dashboard URLs, session redirects and deep links remain valid; moving / requires a separate explicit decision.
-- [ ] No unsupported production/security claims, real employee data or fabricated customer statistics appear.
+- [x] An agreed public route explains actual capabilities with working login/register calls to action.
+- [x] Existing dashboard URLs, session redirects and deep links remain valid; moving / requires a separate explicit decision.
+- [x] No unsupported production/security claims, real employee data or fabricated customer statistics appear.
 
 Verification: Verify public/signed-in navigation and mobile/keyboard layout against the actual app; update scope only if selected.
 
