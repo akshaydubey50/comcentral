@@ -62,14 +62,14 @@ F10/current employee workflows were published in `cf3da2b`; the approved preview
 
 ## F12: Branded 404 and unknown-route recovery
 
-The independent frontend session owns the existing root not-found boundary, scoped CSS and public read-only browser acceptance. Its temporary tracker (`tasks/not-found-2026-10-15.md`; active owner handoff) remains intact until its owner completes integration; this board preserves the approved slice outside the original 34-task total.
+Implemented in `abf502b`: the root not-found boundary, scoped CSS and public read-only browser acceptance. This board owns the integrated F12 checklist outside the original 34-task total. See [actual execution evidence](../docs/validation.md#f12-branded-404-verification-2026-10-15); the temporary planning tracker has been consolidated here.
 
 - [x] Inspect the existing boundary, design language and installed routing guidance.
 - [x] Write a responsive static branded page with Home/Employees/Welcome links, without a fake /404 redirect, data query, new dependency or auth/API change.
 - [x] Write top-level/nested real-404 status, URL preservation, recovery-link, keyboard and 320/768/1024/1440px browser cases.
-- [ ] Pass current unit/type/lint/build checks, distinguishing shared dashboard failures; the latest recorded run is 301 passed/6 failed, type/build blocked by a concurrent dashboard import and lint passed with one unrelated checker warning.
-- [ ] Run read-only browser cases and inspect actual desktop/mobile rendering.
-- [ ] Review the scoped source diff, record results and create the incremental implementation commit.
+- [ ] Pass the final shared-workspace unit/type/lint/build gate: the captured run was 301 passed/6 failed, type/build blocked by a concurrent dashboard import, and lint passed with one unrelated checker warning. F12's isolated committed-baseline production build, standalone TypeScript and lint all passed; this does not close the integrated release gate.
+- [x] Pass all three production browser cases and inspect actual desktop/mobile rendering; real HTTP 404, existing recovery routes, Tab access, no CSP/unhandled errors and four responsive widths verified.
+- [x] Review the scoped diff, record results and commit only the three verified source/test files as abf502b; preserve concurrent dashboard/dependency changes. Both owned app servers stopped; isolated source and captures retained as reproducible evidence.
 
 ## Conditional and future scope
 
