@@ -119,7 +119,7 @@ function InsightsDashboardContent() {
       <Card>
         <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
           <Stack spacing={2.25}>
-            <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" gap={2}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" gap={2} flexWrap="wrap">
               <ToggleButtonGroup
                 value={mode}
                 exclusive
