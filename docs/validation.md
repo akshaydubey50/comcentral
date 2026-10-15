@@ -2,18 +2,18 @@
 
 Checkpoints through 2026-10-15 with Node 24.18.1, Next.js 16.4.0, Prisma 7.10.0 and TypeScript 5.9.3.
 
-These results identify separate working-tree checkpoints. F01 resolved the salary-dialog timeout with a 125-test full-suite pass. The latest clean-checkout run at `a814f3a` had 200 passes and three employee-directory timeouts; all AppShell cases now pass. The directory's focused correction passes, but the combined current unit gate remains pending. Current five-character registration has real PostgreSQL and built-browser evidence. Older results remain in the historical sections and must not be added to overlapping current runs. Nothing is deployed yet.
+The clean release snapshot `2a7e3d4` now passes every local gate: 207 unit/component tests, 45 database tests, 34 browser journeys, benchmark helpers, TypeScript, lint, production build and startup. The 10,000-employee performance baseline is recorded. V02 remains open for current remote CI evidence and the separate CSV/import edits being prepared in the shared checkout; those uncommitted changes are not covered by this snapshot. Older results below retain their revision/date limitations. Nothing is deployed yet.
 
 | Check | Current evidence |
 |---|---|
 | One-page requirements | 642 words after the approved audit usability/delivery additions; rendered one-page A4 PDF, text and page bounds checked against Markdown, and preview visually inspected |
 | Public registration | Implemented and verified: real signup persists credentials, establishes a session, opens the shared workspace, and supports logout/login |
 | Prisma generation/schema | Client generation and Prisma validate passed |
-| Unit/component tests | Clean checkout at `a814f3a`: 200 passed, 3 employee-directory timeouts across 30 files in 208.32s. Focused directory correction passed 7/7 at the default timeout; combined rerun pending. AppShell cases now pass. Earlier counts are historical |
-| TypeScript | `npm run typecheck` passed, including after restoring the pre-existing generated Next.js type imports changed by the build |
-| Lint | Full ESLint check passed with no errors or warnings |
+| Unit/component tests | Clean `2a7e3d4`: 207/207 across 31 files in 160.81s; no skipped cases or timeout increases. The earlier directory/AppShell failures are superseded |
+| TypeScript | Full npm run typecheck passed at the reviewed local release snapshot |
+| Lint | Full npm run lint passed at the reviewed local release snapshot |
 | Production build | Clean-checkout default Turbopack build passed at `2a7e3d4`, including the public root, /login, /register and /welcome; nonce-bearing documents render dynamically |
-| Database integration | Separate focused runs: 15 registration/salary tests, 4 seed tests, 5 import tests and 4 FX tests passed on disposable local PostgreSQL 17; combined current-suite run pending |
+| Database integration | Clean `2a7e3d4`: all 45/45 across 10 files passed in 34.60s on isolated PostgreSQL 17, including a fresh dedicated seed-test database |
 | Migration and HR provisioning | Initial migration repaired and applied; Prisma status is up to date, read-only schema diff is empty, and the provisioned HR user and credential account are verified |
 | Browser journeys | All 34 Chromium journeys passed in 58.1 seconds at `2a7e3d4` against the built app on localhost:3106, including real signup/logout/login, mobile employee actions and persisted salary/import boundaries, plus intercepted frontend recovery and navigation cases |
 | 10,000-employee seed/performance | P01 passed at clean `2a7e3d4`: 63/63 measured reads, exact 10,000-row population/export and successful 10,000-row import; timings, memory and proposed budgets in performance.md |
@@ -65,6 +65,10 @@ V02 current unit follow-up: the serial release run at `a814f3a` passed 200/203 a
 F09 root refinement: six focused presentation/session-gate cases passed in 16.78s after adding anonymous `/` entry, preserving authenticated `/`, and expanding navigation, capabilities, workflow and shared-access content. Targeted ESLint passed. A separate reviewer identified and corrected a session-loading race in the new keyboard browser scenario. The normal production build passed at `2a7e3d4`, then all 34 Chromium journeys passed in 58.1s with no skips. New coverage verifies anonymous/signed-in root behavior, 320/768/1280px layout, keyboard skip/section navigation and registration links. Actual anonymous root screenshots at 320px and 1280px were visually inspected. The earlier 31/31 result is retained for history.
 
 P01 (`2a7e3d4`), 2026-10-15 04:59 UTC: the isolated production-artifact benchmark completed successfully on local PostgreSQL 17 with exactly 10,000 active synthetic employees. All 63 measured read requests succeeded. Warm p95 was 66.15ms for the directory, 525.35ms for complete native insights and 512.62ms for complete CSV export; concurrency-two p95 was 81.43ms, 1080.71ms and 919.76ms respectively. Process peak RSS was 459.15MiB. A separate 10,000-row import took 459.58ms to preview and 6945.73ms to commit; persisted count and owned-fixture cleanup succeeded. The checkout was clean. [performance.md](performance.md) records the full method, aggregate artifact, proposed local budgets and limits. P02/P03 remain conditional; no hosted/capacity SLA is inferred. This closes P01.
+
+V02 local gate completed at `2a7e3d4`: unit/component 207/207 in 160.81s, benchmark helpers 4/4, full TypeScript and lint, default Turbopack build, 34/34 built-browser journeys and production-start smoke all passed. The initial combined database run had 41 passes and four seed cases blocked by the nonempty seed target. Its guard correctly preserved those existing records. A newly created and migrated local `comcentral_release_seed_test` target enabled the full database rerun: 45/45 across 10 files in 34.60s, no skips. No prior database was emptied. The complete local gate and performance milestone are achieved for this snapshot.
+
+Remote CI remains separate: the latest inspected GitHub run is the older `0000e67` revision, with a failed browser step; it is not evidence for current code. The user confirmed a separate session was editing CSV/imports and then terminated it. Those saved changes are preserved and require their own review plus combined verification before the final release. The current dependency review records 12 unresolved lint/CLI/test-tooling findings (9 high, 2 critical, 1 moderate), with paths, exposure assessment and version holds in [dependencies.md](dependencies.md).
 
 ## Earlier verification checkpoints
 

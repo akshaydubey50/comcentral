@@ -36,6 +36,8 @@ Current audit corrections: F01 timings separated MUI modal-shell cost from salar
 
 The full release run at `a814f3a` passed 200/203 with three directory timeouts and all AppShell cases passing. The worker isolated the unrelated employee-form module in directory tests (`3cab980`) while preserving the real filter controls, seven behavioral cases, assertions and default timeout. The focused run passed 7/7 in 14.87s; this is bounded test-isolation evidence, not proof that all host resource sensitivity is removed. Full-suite evidence remains required.
 
+**Measurement decision:** the coordinator ran the committed bounded benchmark against separate local seeded/import targets after stopping heavy validation. It produced 63 successful read observations and a verified 10,000-row import, with actual process-memory sampling. The report at `2a7e3d4` was checked before preserving the sanitized aggregate artifact. Proposed regression budgets are explicitly derived after this baseline, and neither provider cold starts nor capacity were measured. P02/P03 were left conditional rather than adding an unneeded rewrite. The complete result is linked from performance.md.
+
 ## Earlier implementation and review history
 
 2026-10-14: User authorized parallel frontend/backend implementation. Coordinator applied agent-skills incremental-implementation and test-driven-development, plus coding-orchestrator routing. Shared contract established before workers. PayScope README used only to identify feature coverage; no source code copied. User confirmed validated CSV import and automatic daily FX. Agent outputs require integration checks.
