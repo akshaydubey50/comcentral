@@ -6,7 +6,90 @@ Current checkpoint: **21 of 34 tasks verified complete** (C01, F01-F09, V01, B01
 
 The user has authorized audit implementation and incremental commits, and prioritized all 20 remaining delivery tasks as P0 on 2026-10-15. Conditional P02/P03 and future U01-U03 remain outside this delivery batch. C01 represents completed planning; other boxes track acceptance work still to implement or verify, including checks of existing features. Recommended frontend/delivery improvements are selected for implementation. Conditional performance changes require measurements; future account/tenant decision tasks retain the approved scope boundary. Existing registration, employee, salary, CSV and analytics code is retained.
 
-Owners: Frontend and Backend are separately assigned workers in this coordinated development session; the former independent backend session is no longer active. Coordinator owns contracts/configuration/docs/CI/integration and delivery. Do not overlap writers. For every implementation task, use isolated database/browser targets, keep secrets out of output and run the applicable required gates from the delivery plan. Estimated file counts are bounds: split any task that grows beyond them.
+Owners: Frontend and Backend follow the agreed file ownership. Additional employee/import/schema edits are currently appearing in the shared checkout, so the coordinator preserves them and verifies a fixed isolated snapshot before final integration. Coordinator owns contracts/configuration/docs/CI/integration and delivery. Do not overlap writers. For every implementation task, use isolated database/browser targets, keep secrets out of output and run the applicable required gates from the delivery plan. Estimated file counts are bounds: split any task that grows beyond them.
+
+## Execution board
+
+This is the tracking view for the existing 34 audit tasks. **21 have recorded completion evidence; 13 remain open, including 7 priority delivery tasks.** Earlier completed features still require regression checks after the active employee/import/schema changes are integrated. The new welcome refinement is a follow-up to F09, not an additional top-level task.
+
+Execution order: **finish F09 evidence and commit -> V02 -> D01 -> S02/D02 -> D03/D05 -> D04**, with C02 updated throughout. Parallel work is limited to independent source/documentation slices; shared contracts, migrations, Git and the final combined checks are coordinated. Heavy local checks run sequentially while the host is under memory pressure.
+
+### Immediate work: welcome refinement and release snapshot
+
+- [x] Implement the original connected-record welcome layout and content.
+- [x] Verify every welcome control reaches its account route or section, including keyboard skip navigation and signed-in return.
+- [x] Inspect 320px, 768px and 1280px layouts: no horizontal overflow; visible actions meet 44px height.
+- [x] Trace and fix development-toolbar style-policy errors; keep production nonce protection.
+- [x] Obtain independent frontend and security-policy reviews.
+- [x] Build the isolated committed baseline plus owned welcome changes successfully.
+- [x] Pass all 43 production-browser journeys on that isolated snapshot.
+- [ ] Resolve or reproduce the full-unit timing failures on a clean runner: local result is 211/218, with seven five-second timeouts. The thread-pool retry was stopped after further timing failures; neither attempt is a pass.
+- [x] Finish explicit full typecheck for the isolated snapshot.
+- [ ] Finish full lint for the isolated snapshot.
+- [ ] Record the current execution results and exact revision in validation.md.
+- [ ] Commit the owned welcome/policy/docs changes incrementally, preserving unrelated work.
+- [ ] Publish a reviewable stable revision and obtain current GitHub CI evidence.
+- [ ] Integrate and verify the active backend/CSV/shared-contract/migration changes before declaring the full release ready.
+
+### Priority delivery checklist: seven open tasks
+
+- [ ] **V02 ? Combined release verification.** Review the current shared-contract and schema changes; migrate only disposable test targets; pass unit, integration, benchmark-helper, typecheck, lint, production-build, startup and browser gates on one fixed revision; record passing CI for that same revision. Retain the dependency-risk dispositions and unresolved findings in the release evidence.
+- [ ] **D01 ? Deploy and verify persistence.** Set the Vercel framework to Next.js; configure private runtime variables and the production origin; use separate Neon preview/demo targets; apply reviewed migrations; deploy the verified revision; exercise registration/login, directory, salary history, CSV, export and reports; confirm records survive refresh and redeployment.
+- [ ] **S02 ? Hosted browser security.** Verify actual HTTPS response headers, CSP behavior and cookie protections; exercise account pages, dashboard, dialogs and charts on the deployed preview. Local production-browser success is already recorded, but does not close this hosted check.
+- [ ] **D02 ? Live FX and daily scheduling.** Confirm one real-provider snapshot with source/date/freshness; verify native salaries are unchanged; configure authenticated daily scheduling; observe an actual scheduled invocation and failure/stale-rate behavior. A manual refresh does not complete the scheduling checkbox.
+- [ ] **D03 ? Monitoring and alert delivery.** Set readiness/error/overdue-FX thresholds and operational ownership; connect redacted logs through request IDs; configure a suitable authorized alert destination; prove detection, notification and recovery using controlled preview failures; record provider/retention limits.
+- [ ] **D05 ? Backup, restore and rollback.** Verify the provider/account backup capability and recovery objectives; restore synthetic demo data into a separate target; check schema, employee counts and salary-history relationships; measure application rollback and document recovery results.
+- [ ] **D04 ? Repository and interview demo.** Check clean-checkout setup instructions against the deployed revision; reconcile README feature/status claims; link requirements, architecture, AI-use corrections, CSV guidance, performance and known limits; record and replay the short synthetic-data demonstration.
+
+### Other open items: six, outside the priority delivery batch
+
+- [ ] **C02 ? Release documentation and evidence.** Record each delivered slice's decisions, rejected alternatives, AI contributions/corrections, commands, actual outcomes and commit references. Close the documentation checkpoint for this release; continue this practice for later changes.
+- [ ] **P02 ? Conditional export-memory optimization.** Activate only if measured workload/hosting limits require it; preserve complete filtered output, decimal precision, ordering and formula protection.
+- [ ] **P03 ? Conditional report-query optimization.** Activate only if measurements require it; preserve exact filtered statistics, currency separation, tenure and outlier behavior.
+- [ ] **U01 ? Future Viewer-role decision.** Define grant authority, permissions and privacy/inference scenarios before implementation.
+- [ ] **U02 ? Future multiple-organization decision.** Define membership, tenant isolation and a data-preserving migration/test plan before implementation.
+- [ ] **U03 ? Future account-management decision.** Define recovery, MFA and permission-administration flows and safeguards without adding an unapproved registration gate.
+
+### All 34 tasks at a glance
+
+"Complete" below refers to the recorded task evidence, not deployment or verification of the current uncommitted backend changes. Detailed acceptance criteria remain in the task sections below.
+
+| ID | Task | Status |
+|---|---|---|
+| C01 | Align the audit and current plan | Recorded complete |
+| C02 | Record useful AI and architecture decisions | Ongoing release evidence |
+| F01 | Resolve the salary-dialog full-suite timeout | Recorded complete |
+| V01 | Verify current registration against the real backend | Recorded complete |
+| B01 | Verify atomic CSV import | Recorded complete |
+| B02 | Verify employee and salary persistence invariants | Recorded complete |
+| B03 | Verify persisted FX integrity and failures | Recorded complete |
+| B04 | Verify persisted reporting calculations | Recorded complete |
+| B05 | Guard demo seeding and its transaction | Recorded complete |
+| B06 | Add correlated redacted operational logs | Recorded complete |
+| B07 | Add readiness and production-start verification | Recorded complete |
+| S01 | Verify session and request boundaries | Recorded complete |
+| S02 | Add and verify browser security policy | Pending hosted execution/evidence |
+| S03 | Bound expensive authenticated requests | Recorded complete |
+| F02 | Add mobile employee cards | Recorded complete |
+| F03 | Visualize headcount groups | Recorded complete |
+| F04 | Visualize pay statistics and distributions | Recorded complete |
+| F05 | Visualize tenure reporting | Recorded complete |
+| F06 | Verify complete accessible frontend journeys | Recorded complete |
+| F07 | Improve search interaction if selected | Recorded complete |
+| F08 | Simplify CSV frontend state ownership | Recorded complete |
+| F09 | Add a public product introduction if selected | Recorded complete; refinement in final verification |
+| P01 | Measure the intended workload | Recorded complete |
+| P02 | Bound CSV export memory if required | Conditional; measurement trigger required |
+| P03 | Optimize report queries if required | Conditional; measurement trigger required |
+| V02 | Verify a reproducible release candidate | In progress |
+| D01 | Deploy and verify persistent application behavior | Pending hosted execution/evidence |
+| D02 | Verify live FX and the daily schedule | Pending hosted execution/evidence |
+| D03 | Make service and FX failures observable | Pending hosted execution/evidence |
+| D05 | Demonstrate backup and recovery | Pending hosted execution/evidence |
+| D04 | Prepare the final repository and demonstration | Pending hosted execution/evidence |
+| U01 | Decide whether to add a Viewer role | Future scope; decision required |
+| U02 | Decide whether to support multiple organizations | Future scope; decision required |
+| U03 | Decide on recovery, MFA and permission administration | Future scope; decision required |
 
 ## C01: Align the audit and current plan
 
@@ -70,7 +153,7 @@ Estimated scope: M: 2-4 files.
 - [x] A valid multi-batch import inserts every row once without overwriting existing employees.
 - [x] Late-batch failure, duplicate insertion races and changed confirmation input produce no partial import.
 - [x] File size, row count, field, date and currency-precision limits match the template and API contract.
-- [x] CSV compatibility follow-up: reordered canonical fields and fullName/jobTitle/hireDate aliases preserve exact persisted values; missing/unknown/duplicate mapped fields remain rejected. Required employeeCode and salary are never inferred. See the B01/F08/C02 CSV checkpoint in validation.md for the integrated UI and database evidence.
+- [x] CSV draft follow-up: reordered fields and id/fullName/jobTitle/hireDate aliases preserve source values; omitted/blank salary saves null pending pay. Support FR, BR/BRL and INTERN; retain 10,000-row/2 MiB limits and rejection of invalid supplied amounts, missing required fields and duplicates. Actual-file browser evidence saves/fetches all 10,000 rows and verifies reload; the synthetic journey also verifies first salary assignment. See the B01/B02/B03/B04/F08 checkpoint in validation.md.
 
 Verification: Use isolated PostgreSQL fixtures and deterministic failure/race coordination; inspect final counts, not timing assumptions.
 
@@ -464,9 +547,9 @@ Verification: Review each recovery/enrollment/administration journey and failure
 - [x] M0: F01/V01 close current registration and unit-suite evidence; C01 is current.
 - [x] M1: B01-B05 meet the accepted data invariants; no application database was used for tests or seeding.
 - [x] M2: selected F02-F08 improvements pass desktop/mobile/keyboard journeys against stable contracts.
-- [ ] M3: B06/B07 and selected S01-S03 controls have real built-app evidence.
-- [ ] M4: P01 records the workload baseline and targets; activated P02/P03 preserve results and show measured improvement.
+- [x] M3: B06/B07 and selected S01-S03 controls have real built-app evidence; deployed HTTPS acceptance remains in S02.
+- [x] M4: P01 records the workload baseline and targets; P02/P03 remain conditional and have not been activated.
 - [ ] M5: V02 and D01/D02/D04 close required delivery; D03/D05 operational status is explicit.
-- [ ] C02 records decisions, corrections and evidence at each checkpoint; optional F09/U01-U03 stay separate until selected.
+- [ ] C02 records decisions, corrections and evidence at each checkpoint; the selected F09 refinement is tracked above and U01-U03 retain their future scope boundary.
 
 A checkpoint is closed by recorded evidence, not an AI assertion of completion. Routine work already authorized proceeds without an added approval gate; material scope choices remain explicit.
