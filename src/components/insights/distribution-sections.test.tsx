@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import type { Insights } from '@/shared/contracts';
-import { DistributionSection } from './distribution-sections';
+import { DistributionSection, TenureSection } from './distribution-sections';
 
 const insights: Insights = {
   headcount: 3,
@@ -67,5 +67,68 @@ describe('Salary distribution charts', () => {
     render(<DistributionSection insights={{ ...insights, bands: [] }} />);
 
     expect(screen.getByRole('status')).toHaveTextContent('No salary bands are available for this filtered population.');
+  });
+});
+
+describe('Tenure charts', () => {
+  const tenureInsights: Insights = {
+    ...insights,
+    headcount: 4,
+    tenure: [
+      {
+        bucket: 'Under 1 year', currency: 'USD', count: 2, total: '160000.00',
+        min: '60000.00', max: '100000.00', average: '80000.00', median: '80000.00',
+        p25: '70000.00', p75: '90000.00',
+      },
+      {
+        bucket: '1–under 3 years', currency: 'USD', count: 1, total: '12345678901234567890.12',
+        min: '12345678901234567890.12', max: '12345678901234567890.12',
+        average: '12345678901234567890.12', median: '12345678901234567890.12',
+        p25: '12345678901234567890.12', p75: '12345678901234567890.12',
+      },
+      {
+        bucket: 'Under 1 year', currency: 'INR', count: 1, total: '900000.00',
+        min: '900000.00', max: '900000.00', average: '900000.00', median: '900000.00',
+        p25: '900000.00', p75: '900000.00',
+      },
+    ],
+  };
+
+  it('uses backend buckets in separate native-currency headcount and pay charts', () => {
+    render(<TenureSection insights={tenureInsights} />);
+
+    expect(screen.getByText(/Completed calendar years at 14 Oct 2026 UTC/)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'USD tenure' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'INR tenure' })).toBeInTheDocument();
+    expect(screen.getByLabelText(/USD headcount by tenure chart/).getAttribute('aria-label')).toMatch(/1–under 3 years: 1 person/);
+    expect(screen.getByLabelText(/USD median annual pay by tenure chart/).getAttribute('aria-label')).toMatch(/USD 12,345,678,901,234,567,890\.12/);
+
+    const table = screen.getByLabelText('Pay by tenure bucket');
+    expect(within(table).getAllByText('1–under 3 years').length).toBeGreaterThan(0);
+    expect(within(table).getAllByText('USD 12,345,678,901,234,567,890.12')).toHaveLength(2);
+  });
+
+  it('labels approximate USD tenure by rate date and hides unavailable output', () => {
+    const approximateUsd: Insights = {
+      ...tenureInsights,
+      currencyMode: 'USD',
+      tenure: tenureInsights.tenure.filter((bucket) => bucket.currency === 'USD'),
+      fx: { ...tenureInsights.fx, available: true, state: 'FRESH', rateDate: '2026-10-14' },
+    };
+    const { rerender } = render(<TenureSection insights={approximateUsd} />);
+
+    expect(screen.getByRole('heading', { name: 'Approximate USD tenure' })).toBeInTheDocument();
+    expect(screen.getByText('Rate date: 14 Oct 2026')).toBeInTheDocument();
+
+    rerender(<TenureSection insights={{ ...approximateUsd, reportingAvailable: false, fx: { ...approximateUsd.fx, state: 'STALE' } }} />);
+    expect(screen.getByRole('status')).toHaveTextContent('Approximate USD tenure reporting is unavailable');
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  });
+
+  it('shows a readable empty state when no tenure buckets are returned', () => {
+    render(<TenureSection insights={{ ...insights, tenure: [] }} />);
+
+    expect(screen.getByRole('status')).toHaveTextContent('No tenure data is available for this filtered population.');
   });
 });

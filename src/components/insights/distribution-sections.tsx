@@ -67,33 +67,4 @@ export function DistributionSection({ insights }: { insights: Insights }) {
   );
 }
 
-export function TenureSection({ insights }: { insights: Insights }) {
-  return (
-    <Box component="section" aria-labelledby="tenure-title">
-      <Box sx={{ mb: 1.5 }}>
-        <Typography id="tenure-title" component="h2" variant="h2">Pay by tenure</Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          Completed calendar years at {formatDate(insights.asOf)} UTC. Buckets: under 1 year, 1–under 3, 3–under 5, 5–under 10, and 10+ years.
-        </Typography>
-      </Box>
-      <Card sx={{ overflow: 'hidden' }}>
-        <TableContainer className="data-table-wrap">
-          <Table aria-label="Pay by tenure bucket" sx={{ minWidth: 720 }}>
-            <TableHead><TableRow><TableCell>Tenure</TableCell><TableCell>Currency</TableCell><TableCell align="right">People</TableCell><TableCell align="right">Average</TableCell><TableCell align="right">Median</TableCell></TableRow></TableHead>
-            <TableBody>
-              {insights.tenure.map((bucket) => (
-                <TableRow key={bucket.bucket + '-' + bucket.currency}>
-                  <TableCell sx={{ fontWeight: 700 }}>{bucket.bucket}</TableCell>
-                  <TableCell>{bucket.currency}</TableCell>
-                  <TableCell align="right">{bucket.count.toLocaleString()}</TableCell>
-                  <TableCell align="right">{formatCurrency(bucket.average, bucket.currency)}</TableCell>
-                  <TableCell align="right">{formatCurrency(bucket.median, bucket.currency)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Card>
-    </Box>
-  );
-}
+export { TenureSection } from './tenure-section';
