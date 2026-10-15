@@ -1,0 +1,17 @@
+{
+  "scores": {
+    "uncertainty": 1,
+    "scope": 1,
+    "reasoning": 2,
+    "verification": 1
+  },
+  "evidence": {
+    "uncertainty": "Uncommitted integrated registration changes have earlier evidence but need independent review.",
+    "scope": "Auth boundary, frontend client and isolated-target guards.",
+    "reasoning": "Session creation, atomic rollback and sensitive error handling are consequential.",
+    "verification": "Existing meaningful tests and source review available; do not execute infrastructure."
+  },
+  "risk": "high",
+  "attempts_used": 0,
+  "escalations_used": 0
+}

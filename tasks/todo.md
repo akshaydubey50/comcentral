@@ -1,6 +1,8 @@
 # ComCentral audit implementation checklist
 
-Updated 2026-10-14. This extends the existing project checklist. The original backend tasks are preserved through the mapping in [plan.md](plan.md). Scope and audit dispositions are in [the delivery plan](../docs/implementation-plan.md); actual execution results are in [validation.md](../docs/validation.md).
+Updated 2026-10-15. This extends the existing project checklist. The original backend tasks are preserved through the mapping in [plan.md](plan.md). Scope and audit dispositions are in [the delivery plan](../docs/implementation-plan.md); actual execution results are in [validation.md](../docs/validation.md).
+
+Current checkpoint: **6 of 34 tasks verified complete** (C01, F01, V01, B01, B03, B05). The **28 open items** comprise **22 delivery tasks**, **2 conditional optimizations** (P02/P03), **3 future product decisions** (U01-U03), and **1 recurring evidence task** (C02). F02 mobile cards are implemented with focused checks; browser acceptance remains. B02 persistence checks are drafted. Open delivery tasks include deployment and scheduled-job evidence, not only missing feature code.
 
 The user has authorized audit implementation and incremental commits. C01 represents completed planning; other boxes track acceptance work still to implement or verify, including checks of existing features. Recommended frontend/delivery improvements are selected for implementation. Conditional performance changes require measurements; future account/tenant decision tasks retain the approved scope boundary. Existing registration, employee, salary, CSV and analytics code is retained.
 
@@ -52,9 +54,9 @@ Dependencies: F01 for the combined checkpoint; isolated verification can run ind
 Likely files: tests/integration/registration.integration.test.ts; tests/e2e/registration-live.spec.ts; test helpers; docs/validation.md.
 Estimated scope: M: 3-5 files.
 
-- [ ] A five-character password registers, establishes a session and works after logout/login on a disposable target.
-- [ ] Four-character, duplicate and invalid submissions preserve account/session invariants; existing rollback cases remain covered.
-- [ ] The built UI routes, password controls and session handoff work with the real API; fixture-only results are labelled separately.
+- [x] A five-character password registers, establishes a session and works after logout/login on a disposable target.
+- [x] Four-character, duplicate and invalid submissions preserve account/session invariants; existing rollback cases remain covered.
+- [x] The built UI routes, password controls and session handoff work with the real API; fixture-only results are labelled separately.
 
 Verification: Run isolated registration integration tests and the live Playwright registration journey under existing target guards.
 
@@ -65,9 +67,9 @@ Dependencies: Existing test-target guard.
 Likely files: src/server/services/imports.ts; focused import integration tests; tests/integration/test-database.ts only if needed.
 Estimated scope: M: 2-4 files.
 
-- [ ] A valid multi-batch import inserts every row once without overwriting existing employees.
-- [ ] Late-batch failure, duplicate insertion races and changed confirmation input produce no partial import.
-- [ ] File size, row count, field, date and currency-precision limits match the template and API contract.
+- [x] A valid multi-batch import inserts every row once without overwriting existing employees.
+- [x] Late-batch failure, duplicate insertion races and changed confirmation input produce no partial import.
+- [x] File size, row count, field, date and currency-precision limits match the template and API contract.
 
 Verification: Use isolated PostgreSQL fixtures and deterministic failure/race coordination; inspect final counts, not timing assumptions.
 
@@ -91,9 +93,9 @@ Dependencies: Existing test-target guard.
 Likely files: src/server/services/fx.ts; src/server/domain/fx.ts; focused FX unit/integration tests.
 Estimated scope: M: 3-5 files.
 
-- [ ] Read-time canonical checksum verification rejects mismatched stored content while preserving supported deduplication behavior.
-- [ ] Refresh success/failure, immutable snapshots, missing/stale rates and provider errors persist the documented states without changing native salaries.
-- [ ] Manual/cron refresh remains protected and deterministic tests do not call a live provider.
+- [x] Read-time canonical checksum verification rejects mismatched stored content while preserving supported deduplication behavior.
+- [x] Refresh success/failure, immutable snapshots, missing/stale rates and provider errors persist the documented states without changing native salaries.
+- [x] Manual/cron refresh remains protected and deterministic tests do not call a live provider.
 
 Verification: Use fixed provider responses and isolated persisted fixtures, including malformed rates and a deliberately mismatched checksum.
 
@@ -452,7 +454,7 @@ Verification: Review each recovery/enrollment/administration journey and failure
 
 ## Checkpoints
 
-- [ ] M0: F01/V01 close current registration and unit-suite evidence; C01 is current.
+- [x] M0: F01/V01 close current registration and unit-suite evidence; C01 is current.
 - [ ] M1: B01-B05 meet the accepted data invariants; no application database was used for tests or seeding.
 - [ ] M2: selected F02-F08 improvements pass desktop/mobile/keyboard journeys against stable contracts.
 - [ ] M3: B06/B07 and selected S01-S03 controls have real built-app evidence.

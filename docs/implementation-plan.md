@@ -1,6 +1,6 @@
 # ComCentral delivery plan after the PayScope audit
 
-Prepared 2026-10-14. This extends the existing ComCentral plan and preserves its unfinished backend work. Planning is complete; the new implementation tasks below have not been executed. Product scope remains [requirements.md](requirements.md). Audit evidence is in [payscope-comparison.md](payscope-comparison.md), run results in [validation.md](validation.md), and the executable checklist in [tasks/todo.md](../tasks/todo.md).
+Prepared 2026-10-14; execution checkpoint updated 2026-10-15. This extends the existing ComCentral plan and preserves its unfinished backend work. Planning and the first verified implementation slices are complete; task-level progress is maintained in [tasks/todo.md](../tasks/todo.md). Product scope remains [requirements.md](requirements.md). Audit evidence is in [payscope-comparison.md](payscope-comparison.md), and actual run results are in [validation.md](validation.md).
 
 ## Outcome and scope
 
@@ -20,7 +20,7 @@ The three work categories are:
 
 Registration, employee management, salary changes/history, CSV import/export, analytics and FX feature code exist. Registration loads locally, password visibility controls exist, and the approved password policy is aligned across the form, HTTP validation and auth configuration.
 
-The latest recorded full unit run has **124 passes and one salary-dialog timeout**. Its five tests pass in isolation. Typecheck, lint, a production build and five updated registration browser fixtures passed; those fixtures intercepted API calls. Earlier real-database/browser registration checks precede the password follow-up. These are different snapshots, not one fully green release. The current application is not recorded as deployed.
+F01 resolved the salary-dialog timeout and passed the 125-test full serial suite. V01 verifies five-character registration against isolated PostgreSQL and a built browser app, including logout/login. B01 adds atomic import/race evidence, B03 verifies stored FX checksums, and B05 guards and verifies exactly 10,000 synthetic rows. Later changes require the combined release gate; see the evidence ledger for current run counts and limits. The application is not deployed.
 
 Earlier backend notes record a 10,000-row seed on disposable CI databases. That does not replace pending local/deployed workload measurements, seed concurrency review or dedicated demo-environment proof. Do not repeat completed migration/registration implementation merely because an old checklist is unchecked.
 

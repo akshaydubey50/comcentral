@@ -1,0 +1,17 @@
+{
+  "scores": {
+    "uncertainty": 2,
+    "scope": 0,
+    "reasoning": 2,
+    "verification": 2
+  },
+  "evidence": {
+    "uncertainty": "Same salary-dialog flow repeatedly exceeds 5 seconds only in the full suite.",
+    "scope": "One dialog test file and its component/setup only if evidence implicates them.",
+    "reasoning": "Mutation lifecycle, DOM queries, scheduling and cleanup may interact.",
+    "verification": "Prior focused run passes while two full runs timeout."
+  },
+  "risk": "medium",
+  "attempts_used": 0,
+  "escalations_used": 0
+}
