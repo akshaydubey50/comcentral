@@ -4,6 +4,7 @@ import type { ApiErrorBody, HrUser } from '@/shared/contracts';
 import { InputValidationError } from '@/shared/validation';
 import { getAuth } from '@/server/auth';
 import { applicationOrigin, ConfigurationError } from '@/server/config';
+import { withRequestLog } from '@/server/request-logging';
 
 export class ApiError extends Error {
   constructor(
@@ -41,14 +42,9 @@ function normalizedZodDetails(error: ZodError): Array<{ field: string; message: 
 export function route<T extends unknown[]>(
   handler: (...args: T) => Promise<Response>,
 ): (...args: T) => Promise<Response> {
-  return async (...args: T) => {
+  return (...args: T) => withRequestLog(args[0] instanceof Request ? args[0] : undefined, async () => {
     try {
-      const response = await handler(...args);
-      if (!response.headers.has('cache-control')) response.headers.set('cache-control', 'no-store');
-      if (!response.headers.has('x-content-type-options')) {
-        response.headers.set('x-content-type-options', 'nosniff');
-      }
-      return response;
+      return await handler(...args);
     } catch (error) {
       if (error instanceof ApiError) return errorResponse(error);
       if (error instanceof InputValidationError) {
@@ -77,12 +73,9 @@ export function route<T extends unknown[]>(
         );
       }
 
-      console.error('Unhandled API error', {
-        name: error instanceof Error ? error.name : 'UnknownError',
-      });
       return errorResponse(new ApiError(500, 'INTERNAL_ERROR', 'The request could not be completed'));
     }
-  };
+  });
 }
 
 export async function requireHrSession(request: Request): Promise<HrUser> {

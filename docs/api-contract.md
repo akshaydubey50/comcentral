@@ -1,5 +1,13 @@
 # API contract v1
 
+## Request correlation
+
+Every application API response includes `X-Request-ID`. A caller may send a UUID-shaped ID (RFC variant, version 1-8); other or missing values are replaced with a generated UUID. This is diagnostic context, never an authentication or authorization input. Responses retain the existing JSON shapes, cookies and cache controls.
+
+The server emits one structured `http_request` event with timestamp, entry point, request ID, method, allowlisted route template, status and elapsed milliseconds. Authentication warnings/errors inherit the same request context, including concurrent requests. Query strings, employee IDs, request/response bodies, cookies, credentials, connection strings and exception messages are excluded. Logging failures cannot replace the original response. Use the response ID to find the event in the hosting platform's stdout/stderr logs; retention and alert delivery remain deployment work.
+
+## Payloads and access
+
 Types: src/shared/contracts.ts. JSON decimal strings for money; dates YYYY-MM-DD and timestamps ISO UTC. Responses use {data: ...} unless otherwise specified. All employee, directory-options, import, and reporting endpoints require a valid HR session; GET /api/session returns {user: HrUser|null}. Better Auth uses POST /api/auth/sign-in/email and /sign-out. Mutations verify request origin; JSON only. Errors {error:{code,message,details?}}, with 401/403/404/409/422 as appropriate. Never expose internal errors.
 
 Public registration: `POST /api/auth/sign-up/email` accepts exactly `{name,email,password}` as same-origin JSON, limited to 4 KiB. Name is trimmed and must contain 1-160 characters. Email is trimmed, lowercased, valid and at most 254 characters. Password is preserved exactly and must contain 5-128 characters. Confirmation stays in the form; additional fields are rejected. A successful native Better Auth response sets an HttpOnly, SameSite=Lax cookie (Secure in production). The frontend discards returned token data and confirms `GET /api/session` before entering the dashboard. Every HR account immediately accesses the shared workspace without invitation, administrator approval, or email verification.

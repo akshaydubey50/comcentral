@@ -3,6 +3,7 @@ import { APIError, betterAuth } from 'better-auth';
 
 import { applicationOrigin, ConfigurationError, requireEnvironment } from '@/server/config';
 import { getPrisma } from '@/server/db/prisma';
+import { logAuthEvent } from '@/server/request-logging';
 
 type AuthMode = 'public' | 'provisioning';
 
@@ -55,7 +56,7 @@ export function createAuth(mode: AuthMode = 'public') {
       onError(error) {
         if (error instanceof APIError) return;
 
-        console.error('Better Auth request failed');
+        logAuthEvent('auth_internal_error');
         // Throwing a sanitized API error prevents better-call from logging the original exception.
         throw APIError.from('INTERNAL_SERVER_ERROR', {
           code: 'INTERNAL_SERVER_ERROR',
@@ -67,8 +68,8 @@ export function createAuth(mode: AuthMode = 'public') {
       level: 'warn',
       // Better Auth includes supplied email addresses in some info messages. Keep auth logs PII-free.
       log(level) {
-        if (level === 'error') console.error('Better Auth reported an internal error');
-        else if (level === 'warn') console.warn('Better Auth reported a warning');
+        if (level === 'error') logAuthEvent('auth_internal_error');
+        else if (level === 'warn') logAuthEvent('auth_warning');
       },
     },
   });
