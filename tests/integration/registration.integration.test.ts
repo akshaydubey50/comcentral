@@ -171,7 +171,50 @@ describe('PostgreSQL public HR registration', () => {
       expect(await prisma!.account.count({ where: { user: { email: input.email } } })).toBe(0);
       expect(await prisma!.session.count({ where: { user: { email: input.email } } })).toBe(0);
       expect(errorLog.mock.calls.length).toBeGreaterThan(0);
-      expect(errorLog.mock.calls.every((args) => args.length === 1 && ['Better Auth reported an internal error', 'Better Auth request failed'].includes(args[0]))).toBe(true);
+      const events = errorLog.mock.calls.map((args) => {
+        expect(args).toHaveLength(1);
+        expect(typeof args[0]).toBe('string');
+        return JSON.parse(args[0] as string) as Record<string, unknown>;
+      });
+      for (const event of events) {
+        expect(event).toMatchObject({
+          entryPoint: 'http',
+          method: 'POST',
+          route: '/api/auth/[...all]',
+          requestId: expect.any(String),
+          timestamp: expect.any(String),
+        });
+        if (event.event === 'auth_internal_error') {
+          expect(Object.keys(event).sort()).toEqual(
+            ['entryPoint', 'event', 'method', 'requestId', 'route', 'timestamp'].sort(),
+          );
+        } else {
+          expect(event).toMatchObject({
+            event: 'http_request',
+            status: 500,
+            durationMs: expect.any(Number),
+          });
+          expect(Object.keys(event).sort()).toEqual(
+            [
+              'durationMs',
+              'entryPoint',
+              'event',
+              'method',
+              'requestId',
+              'route',
+              'status',
+              'timestamp',
+            ].sort(),
+          );
+        }
+      }
+      expect(events.some((event) => event.event === 'auth_internal_error')).toBe(true);
+      expect(events.some((event) => event.event === 'http_request')).toBe(true);
+      const serializedLogs = JSON.stringify(errorLog.mock.calls);
+      expect(serializedLogs).not.toContain(input.email);
+      expect(serializedLogs).not.toContain(input.password);
+      expect(serializedLogs).not.toContain(constraint);
+      expect(serializedLogs).not.toMatch(/violates check constraint/i);
     } finally {
       errorLog.mockRestore();
       await prisma!.$executeRawUnsafe(`ALTER TABLE "${table}" DROP CONSTRAINT "${constraint}"`);
