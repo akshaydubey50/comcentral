@@ -39,7 +39,6 @@ function EmployeeDirectoryContent() {
   const employees = useQuery({
     queryKey: ['employees', query],
     queryFn: () => api.employees(query),
-    placeholderData: (previous) => previous,
   });
   const options = useQuery({ queryKey: ['directory-options'], queryFn: api.options });
   const exportRows = useMutation({
