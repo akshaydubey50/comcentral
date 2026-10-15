@@ -51,7 +51,7 @@ const delay = (milliseconds) => new Promise((resolveDelay) => setTimeout(resolve
 async function waitForReadiness(child, exited, endpoint) {
   const deadline = Date.now() + startupTimeoutMs;
   while (Date.now() < deadline) {
-    if (child.exitCode !== null) {
+    if (child.pid === undefined || child.exitCode !== null) {
       const result = await exited;
       throw new Error(`Production server exited before readiness (code ${result.code ?? 'none'})`);
     }
@@ -75,7 +75,7 @@ async function waitForReadiness(child, exited, endpoint) {
 }
 
 async function stopServer(child, exited) {
-  if (child.exitCode !== null) return;
+  if (child.pid === undefined || child.exitCode !== null) return;
   child.kill('SIGTERM');
   const stopped = await Promise.race([exited.then(() => true), delay(5_000).then(() => false)]);
   if (stopped) return;
