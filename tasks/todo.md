@@ -2,7 +2,7 @@
 
 Updated 2026-10-15. This extends the existing project checklist. The original backend tasks are preserved through the mapping in [plan.md](plan.md). Scope and audit dispositions are in [the delivery plan](../docs/implementation-plan.md); actual execution results are in [validation.md](../docs/validation.md).
 
-Current checkpoint: **18 of 34 tasks verified complete** (C01, F01-F06, F08, V01, B01-B07, S01, S03). The **16 open items** comprise **10 delivery tasks**, **2 conditional optimizations** (P02/P03), **3 future product decisions** (U01-U03), and **1 recurring evidence task** (C02). Ten of the 20 delivery tasks prioritized on 2026-10-15 are now closed. Search and the welcome page are implemented with focused checks; their built-browser acceptance is next. S02 has local browser evidence and still needs deployed HTTPS verification. The current user deadline prioritizes local release checks and performance results within 2-3 hours; deployment, scheduled-job, alert and recovery evidence remain the following milestone.
+Current checkpoint: **19 of 34 tasks verified complete** (C01, F01-F08, V01, B01-B07, S01, S03). The **15 open items** comprise **9 delivery tasks**, **2 conditional optimizations** (P02/P03), **3 future product decisions** (U01-U03), and **1 recurring evidence task** (C02). Eleven of the 20 delivery tasks prioritized on 2026-10-15 are now closed. Search passed built-browser acceptance; the welcome page has a runtime rendering correction in progress. S02 has local browser evidence and still needs deployed HTTPS verification. The current user deadline prioritizes local release checks and performance results within 2-3 hours; deployment, scheduled-job, alert and recovery evidence remain the following milestone.
 
 The user has authorized audit implementation and incremental commits, and prioritized all 20 remaining delivery tasks as P0 on 2026-10-15. Conditional P02/P03 and future U01-U03 remain outside this delivery batch. C01 represents completed planning; other boxes track acceptance work still to implement or verify, including checks of existing features. Recommended frontend/delivery improvements are selected for implementation. Conditional performance changes require measurements; future account/tenant decision tasks retain the approved scope boundary. Existing registration, employee, salary, CSV and analytics code is retained.
 
@@ -264,9 +264,9 @@ Dependencies: F02; choose debounce versus explicit-submit behavior.
 Likely files: src/components/employees/employee-filters.tsx; employee-directory.tsx; focused tests.
 Estimated scope: M: 2-3 files.
 
-- [ ] Chosen search behavior is documented and updates URL/filter state consistently, including clearing and back navigation.
-- [ ] Earlier responses cannot replace newer results; searching resets pagination appropriately.
-- [ ] Typing does not cause excessive requests or remove an accessible explicit action if it remains part of the interaction.
+- [x] Chosen search behavior is documented and updates URL/filter state consistently, including clearing and back navigation.
+- [x] Earlier responses cannot replace newer results; searching resets pagination appropriately.
+- [x] Typing does not cause excessive requests or remove an accessible explicit action if it remains part of the interaction.
 
 Verification: Use controlled timers and reversed response order; verify keyboard submit and browser history.
 
@@ -456,7 +456,7 @@ Verification: Review each recovery/enrollment/administration journey and failure
 
 - [x] M0: F01/V01 close current registration and unit-suite evidence; C01 is current.
 - [x] M1: B01-B05 meet the accepted data invariants; no application database was used for tests or seeding.
-- [ ] M2: selected F02-F08 improvements pass desktop/mobile/keyboard journeys against stable contracts.
+- [x] M2: selected F02-F08 improvements pass desktop/mobile/keyboard journeys against stable contracts.
 - [ ] M3: B06/B07 and selected S01-S03 controls have real built-app evidence.
 - [ ] M4: P01 records the workload baseline and targets; activated P02/P03 preserve results and show measured improvement.
 - [ ] M5: V02 and D01/D02/D04 close required delivery; D03/D05 operational status is explicit.

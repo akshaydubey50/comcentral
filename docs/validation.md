@@ -1,18 +1,18 @@
 # Verification evidence
 
-Verified on 2026-10-14 with Node 24.18.1, Next.js 16.4.0, Prisma 7.10.0 and TypeScript 5.9.3.
+Checkpoints through 2026-10-15 with Node 24.18.1, Next.js 16.4.0, Prisma 7.10.0 and TypeScript 5.9.3.
 
-These results identify separate working-tree checkpoints. F01 resolved the salary-dialog timeout with a 125-test full-suite pass. The 2026-10-15 combined follow-up had 143 passes and one AppShell session-recovery timeout; the current full-unit gate is not green. Current five-character registration has real PostgreSQL and built-browser evidence. Older results remain in the historical sections and must not be added to overlapping current runs. Nothing is deployed yet.
+These results identify separate working-tree checkpoints. F01 resolved the salary-dialog timeout with a 125-test full-suite pass. The latest clean-checkout run had 179 passes and two AppShell timeouts; the focused correction now passes, but the combined current unit gate remains pending. Current five-character registration has real PostgreSQL and built-browser evidence. Older results remain in the historical sections and must not be added to overlapping current runs. Nothing is deployed yet.
 
 | Check | Current evidence |
 |---|---|
 | One-page requirements | 642 words after the approved audit usability/delivery additions; rendered one-page A4 PDF, text and page bounds checked against Markdown, and preview visually inspected |
 | Public registration | Implemented and verified: real signup persists credentials, establishes a session, opens the shared workspace, and supports logout/login |
 | Prisma generation/schema | Client generation and Prisma validate passed |
-| Unit/component tests | Latest follow-up: 143 passed, 1 AppShell session-recovery timeout across 24 files in 244.25s; investigation pending. Earlier F01: 125/125 passed; salary-dialog tests also passed in the follow-up |
+| Unit/component tests | Clean checkout: 179 passed, 2 AppShell timeouts across 30 files in 258.64s. Focused correction passed 3/3; combined rerun pending. Earlier 143/144 and F01 125/125 results are historical |
 | TypeScript | `npm run typecheck` passed, including after restoring the pre-existing generated Next.js type imports changed by the build |
 | Lint | Full ESLint check passed with no errors or warnings |
-| Production build | Next.js optimized production build passed; all 17 static pages generated and API routes built, including /register |
+| Production build | Clean-checkout default Turbopack build passed at `0b6e210`, including /login, /register and /welcome; nonce-bearing documents render dynamically |
 | Database integration | Separate focused runs: 15 registration/salary tests, 4 seed tests, 5 import tests and 4 FX tests passed on disposable local PostgreSQL 17; combined current-suite run pending |
 | Migration and HR provisioning | Initial migration repaired and applied; Prisma status is up to date, read-only schema diff is empty, and the provisioned HR user and credential account are verified |
 | Browser journeys | Current registration checkpoint: 6 Chromium journeys passed in 17.3s against the built app on localhost:3106: 1 real five-character signup/logout/login case and 5 intercepted UI cases. Broader historical 15-journey run is recorded below; full current frontend run pending |
@@ -51,6 +51,12 @@ S03 (`d20c42f`, `a4b9c3b`): seven isolated PostgreSQL integration cases passed f
 F06/F08: all three additional built-browser cases passed in 8.3s. They verify CSV replacement invalidates the old preview, exact reviewed text/hash reaches commit, preview-error retry and pending/conflict recovery work, and mobile outlier reports retain cohort explanations, exact native values, filter context and a keyboard-operable employee link. Together with the earlier 14-case frontend/security run and real employee/registration journeys this closes the selected frontend accessibility/recovery acceptance. The final combined release gate remains V02.
 
 V02 dependency/setup checkpoint, 2026-10-15: `csv-parse` is pinned to 7.0.3 (`bca6038`) after primary-source advisory/changelog review. Four CSV domain tests and five isolated import integration tests passed after the upgrade. The remaining Prisma CLI/Studio and Vitest/tooling findings have explicit exposure/version-hold notes in [dependencies.md](dependencies.md); no zero-vulnerability claim is made. A fresh detached checkout was created for the release gate. Its first install was cancelled under severe host memory pressure (about 0.5 GiB free of 15.7 GiB); this is not a successful install result. The owned preview and development servers were stopped temporarily, and installation restarted from the lockfile using cached packages. Final clean-install/gate results will follow.
+
+P01/V02 safety correction (`a217afe`): inspection of the installed PostgreSQL URL parser demonstrated that `host`, `port` and `connectionString` query keys can change the connection target. The test/seed/benchmark guards now refuse those overrides and compare decoded authority hosts. Four benchmark-helper tests and 54 database-target guard cases passed; focused lint and diff checks passed. The actual disposable URLs used in prior runs contained no overrides. No application database was used for these checks.
+
+F07 (`601a042`, `466a3d4`): the directory's seven component cases passed, including reversed-response ordering and explicit-submit behavior. Built Chromium acceptance passed in 2.1s for Enter submission, page reset, Clear and Back/Forward with matching URL, input and visible result rows. This closes F07. The broader first release browser run had 24 passes and seven failures in 1.3 minutes: two exposed an actual welcome-page Server/Client Component serialization error; five live-auth cases used a noncanonical loopback origin. Inspection of the installed `NextRequest` implementation demonstrated normalization of `127.0.0.1` to `localhost`; the test/benchmark URLs will use that canonical origin without weakening mutation checks. These failures remain recorded until the corrected combined run passes.
+
+V02 clean-checkout checkpoint, 2026-10-15: `npm ci --prefer-offline --no-audit --no-fund` completed, installing 668 packages from the lockfile. Prisma generation, full TypeScript and full ESLint passed. The first serial unit run at `caa4563` produced 179 passes and two AppShell timeouts across 30 files in 258.64s. An instrumented focused run of the same behavior passed 3/3; slow setup/collection and host memory pressure remained visible. The session tests now isolate third-party Drawer portal/transition work and use the sign-out button's accessible label (`0b6e210`), preserving the content, cache, retry and redirect assertions and the five-second limit. Independent review found no lost session coverage; real drawer behavior remains in browser tests. The changed focused file passed 3/3 in the clean checkout. A normal Turbopack production build at `0b6e210` then passed, including login, registration and welcome; the final combined unit/browser/database gates remain pending.
 
 ## Earlier verification checkpoints
 
