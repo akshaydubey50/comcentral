@@ -19,7 +19,7 @@ export function SalaryHistoryTable({
 }) {
   if (loading) return <Box sx={{ p: 2.5 }}><LoadingState label="Loading salary history" /></Box>;
   if (error) return <Box sx={{ p: 2.5 }}><ErrorState message="Salary history is unavailable." onRetry={onRetry} /></Box>;
-  if (!history?.length) return <EmptyState title="No salary changes yet" description="The employee's starting salary is current. Future changes will appear here with their reason and actor." />;
+  if (!history?.length) return <EmptyState title="No salary changes yet" description="Salary assignments and future changes will appear here with their reason and actor." />;
 
   return (
     <TableContainer className="data-table-wrap">
@@ -37,7 +37,7 @@ export function SalaryHistoryTable({
           {history.map((entry) => (
             <TableRow key={entry.id}>
               <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDateTime(entry.createdAt)}</TableCell>
-              <TableCell sx={{ whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{formatCurrency(entry.previousSalary, entry.previousCurrency)}</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{entry.previousSalary === null ? 'Not set' : formatCurrency(entry.previousSalary, entry.previousCurrency)}</TableCell>
               <TableCell sx={{ whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>{formatCurrency(entry.salary, entry.currency)}</TableCell>
               <TableCell><Typography variant="body2" sx={{ minWidth: 180 }}>{entry.reason}</Typography></TableCell>
               <TableCell>{entry.actor.name}<Typography variant="caption" display="block" color="text.secondary">{entry.actor.email}</Typography></TableCell>

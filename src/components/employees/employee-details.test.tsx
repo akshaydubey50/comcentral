@@ -88,6 +88,28 @@ describe('EmployeeDetails', () => {
     mocks.salaryHistory.mockResolvedValue([]);
   });
 
+  it('keeps a salary-pending employee visible and offers the first salary action', async () => {
+    mocks.employee.mockResolvedValue({ ...employee, salary: null });
+    renderDetails();
+
+    expect(await screen.findByText('Salary pending')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Add salary' })).toBeEnabled();
+    expect(screen.getByText(/excluded from pay statistics until a salary is added/i)).toBeInTheDocument();
+    expect(screen.queryByText(/starting salary is current/i)).not.toBeInTheDocument();
+  });
+
+  it('labels the first salary history entry as previously not set', async () => {
+    mocks.salaryHistory.mockResolvedValue([{
+      id: 'first-pay', employeeId: employee.id, previousSalary: null, previousCurrency: 'GBP',
+      salary: '125000.00', currency: 'GBP', reason: 'Initial compensation confirmed',
+      actor: { id: 'hr-1', name: 'HR Manager', email: 'hr@acme.test' },
+      createdAt: '2026-10-14T01:00:00.000Z',
+    }]);
+    renderDetails();
+    expect(await screen.findByRole('cell', { name: 'Not set' })).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'GBP 125,000.00' })).toBeInTheDocument();
+  });
+
   it('blocks editing until failed directory options are retried successfully', async () => {
     mocks.options
       .mockRejectedValueOnce(new Error('Options unavailable'))

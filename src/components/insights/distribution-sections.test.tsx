@@ -6,6 +6,7 @@ import { DistributionSection, TenureSection } from './distribution-sections';
 
 const insights: Insights = {
   headcount: 3,
+  salaryPendingCount: 0,
   asOf: '2026-10-14',
   currencyMode: 'NATIVE',
   groupBy: 'country',

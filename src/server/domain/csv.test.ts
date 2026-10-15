@@ -78,20 +78,56 @@ describe('CSV header compatibility', () => {
     expect(result.rowNumbers).toEqual([2]);
   });
 
-  it('reports missing employeeCode and salary without guessing from an id', () => {
+  it('accepts source ids as employee codes and omitted salary as pending', () => {
     const result = parseEmployeeCsv(
       'id,fullName,email,jobTitle,department,country,currency,employmentType,hireDate\n' +
         'internal-001,Ada Lovelace,ada@example.com,Principal Engineer,Engineering,GB,GBP,FULL_TIME,2020-02-29',
       now,
     );
-    expect(result.errorCount).toBe(3);
-    expect(result.errors).toEqual([
-      { row: 1, field: 'header', message: 'Unsupported column "id". Use the employee CSV template.' },
-      { row: 1, field: 'header', message: 'Missing required column "employeeCode".' },
-      { row: 1, field: 'header', message: 'Missing required column "salary".' },
-    ]);
+    expect(result.errorCount).toBe(0);
+    expect(result.rows[0]).toMatchObject({ employeeCode: 'internal-001', name: 'Ada Lovelace', salary: null });
+    expect(result.totalRows).toBe(1);
+  });
+
+  it('accepts a blank salary while preserving paid values in the same import', () => {
+    const result = parseEmployeeCsv(EMPLOYEE_CSV_HEADERS.join(',') + '\n' +
+      validRow.replace('100000.50', '  ') + '\n' + validRow.replaceAll('ACME-001', 'ACME-002').replace('ada@example.com', 'paid@example.com'), now);
+    expect(result.errorCount).toBe(0);
+    expect(result.rows.map((row) => row.salary)).toEqual([null, '100000.50']);
+  });
+
+  it('rejects an ambiguous id and employeeCode pair', () => {
+    const result = parseEmployeeCsv(EMPLOYEE_CSV_HEADERS.join(',') + ',id\n' + validRow + ',other-id', now);
+    expect(result.errors).toEqual([{ row: 1, field: 'header', message: 'Duplicate column for "employeeCode". Use each employee field once.' }]);
     expect(result.rows).toEqual([]);
-    expect(result.totalRows).toBe(0);
+  });
+
+  it('accepts France, Brazil, BRL and interns without relabelling source data', () => {
+    const result = parseEmployeeCsv('id,fullName,email,jobTitle,department,country,currency,employmentType,hireDate\n' +
+      'FR-1,France Intern,fr@example.com,Analyst,Engineering,FR,EUR,INTERN,2020-02-29\n' +
+      'BR-1,Brazil Intern,br@example.com,Analyst,Engineering,BR,BRL,INTERN,2020-02-29', now);
+    expect(result.errorCount).toBe(0);
+    expect(result.rows.map(({ country, currency, employmentType, salary }) => ({ country, currency, employmentType, salary }))).toEqual([
+      { country: 'FR', currency: 'EUR', employmentType: 'INTERN', salary: null },
+      { country: 'BR', currency: 'BRL', employmentType: 'INTERN', salary: null },
+    ]);
+  });
+
+  it.each(['0', '-1', '100.001', 'not-a-number'])('does not turn an invalid nonblank salary %s into a pending value', (salary) => {
+    const result = parseEmployeeCsv(EMPLOYEE_CSV_HEADERS.join(',') + '\n' + validRow.replace('100000.50', salary), now);
+    expect(result.errorCount).toBeGreaterThan(0);
+    expect(result.rows).toEqual([]);
+  });
+
+  it('still rejects a salary-free file exceeding 10000 rows', () => {
+    const lines = ['id,fullName,email,jobTitle,department,country,currency,employmentType,hireDate'];
+    for (let index = 0; index < 10001; index += 1) {
+      lines.push(`DRAFT-${index},Draft ${index},draft${index}@example.invalid,Analyst,Quality,BR,BRL,INTERN,2020-01-01`);
+    }
+    const result = parseEmployeeCsv(lines.join('\n'), now);
+    expect(result.totalRows).toBe(10001);
+    expect(result.errorCount).toBe(1);
+    expect(result.errors).toEqual([{ row: 10002, field: 'csvText', message: 'CSV exceeds the 10000 row limit' }]);
   });
 
   it.each(['name', 'fullName'])('rejects duplicate name columns supplied as %s', (duplicate) => {

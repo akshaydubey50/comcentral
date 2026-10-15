@@ -23,7 +23,7 @@ function employeeToInput(employee: Employee): EmployeeInput {
     jobRole: employee.jobRole,
     employmentType: employee.employmentType,
     joiningDate: employee.joiningDate,
-    salary: employee.salary,
+    salary: employee.salary ?? '',
     currency: employee.currency,
   };
 }

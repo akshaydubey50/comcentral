@@ -74,6 +74,23 @@ describe('EmployeeFormDialog', () => {
     mocks.employee.mockReset();
   });
 
+  it('updates a salary-pending employee without supplying or replacing compensation', async () => {
+    const draft = { ...employee, salary: null };
+    const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
+    mocks.updateEmployee.mockResolvedValue({ ...draft, name: 'Updated name', version: 8 });
+    render(<QueryClientProvider client={client}><EmployeeFormDialog open employee={draft} options={options} onClose={vi.fn()} /></QueryClientProvider>);
+
+    expect(screen.queryByLabelText(/annual base salary/i)).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText(/full name/i), { target: { value: 'Updated name' } });
+    fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+    await waitFor(() => expect(mocks.updateEmployee).toHaveBeenCalledWith('emp-1', {
+      employeeCode: employee.employeeCode, name: 'Updated name', email: employee.email,
+      country: employee.country, department: employee.department, jobRole: employee.jobRole,
+      employmentType: employee.employmentType, joiningDate: employee.joiningDate, version: 7,
+    }));
+  });
+
   it('reloads the latest employee only after a version conflict action', async () => {
     mocks.updateEmployee.mockRejectedValue(new ApiClientError(409, {
       error: { code: 'VERSION_CONFLICT', message: 'Employee changed' },

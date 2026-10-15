@@ -1,7 +1,7 @@
 import type { Currency, EmploymentType } from '@/shared/contracts';
 
 export const CURRENCY_PRECISION: Record<Currency, number> = {
-  USD: 2, INR: 2, EUR: 2, GBP: 2, JPY: 0, CAD: 2, AUD: 2, SGD: 2,
+  USD: 2, INR: 2, EUR: 2, GBP: 2, JPY: 0, CAD: 2, AUD: 2, SGD: 2, BRL: 2,
 };
 
 export function roundDecimal(value: string, precision: number): string {
@@ -29,6 +29,11 @@ export function formatCurrency(value: string | null, currency: Currency): string
   const [integer, fraction] = rounded.replace('-', '').split('.');
   const grouped = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   return sign + currency + ' ' + grouped + (fraction === undefined ? '' : '.' + fraction);
+}
+
+/** Missing compensation is a draft state, never a zero amount. */
+export function formatSalary(value: string | null, currency: Currency): string {
+  return value === null ? 'Salary pending' : formatCurrency(value, currency);
 }
 
 export function formatDate(value: string): string {

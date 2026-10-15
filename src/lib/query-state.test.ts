@@ -5,7 +5,7 @@ import { parseEmployeeQuery, parseInsightsQuery } from './query-state';
 describe('parseEmployeeQuery', () => {
   it('normalizes malformed URL values while retaining valid filters', () => {
     const query = parseEmployeeQuery(new URLSearchParams(
-      'q=Ada&page=not-a-number&pageSize=also-invalid&status=UNKNOWN&employmentType=INTERN&sortBy=other&sortOrder=desc',
+      'q=Ada&page=not-a-number&pageSize=also-invalid&status=UNKNOWN&employmentType=UNSUPPORTED&sortBy=other&sortOrder=desc',
     ));
 
     expect(query).toEqual({
@@ -58,7 +58,7 @@ describe('parseEmployeeQuery', () => {
 describe('parseInsightsQuery', () => {
   it('normalizes unsupported report enums to safe defaults', () => {
     expect(parseInsightsQuery(new URLSearchParams(
-      'status=UNKNOWN&employmentType=INTERN&currencyMode=GBP&groupBy=tenure',
+      'status=UNKNOWN&employmentType=UNSUPPORTED&currencyMode=GBP&groupBy=tenure',
     ))).toMatchObject({
       employmentType: undefined,
       status: 'ACTIVE',
@@ -77,5 +77,13 @@ describe('parseInsightsQuery', () => {
       currencyMode: 'USD',
       groupBy: 'jobRole',
     });
+  });
+});
+
+describe('imported employee filters', () => {
+  it.each(['BR', 'FR'])('retains approved intern filters for %s in directory and reports', (country) => {
+    const params = new URLSearchParams({ country, employmentType: 'INTERN' });
+    expect(parseEmployeeQuery(params)).toMatchObject({ country, employmentType: 'INTERN' });
+    expect(parseInsightsQuery(params)).toMatchObject({ country, employmentType: 'INTERN' });
   });
 });

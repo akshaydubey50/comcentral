@@ -1,8 +1,10 @@
+import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 
 import {
   evaluateFxStatus,
   fxChecksum,
+  isLegacyFxRates,
   FxProviderError,
   parseFrankfurterRates,
   parseFrankfurterResponseText,
@@ -16,9 +18,24 @@ const rows = [
   ['CAD', 1.4],
   ['AUD', 1.5],
   ['SGD', 1.3],
+  ['BRL', 5],
 ].map(([quote, rate]) => ({ date: '2026-10-13', base: 'USD', quote, rate }));
 
 describe('Frankfurter FX validation', () => {
+  it('preserves exactly the historical eight-currency checksum and rejects arbitrary partial coverage', () => {
+    const oldCurrencies = ['USD', 'INR', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'SGD'];
+    const rates = Object.fromEntries(oldCurrencies.map((currency) => [currency, '1']));
+    const snapshot = { provider: 'Frankfurter v2 / ECB', rateDate: '2026-10-13', rates };
+    const original = createHash('sha256').update(JSON.stringify({
+      provider: snapshot.provider, rateDate: snapshot.rateDate, rates: oldCurrencies.map((currency) => [currency, rates[currency]]),
+    })).digest('hex');
+    expect(isLegacyFxRates(rates)).toBe(true);
+    expect(fxChecksum(snapshot)).toBe(original);
+    const partial = Object.fromEntries(Object.entries(rates).filter(([currency]) => currency !== 'EUR'));
+    expect(isLegacyFxRates(partial)).toBe(false);
+    expect(isLegacyFxRates({ ...rates, UNKNOWN: '1' })).toBe(false);
+  });
+
   it('hashes every identifying field with stable currency order', () => {
     const parsed = parseFrankfurterRates(rows, new Date('2026-10-14T12:00:00Z'));
     const reversed = Object.fromEntries(Object.entries(parsed.rates).reverse()) as typeof parsed.rates;
@@ -32,6 +49,7 @@ describe('Frankfurter FX validation', () => {
     expect(parsed.rateDate).toBe('2026-10-13');
     expect(parsed.rates.USD).toBe('1');
     expect(parsed.rates.EUR).toBe('1.1111111111111111111');
+    expect(parsed.rates.BRL).toBe('0.2');
   });
 
 

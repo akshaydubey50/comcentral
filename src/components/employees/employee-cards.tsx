@@ -7,7 +7,7 @@ import {
 } from '@mui/material';
 import { ArrowDown, ArrowUp, ChevronRight } from 'lucide-react';
 
-import { formatCurrency, formatDate, formatEmploymentType } from '@/lib/formatters';
+import { formatSalary, formatDate, formatEmploymentType } from '@/lib/formatters';
 import type { Employee, EmployeeSort } from '@/shared/contracts';
 
 const mobileSortOptions: Array<{ value: EmployeeSort; label: string }> = [
@@ -114,7 +114,7 @@ export function EmployeeCards({
                       <Detail label="Joined">{formatDate(employee.joiningDate)}</Detail>
                       <Detail label="Annual salary">
                         <Typography component="span" sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
-                          {formatCurrency(employee.salary, employee.currency)}
+                          {formatSalary(employee.salary, employee.currency)}
                         </Typography>
                       </Detail>
                       <Detail label="Updated">{formatDate(employee.updatedAt)}</Detail>

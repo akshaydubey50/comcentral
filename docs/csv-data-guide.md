@@ -6,10 +6,11 @@ The importer accepts employee records supplied by HR. It does not fetch employee
 
 1. Sign in and open `/imports`.
 2. Select **Download template**. The download contains the required header, without employee rows.
-3. Fill every required field. Columns may be in any order. The supported alternatives are `fullName` for `name`, `jobTitle` for `jobRole`, and `hireDate` for `joiningDate`; use only one name for each field.
+3. Fill every required field; salary may be omitted or left blank for later assignment. Columns may be in any order. Supported alternatives are `id` for `employeeCode`, `fullName` for `name`, `jobTitle` for `jobRole`, and `hireDate` for `joiningDate`; use only one name for each field.
 4. Select **Choose CSV**, then **Validate and preview**.
 5. Correct every reported error, choose the corrected file, and validate again.
-6. Select **Confirm and import** only after reviewing the preview. Confirmation revalidates the unchanged file and creates the entire batch or none.
+6. Select **Confirm and import** only after reviewing the preview and salary-pending count. Confirmation revalidates the unchanged file and creates the entire batch or none.
+7. Open **Employees** to find the imported records; refresh preserves them. Missing salaries display **Salary pending**. Open an employee and select **Add salary** to assign a positive amount with a reason and immutable history.
 
 ```csv
 employeeCode,name,email,country,department,jobRole,employmentType,joiningDate,salary,currency
@@ -33,35 +34,37 @@ The underlying source is [seed-data.ts](../src/server/domain/seed-data.ts). `npm
 
 ## Required values and limits
 
-- All ten fields shown above, each exactly once, in any order; at least one employee row. Header names are case-sensitive. Only the three documented aliases are accepted; unknown or duplicate mapped columns are rejected with specific errors.
+- All fields shown above except salary, each exactly once, in any order; at least one employee row. Header names are case-sensitive. Only the four documented aliases are accepted; unknown or duplicate mapped columns are rejected with specific errors.
 - Maximum 10,000 rows and 2 MiB per file.
 - Unique employee codes and normalized emails, both within the file and against existing employees.
 - Employee codes: 1-40 characters; letters, numbers, periods, underscores and hyphens, beginning with a letter or number.
-- Countries: `AU`, `CA`, `DE`, `GB`, `IN`, `JP`, `SG`, `US`.
-- Currencies: `AUD`, `CAD`, `EUR`, `GBP`, `INR`, `JPY`, `SGD`, `USD`.
-- Employment types: `FULL_TIME`, `PART_TIME`, `CONTRACT`.
-- Salary must be positive, use the allowed range, and have at most two decimal places; JPY must be a whole number.
+- Countries: `AU`, `BR`, `CA`, `DE`, `FR`, `GB`, `IN`, `JP`, `SG`, `US`.
+- Currencies: `AUD`, `BRL`, `CAD`, `EUR`, `GBP`, `INR`, `JPY`, `SGD`, `USD`.
+- Employment types: `FULL_TIME`, `PART_TIME`, `CONTRACT`, `INTERN`.
+- Salary may be absent or blank; no amount is guessed. A supplied salary must be positive, use the allowed range, and have at most two decimal places; JPY must be a whole number. Pending salaries count toward headcount but are excluded from pay calculations.
 - Import only creates new employees; it does not overwrite or update salary records.
 
 Rules are implemented in [CSV parsing](../src/server/domain/csv.ts), [validation](../src/shared/validation.ts), and [preview/commit](../src/server/services/imports.ts).
 
 ## Using a PayScope export
 
-The reviewed PayScope repository contains no `.csv` dataset file. It generates demo employees through its seed code. An HR Manager can use its Employees page's CSV export. Viewer exports omit salary and cannot supply the required salary data for ComCentral.
+The reviewed PayScope repository contains no `.csv` dataset file. It generates demo employees through its seed code. Viewer exports omit salary and can now be imported as salary-pending employee records under the approved mapping below.
 
-PayScope's export cannot be uploaded unchanged:
+Check the exported columns and any supplied salary units:
 
 | PayScope column | ComCentral column | Conversion |
 |---|---|---|
-| `id` | Not automatically mapped | Remove the source id column and explicitly supply HR's unique stable `employeeCode`; if HR deliberately chooses the source id as its code, rename it and verify the code rules |
+| `id` | `employeeCode` | Approved alias; preserve the stable source value and enforce the same uniqueness and code rules |
 | `fullName` | `name` | Accepted alias; preserve the name |
 | `jobTitle` | `jobRole` | Accepted alias; preserve the role |
 | `hireDate` | `joiningDate` | Accepted alias; keep `YYYY-MM-DD` |
 | `salary` | `salary` | Convert integer minor units to an exact major-unit decimal string |
 | Other common columns | Same names | Retain the required fields; column order does not matter |
 
-An export with `id,fullName,email,jobTitle,department,country,currency,employmentType,hireDate` has no employeeCode or salary. It receives an unsupported-id error and both missing-field errors. Supply actual employee codes and annual salaries before importing; the application does not guess either value. Adding a salary header without values still fails row validation.
+An export with `id,fullName,email,jobTitle,department,country,currency,employmentType,hireDate` is accepted without adding a salary column. Source ids become employee codes and salaries remain null until HR supplies them. Adding both id and employeeCode is an ambiguous duplicate and is rejected.
 
-For shared two-decimal currencies, `9000000` becomes `90000.00`. JPY uses zero decimal places and is not divided by 100. PayScope's seed also includes France, Brazil/BRL and interns; those values are outside ComCentral's current country/currency/employment-type scope. Exclude unsupported records from a demo import or make an explicit scope decision; silently relabelling them would change the meaning of the data.
+If salary is present in minor units, convert exactly: for two-decimal currencies, `9000000` becomes `90000.00`. JPY uses zero decimal places and is not divided by 100. France, Brazil/BRL and interns are supported; do not relabel source records.
+
+The inspected download contained 10,001 employee records. The approved batch limit stays at 10,000: split at CSV record boundaries and upload separate files; the app never silently drops an extra row. A private 10,000-row copy and one-row remainder were prepared without changing field values or the original download. Actual-file browser verification saved and fetched all 10,000 rows in an isolated database; no downloaded employee data is committed to Git. See [validation.md](validation.md) for evidence and the distinction from the configured application database.
 
 Source: [PayScope export columns at the reviewed commit](https://github.com/meganathan-tech24/PayScope/blob/f6da3bb170eee144fddf312529e83533bfe6fba5/apps/api/src/modules/employees/employees.export.ts), [seed reference data](https://github.com/meganathan-tech24/PayScope/blob/f6da3bb170eee144fddf312529e83533bfe6fba5/apps/api/src/seed/reference-data.ts).

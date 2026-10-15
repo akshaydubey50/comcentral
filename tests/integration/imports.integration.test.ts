@@ -121,12 +121,12 @@ describe.sequential('CSV import persistence', () => {
       where: { employeeCode: 'B01-SUCCESS-0001' },
     });
     expect(usd.currency).toBe('USD');
-    expect(usd.salary.toFixed(2)).toBe('12345.67');
+    expect(usd.salary?.toFixed(2)).toBe('12345.67');
     const jpy = await prisma.employee.findUniqueOrThrow({
       where: { employeeCode: 'B01-SUCCESS-0501' },
     });
     expect(jpy.currency).toBe('JPY');
-    expect(jpy.salary.toFixed(2)).toBe('7654321.00');
+    expect(jpy.salary?.toFixed(2)).toBe('7654321.00');
   }, 120_000);
 
   it('rolls back the first batch when a later batch insert fails', async () => {
@@ -170,22 +170,21 @@ describe.sequential('CSV import persistence', () => {
     await expect(commitImport(csvText, preview.previewHash, NOW)).resolves.toEqual({ imported: 1 });
 
     const saved = await prisma.employee.findUniqueOrThrow({ where: { employeeCode: expected.employeeCode } });
-    expect({ ...saved, joiningDate: saved.joiningDate.toISOString().slice(0, 10), salary: saved.salary.toFixed(2) })
+    expect({ ...saved, joiningDate: saved.joiningDate.toISOString().slice(0, 10), salary: saved.salary?.toFixed(2) })
       .toMatchObject(expected);
   });
 
-  it('rejects a missing salary at preview and confirmation without inserting any employees', async () => {
+  it('saves missing salary as pending after preview and confirmation', async () => {
     const csvText = toCsv([
       ['employeeCode', 'fullName', 'email', 'country', 'department', 'jobTitle', 'employmentType', 'hireDate', 'currency'],
       ['B01-MISSING-0001', 'Missing Salary', 'b01-missing-0001@example.invalid', 'US', 'Engineering', 'Analyst', 'FULL_TIME', '2020-01-15', 'USD'],
     ]);
     const preview = await previewImport(csvText, NOW);
-    expect(preview).toMatchObject({ valid: false, errorCount: 1, preview: [] });
-    expect(preview.errors).toEqual([{ row: 1, field: 'header', message: 'Missing required column "salary".' }]);
-    await expect(commitImport(csvText, preview.previewHash, NOW)).rejects.toMatchObject({
-      status: 422, code: 'IMPORT_INVALID',
-    });
-    expect(await prisma.employee.count({ where: { employeeCode: 'B01-MISSING-0001' } })).toBe(0);
+    expect(preview).toMatchObject({ valid: true, errorCount: 0, salaryPendingCount: 1,
+      preview: [expect.objectContaining({ employeeCode: 'B01-MISSING-0001', salary: null })] });
+    await expect(commitImport(csvText, preview.previewHash, NOW)).resolves.toEqual({ imported: 1 });
+    expect(await prisma.employee.findUniqueOrThrow({ where: { employeeCode: 'B01-MISSING-0001' } }))
+      .toMatchObject({ salary: null, status: 'ACTIVE' });
   });
 
   it('rejects changed confirmation content before writing either version', async () => {

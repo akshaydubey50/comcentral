@@ -15,6 +15,7 @@ import { COUNTRY_OPTIONS, currencyPrecision } from '@/shared/validation';
 import { ApiError } from '@/server/http';
 import { getPrisma } from '@/server/db/prisma';
 import type { Prisma } from '@/server/generated/prisma/client';
+import { CURRENCIES, EMPLOYMENT_TYPES } from '@/shared/contracts';
 
 type EmployeeRecord = {
   id: string;
@@ -26,7 +27,7 @@ type EmployeeRecord = {
   jobRole: string;
   employmentType: string;
   joiningDate: Date;
-  salary: { toFixed: (places: number) => string };
+  salary: { toFixed: (places: number) => string } | null;
   currency: string;
   status: string;
   version: number;
@@ -46,7 +47,7 @@ export function serializeEmployee(record: EmployeeRecord): Employee {
     jobRole: record.jobRole,
     employmentType: record.employmentType as Employee['employmentType'],
     joiningDate: record.joiningDate.toISOString().slice(0, 10),
-    salary: record.salary.toFixed(currencyPrecision(currency)),
+    salary: record.salary?.toFixed(currencyPrecision(currency)) ?? null,
     currency,
     status: record.status as Employee['status'],
     version: record.version,
@@ -206,7 +207,7 @@ export async function changeSalary(
     if (current.version !== input.version) {
       throw new ApiError(409, 'VERSION_CONFLICT', 'Employee was changed by another request');
     }
-    if (current.currency === input.currency && current.salary.equals(input.salary)) {
+    if (current.currency === input.currency && current.salary?.equals(input.salary)) {
       throw new ApiError(422, 'SALARY_UNCHANGED', 'Salary or currency must change');
     }
 
@@ -251,9 +252,9 @@ export async function getSalaryHistory(id: string): Promise<SalaryHistory[]> {
   return records.map((record) => ({
     id: record.id,
     employeeId: record.employeeId,
-    previousSalary: record.previousSalary.toFixed(
+    previousSalary: record.previousSalary?.toFixed(
       currencyPrecision(record.previousCurrency as Currency),
-    ),
+    ) ?? null,
     previousCurrency: record.previousCurrency as Currency,
     salary: record.salary.toFixed(currencyPrecision(record.currency as Currency)),
     currency: record.currency as Currency,
@@ -285,7 +286,7 @@ export async function directoryOptions(): Promise<DirectoryOptions> {
     countries: COUNTRY_OPTIONS.map((country) => ({ ...country })),
     departments: departments.map((item) => item.department),
     jobRoles: jobRoles.map((item) => item.jobRole),
-    employmentTypes: ['FULL_TIME', 'PART_TIME', 'CONTRACT'],
-    currencies: ['USD', 'INR', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'SGD'],
+    employmentTypes: [...EMPLOYMENT_TYPES],
+    currencies: [...CURRENCIES],
   };
 }

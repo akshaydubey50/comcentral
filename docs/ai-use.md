@@ -1,5 +1,13 @@
 # AI collaboration log
 
+## Actual-file draft import correction, 2026-10-15 (B01/B02/B03/B04/F08/C02)
+
+The earlier alias-only fix did not satisfy the user's main workflow because the downloaded file contained id rather than employeeCode, no salary, additional country/employment values and 10,001 records. The coordinator inspected counts, field completeness and allowed-value coverage without printing employee data. The user explicitly approved id mapping and salary-pending imports, supported France/Brazil/BRL/interns, then corrected the proposed higher limit back to 10,000.
+
+Two existing workers implemented independent backend and frontend slices against coordinated shared contracts; no nested delegation. Backend added failing draft/FX/analytics cases before the fix; frontend added six failing pending-pay regressions before implementation. The coordinator integrated actual-file and synthetic built-app Playwright checks. Three old invalid-INTERN fixtures were corrected to use an unsupported value while retaining their rejection assertions, and positive new-country/type filter cases were added. Browser failures were traced to test locators selecting a hidden mobile label and an incorrect salary-field label; corrected visible-row/accessible-name locators passed without weakening assertions or raising timeouts.
+
+The private prepared file saved and fetched every one of its 10,000 records with exact source-field comparison and survived UI reload; the source download remained unchanged. A separate reproducible synthetic journey also adds the first salary and verifies audit history. Final independent backend review found no blocker. Required checks, isolated database use and the configured Neon migration are recorded in validation.md. Downloaded employee data, credentials and local test connection strings are excluded from Git; unrelated concurrent welcome/deployment work is preserved.
+
 This is an evidence record, not a collection of reconstructed prompts. Earlier paragraphs are retrospective summaries of the work and results at those checkpoints. Current test/deployment status lives in [validation.md](validation.md). A reviewer can start with [reviewer-guide.md](reviewer-guide.md) and follow task IDs through the checklist and Git history.
 
 ## CSV compatibility follow-up, 2026-10-15 (B01/F08/C02)

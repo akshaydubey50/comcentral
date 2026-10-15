@@ -2,7 +2,7 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography,
 } from "@mui/material";
 
-import { formatCurrency, formatDate, formatEmploymentType } from "@/lib/formatters";
+import { formatSalary, formatDate, formatEmploymentType } from "@/lib/formatters";
 import type { ImportPreview } from "@/shared/contracts";
 
 export function CsvValidationErrorsTable({
@@ -68,7 +68,7 @@ export function CsvEmployeePreviewTable({
               </TableCell>
               <TableCell>{row.country} · {formatEmploymentType(row.employmentType)}</TableCell>
               <TableCell>{formatDate(row.joiningDate)}</TableCell>
-              <TableCell align="right">{formatCurrency(row.salary, row.currency)}</TableCell>
+              <TableCell align="right">{formatSalary(row.salary, row.currency)}</TableCell>
             </TableRow>
           ))}
         </TableBody>

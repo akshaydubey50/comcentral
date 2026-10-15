@@ -7,6 +7,7 @@ import {
   type Currency,
   type EmployeeFilters,
   type EmployeeInput,
+  type EmployeeImportInput,
   type EmployeeQuery,
   type EmployeeUpdate,
   type InsightsQuery,
@@ -15,8 +16,10 @@ import {
 
 export const COUNTRY_OPTIONS = [
   { code: 'AU', name: 'Australia', currency: 'AUD' },
+  { code: 'BR', name: 'Brazil', currency: 'BRL' },
   { code: 'CA', name: 'Canada', currency: 'CAD' },
   { code: 'DE', name: 'Germany', currency: 'EUR' },
+  { code: 'FR', name: 'France', currency: 'EUR' },
   { code: 'GB', name: 'United Kingdom', currency: 'GBP' },
   { code: 'IN', name: 'India', currency: 'INR' },
   { code: 'JP', name: 'Japan', currency: 'JPY' },
@@ -96,6 +99,12 @@ const employeeUpdateSchema = z
   })
   .strict();
 
+const employeeImportSchema = z.object({
+  ...employeeShape,
+  salary: z.string().trim().nullable().optional(),
+  currency: currencySchema,
+}).strict();
+
 const salaryChangeSchema = z
   .object({
     salary: z.string().trim().min(1, 'salary is required'),
@@ -158,6 +167,16 @@ export function normalizeEmployeeInput(input: unknown, now = new Date()): Employ
   ensureJoiningDate(parsed.joiningDate, now);
   validateSalary(parsed.salary, parsed.currency);
   return parsed;
+}
+
+/** Imports may defer pay; nonblank amounts retain the regular salary rules. */
+export function normalizeEmployeeImport(input: unknown, now = new Date()): EmployeeImportInput {
+  const parsed = employeeImportSchema.parse(input);
+  ensureJoiningDate(parsed.joiningDate, now);
+  const salary = parsed.salary === undefined || parsed.salary === null || parsed.salary === ''
+    ? null
+    : validateSalary(parsed.salary, parsed.currency);
+  return { ...parsed, salary };
 }
 
 export function normalizeEmployeeUpdate(input: unknown, now = new Date()): EmployeeUpdate {

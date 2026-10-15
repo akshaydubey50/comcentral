@@ -1,5 +1,5 @@
 import {
-  Box, Card, CardContent, Chip, Table, TableBody, TableCell, TableContainer, TableHead,
+  Alert, Box, Card, CardContent, Chip, Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, Typography,
 } from '@mui/material';
 
@@ -56,16 +56,29 @@ export function SummarySection({ insights }: { insights: Insights }) {
   return (
     <Box component="section" aria-labelledby="summary-title">
       <Typography id="summary-title" component="h2" variant="h2" sx={{ mb: 1.5 }}>Current annual commitments</Typography>
+      {insights.salaryPendingCount > 0 && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          <Typography variant="body2" fontWeight={700}>
+            {insights.salaryPendingCount.toLocaleString()}{' '}
+            {insights.salaryPendingCount === 1 ? 'employee has' : 'employees have'} salary pending.
+          </Typography>
+          These employees are included in matching headcount but excluded from pay statistics,
+          group counts, salary bands, tenure summaries and outlier checks until a salary is added.
+        </Alert>
+      )}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))', xl: 'repeat(3, minmax(0, 1fr))' }, gap: 2 }}>
         <Card sx={{ bgcolor: '#083f3d', color: 'white' }}>
           <CardContent sx={{ p: 2.5 }}>
             <Typography variant="caption" sx={{ color: '#bfd6d3' }}>Matching headcount</Typography>
             <Typography sx={{ fontSize: '2.35rem', fontWeight: 800, mt: 0.5 }}>{insights.headcount.toLocaleString()}</Typography>
-            <Typography variant="body2" sx={{ color: '#bfd6d3', mt: 1 }}>All report sections use this same filtered population.</Typography>
+            <Typography variant="body2" sx={{ color: '#bfd6d3', mt: 1 }}>All matching employees, including those with salary pending.</Typography>
           </CardContent>
         </Card>
         {approximateUsdUnavailable && (
           <Card><CardContent sx={{ p: 2.5 }}><Typography role="status">Approximate USD pay statistics are unavailable because a complete current rate snapshot is required.</Typography></CardContent></Card>
+        )}
+        {insights.headcount > 0 && insights.salaryPendingCount === insights.headcount && (
+          <Card><CardContent sx={{ p: 2.5 }}><Typography role="status">No recorded salaries match these filters. Add salaries from employee details to populate pay statistics.</Typography></CardContent></Card>
         )}
         {!approximateUsdUnavailable && insights.summaries.map((summary) => (
           <Card key={summary.currency}>
@@ -104,7 +117,10 @@ export function GroupSection({ insights }: { insights: Insights }) {
       <Typography id="group-title" component="h2" variant="h2" sx={{ mb: 1.5 }}>By {label.toLowerCase()}</Typography>
       <Card sx={{ mb: 2 }}>
         <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
-          <Typography component="h3" variant="h3">Headcount</Typography>
+          <Typography component="h3" variant="h3">Headcount with recorded salary</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
+            Employees with salary pending are excluded from these group counts and pay statistics.
+          </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75, mb: 2.5 }}>
             {representedHeadcount.toLocaleString()} matching {representedHeadcount === 1 ? 'person' : 'people'} across {headcounts.length.toLocaleString()} {headcounts.length === 1 ? label.toLowerCase() : pluralLabel}. Currency rows are combined in these counts.
           </Typography>

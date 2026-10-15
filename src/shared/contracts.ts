@@ -1,7 +1,7 @@
-/** API values are JSON-safe; money is always an exact decimal string. */
-export const CURRENCIES = ['USD', 'INR', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'SGD'] as const;
+/** API money uses exact decimal strings; null means a salary has not been supplied. */
+export const CURRENCIES = ['USD', 'INR', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'SGD', 'BRL'] as const;
 export type Currency = typeof CURRENCIES[number];
-export const EMPLOYMENT_TYPES = ['FULL_TIME', 'PART_TIME', 'CONTRACT'] as const;
+export const EMPLOYMENT_TYPES = ['FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERN'] as const;
 export type EmploymentType = typeof EMPLOYMENT_TYPES[number];
 export type EmployeeStatus = 'ACTIVE' | 'ARCHIVED';
 export interface HrUser { id: string; name: string; email: string }
@@ -10,13 +10,15 @@ export interface EmployeeInput {
   department: string; jobRole: string; employmentType: EmploymentType;
   joiningDate: string; salary: string; currency: Currency;
 }
-export interface Employee extends EmployeeInput {
+/** Imported employee details may await an explicit first salary assignment. */
+export interface EmployeeImportInput extends Omit<EmployeeInput, 'salary'> { salary: string | null }
+export interface Employee extends EmployeeImportInput {
   id: string; status: EmployeeStatus; version: number; createdAt: string; updatedAt: string;
 }
 export type EmployeeUpdate = Omit<EmployeeInput, 'salary' | 'currency'> & { version: number };
 export interface SalaryChangeInput { salary: string; currency: Currency; reason: string; version: number }
 export interface SalaryHistory {
-  id: string; employeeId: string; previousSalary: string; previousCurrency: Currency;
+  id: string; employeeId: string; previousSalary: string | null; previousCurrency: Currency;
   salary: string; currency: Currency; reason: string; actor: HrUser; createdAt: string;
 }
 export interface EmployeeFilters {
@@ -37,7 +39,7 @@ export interface DirectoryOptions {
 export interface ApiErrorBody { error: { code: string; message: string; details?: unknown } }
 export interface ImportError { row: number; field: string; message: string }
 export interface ImportPreview {
-  valid: boolean; totalRows: number; preview: EmployeeInput[]; errors: ImportError[];
+  valid: boolean; totalRows: number; salaryPendingCount: number; preview: EmployeeImportInput[]; errors: ImportError[];
   errorCount: number; previewHash: string;
 }
 export interface ImportResult { imported: number }
@@ -67,7 +69,7 @@ export interface FxStatus {
   fetchedAt: string | null; lastAttemptAt: string | null; message: string;
 }
 export interface Insights {
-  headcount: number; asOf: string; currencyMode: CurrencyMode; groupBy: GroupBy;
+  headcount: number; salaryPendingCount: number; asOf: string; currencyMode: CurrencyMode; groupBy: GroupBy;
   summaries: PaySummary[]; groups: PayGroup[]; bands: SalaryBand[]; tenure: TenureGroup[];
   outliers: { data: SalaryOutlier[]; total: number; cohorts: OutlierCohort[]; minimumGroupSize: number };
   fx: FxStatus; reportingAvailable: boolean;

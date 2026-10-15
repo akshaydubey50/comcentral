@@ -101,7 +101,7 @@ export interface AnalyticsEmployee {
   jobRole: string;
   employmentType: EmploymentType;
   joiningDate?: string;
-  salary: Decimal;
+  salary: Decimal | null;
   currency: Currency;
 }
 
@@ -119,15 +119,23 @@ const BAND_BOUNDARIES: Record<Currency, readonly number[]> = {
   SGD: [0, 25000, 50000, 75000, 100000, 150000, 200000],
   INR: [0, 500000, 1000000, 1500000, 2000000, 3000000, 5000000],
   JPY: [0, 3000000, 5000000, 7000000, 10000000, 15000000, 20000000],
+  BRL: [0, 25000, 50000, 75000, 100000, 150000, 200000],
 };
+
+type PaidAnalyticsEmployee = AnalyticsEmployee & { salary: Decimal };
+
+function hasSalary(employee: AnalyticsEmployee): employee is PaidAnalyticsEmployee {
+  return employee.salary !== null;
+}
 
 function cohortKey(employee: AnalyticsEmployee): string {
   return [employee.country, employee.currency, employee.jobRole, employee.employmentType].join('\u0000');
 }
 
 export function buildOutlierAnalysis(employees: readonly AnalyticsEmployee[]): Insights['outliers'] {
-  const grouped = new Map<string, AnalyticsEmployee[]>();
+  const grouped = new Map<string, PaidAnalyticsEmployee[]>();
   for (const employee of employees) {
+    if (!hasSalary(employee)) continue;
     const key = cohortKey(employee);
     const group = grouped.get(key);
     if (group) group.push(employee);
@@ -298,7 +306,8 @@ export function buildInsights(
   fx: FxAnalyticsContext,
 ): Insights {
   const outliers = buildOutlierAnalysis(employees);
-  let rows: ReportingRow[] = employees.map((employee) => ({
+  const paidEmployees = employees.filter(hasSalary);
+  let rows: ReportingRow[] = paidEmployees.map((employee) => ({
     employee,
     currency: employee.currency,
     salary: employee.salary,
@@ -309,7 +318,7 @@ export function buildInsights(
     reportingAvailable = fx.status.available;
     if (reportingAvailable) {
       const converted: ReportingRow[] = [];
-      for (const employee of employees) {
+      for (const employee of paidEmployees) {
         const rate = fx.rates[employee.currency];
         if (!rate) {
           reportingAvailable = false;
@@ -325,6 +334,7 @@ export function buildInsights(
 
   return {
     headcount: employees.length,
+    salaryPendingCount: employees.length - paidEmployees.length,
     asOf,
     currencyMode,
     groupBy,

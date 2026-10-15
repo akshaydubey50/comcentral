@@ -4,10 +4,27 @@ import {
   MAX_IMPORT_BYTES,
   MAX_IMPORT_REQUEST_BYTES,
   normalizeEmployeeInput,
+  normalizeEmployeeImport,
   validateSalary,
 } from '@/shared/validation';
 
 describe('employee validation', () => {
+  it('allows salary deferral only for import and still validates every nonblank amount', () => {
+    const employee = {
+      employeeCode: 'DRAFT-001', name: 'Draft Employee', email: 'draft@example.invalid', country: 'BR',
+      department: 'Engineering', jobRole: 'Analyst', employmentType: 'INTERN',
+      joiningDate: '2020-02-29', currency: 'BRL',
+    };
+    for (const salary of [undefined, null, '', '  ']) {
+      expect(normalizeEmployeeImport({ ...employee, salary }).salary).toBeNull();
+      expect(() => normalizeEmployeeInput({ ...employee, salary })).toThrow();
+    }
+    for (const salary of ['0', '-1', '1.001', 'NaN']) {
+      expect(() => normalizeEmployeeImport({ ...employee, salary })).toThrow();
+    }
+    expect(normalizeEmployeeImport({ ...employee, salary: '12345.67' }).salary).toBe('12345.67');
+  });
+
   it('normalizes bounded employee input and lowercase email', () => {
     expect(
       normalizeEmployeeInput(

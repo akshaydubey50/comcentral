@@ -110,7 +110,7 @@ describe.sequential('employee persistence', () => {
       version: committed.version,
       currency: 'USD',
     });
-    expect(stored.salary.toFixed(2)).toBe('100000.00');
+    expect(stored.salary?.toFixed(2)).toBe('100000.00');
   });
 
   it('preserves salary history through archive and restore and blocks archived salary changes', async () => {

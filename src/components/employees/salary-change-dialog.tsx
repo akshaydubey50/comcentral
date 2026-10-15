@@ -8,7 +8,7 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { ApiClientError, api } from '@/lib/api-client';
-import { CURRENCY_PRECISION, formatCurrency } from '@/lib/formatters';
+import { CURRENCY_PRECISION, formatSalary } from '@/lib/formatters';
 import { CURRENCIES, type Currency, type Employee } from '@/shared/contracts';
 
 type SalaryChangeDialogProps = {
@@ -25,7 +25,7 @@ function SalaryChangeContent({ employee: currentEmployee, open, onClose }: Salar
   // Keep the salary and version the HR manager actually opened together.
   const [employee, setEmployee] = useState(currentEmployee);
   const queryClient = useQueryClient();
-  const [salary, setSalary] = useState(employee.salary);
+  const [salary, setSalary] = useState(employee.salary ?? '');
   const [currency, setCurrency] = useState<Currency>(employee.currency);
   const [reason, setReason] = useState('');
   const [reloadNotice, setReloadNotice] = useState(false);
@@ -46,7 +46,7 @@ function SalaryChangeContent({ employee: currentEmployee, open, onClose }: Salar
     onSuccess: async (latest) => {
       queryClient.setQueryData(['employee', latest.id], latest);
       setEmployee(latest);
-      setSalary(latest.salary);
+      setSalary(latest.salary ?? '');
       setCurrency(latest.currency);
       setReason('');
       setReloadNotice(true);
@@ -65,11 +65,11 @@ function SalaryChangeContent({ employee: currentEmployee, open, onClose }: Salar
   return (
     <Dialog open={open} onClose={change.isPending || reloadLatest.isPending ? undefined : onClose} fullWidth maxWidth="sm" aria-labelledby="salary-change-title">
       <Stack component="form" onSubmit={submit}>
-        <DialogTitle id="salary-change-title">Change annual salary</DialogTitle>
+        <DialogTitle id="salary-change-title">{employee.salary === null ? 'Add annual salary' : 'Change annual salary'}</DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2.25}>
             <Typography color="text.secondary">
-              Current base salary: <strong>{formatCurrency(employee.salary, employee.currency)}</strong>. The change applies immediately and will be recorded in salary history.
+              Current base salary: <strong>{formatSalary(employee.salary, employee.currency)}</strong>. The change applies immediately and will be recorded in salary history.
             </Typography>
             {conflict && (
               <Alert
@@ -123,7 +123,7 @@ function SalaryChangeContent({ employee: currentEmployee, open, onClose }: Salar
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
           <Button onClick={onClose} disabled={change.isPending || reloadLatest.isPending}>Cancel</Button>
-          <Button type="submit" variant="contained" disabled={change.isPending || reloadLatest.isPending || conflict || employee.status === 'ARCHIVED'}>{change.isPending ? 'Applying…' : 'Apply salary change'}</Button>
+          <Button type="submit" variant="contained" disabled={change.isPending || reloadLatest.isPending || conflict || employee.status === 'ARCHIVED'}>{change.isPending ? 'Applying…' : employee.salary === null ? 'Add salary' : 'Apply salary change'}</Button>
         </DialogActions>
       </Stack>
     </Dialog>

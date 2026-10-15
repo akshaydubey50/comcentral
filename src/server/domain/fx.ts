@@ -5,6 +5,13 @@ import Decimal from 'decimal.js';
 import { CURRENCIES, type Currency, type FxStatus } from '@/shared/contracts';
 
 export const FX_PROVIDER = 'Frankfurter v2 / ECB';
+export const LEGACY_FX_CURRENCIES = ['USD', 'INR', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'SGD'] as const;
+
+/** Recognize only the complete pre-BRL format; never accept arbitrary partial rates. */
+export function isLegacyFxRates(rates: object): boolean {
+  return Object.keys(rates).length === LEGACY_FX_CURRENCIES.length &&
+    LEGACY_FX_CURRENCIES.every((currency) => Object.hasOwn(rates, currency));
+}
 
 export class FxProviderError extends Error {
   constructor(message: string) {
@@ -24,11 +31,14 @@ type ProviderRow = { date: string; base: string; quote: string; rate: unknown };
 type ProviderCurrency = Exclude<Currency, 'USD'>;
 
 /** Stable content identity used both when saving and reading immutable snapshots. */
-export function fxChecksum(snapshot: Pick<ParsedFxRates, 'provider' | 'rateDate' | 'rates'>): string {
+export function fxChecksum(snapshot: {
+  provider: string; rateDate: string; rates: Partial<Record<Currency, string>>;
+}): string {
+  const currencies = isLegacyFxRates(snapshot.rates) ? LEGACY_FX_CURRENCIES : CURRENCIES;
   const canonical = JSON.stringify({
     provider: snapshot.provider,
     rateDate: snapshot.rateDate,
-    rates: CURRENCIES.map((currency) => [currency, snapshot.rates[currency]]),
+    rates: currencies.map((currency) => [currency, snapshot.rates[currency]]),
   });
   return createHash('sha256').update(canonical).digest('hex');
 }

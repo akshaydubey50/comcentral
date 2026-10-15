@@ -12,6 +12,7 @@ enum EmploymentType {
   FULL_TIME
   PART_TIME
   CONTRACT
+  INTERN
 }
 
 enum EmployeeStatus {
@@ -28,6 +29,7 @@ enum Currency {
   CAD
   AUD
   SGD
+  BRL
 }
 
 model User {
@@ -121,7 +123,7 @@ model Employee {
   jobRole        String          @map("job_role") @db.VarChar(100)
   employmentType EmploymentType  @map("employment_type")
   joiningDate    DateTime        @map("joining_date") @db.Date
-  salary         Decimal         @db.Decimal(14, 2)
+  salary         Decimal?        @db.Decimal(14, 2)
   currency       Currency
   status         EmployeeStatus  @default(ACTIVE)
   version        Int             @default(1)
@@ -143,7 +145,7 @@ model Employee {
 model SalaryHistory {
   id               String   @id @default(cuid())
   employeeId       String   @map("employee_id")
-  previousSalary   Decimal  @map("previous_salary") @db.Decimal(14, 2)
+  previousSalary   Decimal? @map("previous_salary") @db.Decimal(14, 2)
   previousCurrency Currency @map("previous_currency")
   salary           Decimal  @db.Decimal(14, 2)
   currency         Currency

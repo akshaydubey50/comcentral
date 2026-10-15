@@ -7,7 +7,7 @@ const row = {
   joiningDate: '2020-01-01', salary: '75000.01', currency: 'USD' as const,
 };
 const preview: ImportPreview = {
-  valid: true, totalRows: 1, preview: [row], errors: [], errorCount: 0, previewHash: 'reviewed-hash',
+  valid: true, totalRows: 1, salaryPendingCount: 0, preview: [row], errors: [], errorCount: 0, previewHash: 'reviewed-hash',
 };
 const file = (name: string, text: string) => ({ name, mimeType: 'text/csv', buffer: Buffer.from(text) });
 

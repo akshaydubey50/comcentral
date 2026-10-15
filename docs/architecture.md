@@ -1,6 +1,16 @@
 # Architecture and decisions
 
-## CSV header compatibility, 2026-10-15 (B01/F08)
+## Salary-pending CSV records, 2026-10-15 (B01/B02/B03/B04/F08)
+
+After inspection of the actual download, the user approved source id as employeeCode, missing salaries as pending records, France, Brazil/BRL and interns. The user explicitly retained the 10,000-row batch limit. This supersedes the mandatory-salary/source-id decision below. The source has 10,001 records; prepare an exact-value 10,000-row file and a separate one-row remainder rather than silently dropping data or raising the limit.
+
+Represent unsupplied pay as nullable employee.salary, with ACTIVE/ARCHIVED status unchanged. This keeps employment lifecycle independent from compensation completeness. Manual employee creation still requires salary; only imports allow omitted/blank pay. Reject nonblank invalid amounts. Employee and preview response salaries become string|null, Insights adds salaryPendingCount, and first-assignment history has previousSalary=null. Metadata edits never assign pay. HR supplies the first salary through the existing reason/version-protected atomic salary endpoint. Preserve immutable history, positive supplied amounts and stale/archive protections.
+
+All pending employees remain searchable and included in headcount. Exclude them before summaries, bands, tenure pay statistics and outlier cohorts; show the excluded count explicitly. Export null salaries as blank cells. Do not use zero, fabricated salaries or an inferred exchange rate. Reject arbitrary column mapping and bulk salary overwrites; preview hashes and confirmation revalidation remain unchanged.
+
+Apply a forward migration, without modifying the previously applied initial migration. Add enum values and supported countries, relax only the current/previous unsupplied salary fields, and retain positive new salary and audit triggers. Existing eight-currency immutable FX snapshots retain their original checksum semantics; current USD reporting requires complete BRL coverage and reports unavailable until a provider refresh supplies it. Native reporting remains available. Deployment rollback must retain a version that understands nullable salary; do not revert to salary-required code after importing drafts.
+
+## Earlier CSV header compatibility, 2026-10-15 (B01/F08; superseded as above)
 
 The original import rejected any header spelling or order that differed from the template. A source export used fullName/jobTitle/hireDate, an internal id, and no salary. Accept reordered required fields and the three unambiguous name/role/date aliases by resolving a Map of allowed names before building row objects. Reject unknown names, repeated canonical fields (including alias collisions), and missing fields with specific errors. Header spelling stays case-sensitive; arbitrary mapping is outside this slice.
 

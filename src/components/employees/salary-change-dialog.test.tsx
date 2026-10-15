@@ -60,6 +60,25 @@ describe('SalaryChangeDialog', () => {
     mocks.employee.mockReset();
   });
 
+  it('adds the first salary from a blank amount with a reason and the opened version', async () => {
+    const draft = { ...employee, salary: null, currency: 'BRL' as const, version: 1 };
+    mocks.changeSalary.mockResolvedValue({ ...draft, salary: '12345.67', version: 2 });
+    const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
+    const onClose = vi.fn();
+    render(<QueryClientProvider client={client}><SalaryChangeDialog employee={draft} open onClose={onClose} /></QueryClientProvider>);
+    const dialog = within(screen.getByRole('dialog', { name: /add annual salary/i }));
+    expect(dialog.getByLabelText(/new annual base salary/i)).toHaveValue('');
+    expect(dialog.getByText('Salary pending')).toBeInTheDocument();
+    fireEvent.change(dialog.getByLabelText(/new annual base salary/i), { target: { value: '12345.67' } });
+    fireEvent.change(dialog.getByLabelText(/reason for change/i), { target: { value: 'Initial compensation confirmed' } });
+    fireEvent.click(dialog.getByRole('button', { name: 'Add salary' }));
+
+    await waitFor(() => expect(mocks.changeSalary).toHaveBeenCalledWith('emp-1', {
+      salary: '12345.67', currency: 'BRL', reason: 'Initial compensation confirmed', version: 1,
+    }));
+    await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
+  });
+
   it('reloads a stale salary only after an explicit action and requires a fresh review', async () => {
     const latest = { ...employee, salary: '140000.00', version: 8 };
     mocks.changeSalary

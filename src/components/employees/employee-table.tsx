@@ -6,7 +6,7 @@ import {
 } from '@mui/material';
 
 import type { Employee, EmployeeSort } from '@/shared/contracts';
-import { formatCurrency, formatDate, formatEmploymentType } from '@/lib/formatters';
+import { formatSalary, formatDate, formatEmploymentType } from '@/lib/formatters';
 
 const columns: { key: EmployeeSort | 'department' | 'jobRole' | 'status'; label: string; sortable?: boolean; align?: 'right' }[] = [
   { key: 'employeeCode', label: 'Employee', sortable: true },
@@ -64,7 +64,7 @@ export function EmployeeTable({
                 <Typography variant="caption" display="block" color="text.secondary">{formatEmploymentType(employee.employmentType)}</Typography>
               </TableCell>
               <TableCell>{formatDate(employee.joiningDate)}</TableCell>
-              <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums', fontWeight: 650 }}>{formatCurrency(employee.salary, employee.currency)}</TableCell>
+              <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums', fontWeight: 650 }}>{formatSalary(employee.salary, employee.currency)}</TableCell>
               <TableCell>{formatDate(employee.updatedAt)}</TableCell>
               <TableCell><Chip size="small" label={employee.status === 'ACTIVE' ? 'Active' : 'Archived'} color={employee.status === 'ACTIVE' ? 'success' : 'default'} variant="outlined" /></TableCell>
             </TableRow>

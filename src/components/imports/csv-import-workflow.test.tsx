@@ -21,6 +21,7 @@ import { CsvImportWorkflow } from './csv-import-workflow';
 const validPreview = {
   valid: true,
   totalRows: 1,
+  salaryPendingCount: 0,
   preview: [{
     employeeCode: 'ACME-001',
     name: 'Ada Lovelace',
@@ -98,19 +99,41 @@ describe('CsvImportWorkflow', () => {
       preview: [],
       errors: [
         { row: 1, field: 'header', message: 'Missing required column "employeeCode".' },
-        { row: 1, field: 'header', message: 'Missing required column "salary".' },
+        { row: 1, field: 'header', message: 'Missing required column "email".' },
       ],
       errorCount: 2,
     });
     const input = renderWorkflow();
-    fireEvent.change(input, { target: { files: [csvFile('missing-salary.csv', () => Promise.resolve('fullName,email'))] } });
-    await screen.findByText(/missing-salary.csv is ready to validate/i);
+    fireEvent.change(input, { target: { files: [csvFile('missing-fields.csv', () => Promise.resolve('fullName'))] } });
+    await screen.findByText(/missing-fields.csv is ready to validate/i);
     fireEvent.click(screen.getByRole('button', { name: /validate and preview/i }));
 
     expect(await screen.findByText('Missing required column "employeeCode".')).toBeInTheDocument();
-    expect(screen.getByText('Missing required column "salary".')).toBeInTheDocument();
+    expect(screen.getByText('Missing required column "email".')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /confirm and import/i })).toBeDisabled();
     expect(mocks.commitImport).not.toHaveBeenCalled();
+  });
+
+  it('explains salary-pending drafts and confirms the reviewed source file without inventing pay', async () => {
+    const draftCsv = 'id,fullName,email,country,department,jobTitle,employmentType,hireDate,currency\nACME-001,Ada Lovelace,ada@acme.test,BR,Engineering,Intern,INTERN,2020-01-02,BRL';
+    mocks.previewImport.mockResolvedValue({
+      ...validPreview,
+      salaryPendingCount: 1,
+      preview: [{ ...validPreview.preview[0], salary: null, currency: 'BRL', employmentType: 'INTERN' }],
+    });
+    mocks.commitImport.mockResolvedValue({ imported: 1 });
+    const input = renderWorkflow();
+    fireEvent.change(input, { target: { files: [csvFile('drafts.csv', () => Promise.resolve(draftCsv))] } });
+    await screen.findByText(/drafts.csv is ready to validate/i);
+    fireEvent.click(screen.getByRole('button', { name: /validate and preview/i }));
+
+    expect(await screen.findByText('Salary pending')).toBeInTheDocument();
+    expect(screen.getByText(/1 employee will be saved with salary pending/i)).toBeInTheDocument();
+    expect(screen.getByText(/excluded from pay statistics until a salary is added/i)).toBeInTheDocument();
+    expect(mocks.commitImport).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: /confirm and import 1 employee/i }));
+    await waitFor(() => expect(mocks.commitImport).toHaveBeenCalledWith(draftCsv, 'server-hash'));
+    expect(await screen.findByText(/1 employees were added/i)).toBeInTheDocument();
   });
 
   it('locks file selection while preview validation is running', async () => {

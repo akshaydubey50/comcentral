@@ -62,6 +62,7 @@ export async function previewImport(csvText: string, now = new Date()): Promise<
   return {
     valid: errorCount === 0,
     totalRows: parsed.totalRows,
+    salaryPendingCount: parsed.rows.filter((row) => row.salary === null).length,
     preview: parsed.rows.slice(0, 20),
     errors,
     errorCount,
@@ -129,7 +130,7 @@ export async function exportEmployees(filters: EmployeeFilters): Promise<string>
     record.jobRole,
     record.employmentType,
     record.joiningDate.toISOString().slice(0, 10),
-    record.salary.toFixed(currencyPrecision(record.currency)),
+    record.salary?.toFixed(currencyPrecision(record.currency)) ?? '',
     record.currency,
   ]);
   return toCsv([EMPLOYEE_CSV_HEADERS, ...rows]);

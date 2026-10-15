@@ -12,7 +12,7 @@ import { Archive, ArrowLeft, Pencil, RotateCcw, WalletCards } from 'lucide-react
 import { EmptyState, ErrorState, LoadingState } from '@/components/feedback';
 import { PageHeader } from '@/components/page-header';
 import { ApiClientError, api } from '@/lib/api-client';
-import { formatCurrency, formatDate, formatEmploymentType } from '@/lib/formatters';
+import { formatSalary, formatDate, formatEmploymentType } from '@/lib/formatters';
 import { EmployeeFormDialog } from './employee-form-dialog';
 import { SalaryChangeDialog } from './salary-change-dialog';
 import { SalaryHistoryTable } from './salary-history-table';
@@ -108,7 +108,7 @@ export function EmployeeDetails({ id }: { id: string }) {
           actions={
             <>
               <Button variant="outlined" startIcon={<Pencil size={18} />} onClick={() => setEditOpen(true)} disabled={!optionsReady}>Edit details</Button>
-              <Button variant="contained" startIcon={<WalletCards size={18} />} onClick={() => setSalaryOpen(true)} disabled={archived}>Change salary</Button>
+              <Button variant="contained" startIcon={<WalletCards size={18} />} onClick={() => setSalaryOpen(true)} disabled={archived}>{record.salary === null ? 'Add salary' : 'Change salary'}</Button>
             </>
           }
         />
@@ -149,9 +149,13 @@ export function EmployeeDetails({ id }: { id: string }) {
           <CardContent sx={{ p: { xs: 2.5, sm: 3 } }}>
             <Typography component="h2" variant="h3" color="text.secondary">Current annual base salary</Typography>
             <Typography sx={{ fontSize: 'clamp(1.65rem, 3vw, 2.15rem)', fontWeight: 800, mt: 1, letterSpacing: '-.035em', fontVariantNumeric: 'tabular-nums' }}>
-              {formatCurrency(record.salary, record.currency)}
+              {formatSalary(record.salary, record.currency)}
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>Gross contractual commitment. Payroll, bonus, tax, and deductions are outside this view.</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              {record.salary === null
+                ? 'This employee is included in headcount and excluded from pay statistics until a salary is added.'
+                : 'Gross contractual commitment. Payroll, bonus, tax, and deductions are outside this view.'}
+            </Typography>
             <Divider sx={{ my: 2.5 }} />
             <Button
               color={archived ? 'primary' : 'error'}

@@ -22,7 +22,7 @@ const stats = {
 
 function insights(usd: boolean): Insights {
   return {
-    headcount: 2, asOf: '2026-10-14', currencyMode: usd ? 'USD' : 'NATIVE', groupBy: 'country',
+    headcount: 2, salaryPendingCount: 0, asOf: '2026-10-14', currencyMode: usd ? 'USD' : 'NATIVE', groupBy: 'country',
     summaries: usd ? [] : [{ ...stats, currency: 'USD' }],
     groups: usd ? [] : [{ ...stats, currency: 'USD', label: 'US' }],
     bands: usd ? [] : [{ currency: 'USD', label: '50,000–<100,000', lower: '50000', upper: '100000', count: 1 }],

@@ -35,7 +35,7 @@ export async function getInsights(query: InsightsQuery, now = new Date()): Promi
       jobRole: record.jobRole,
       employmentType: record.employmentType,
       joiningDate: record.joiningDate.toISOString().slice(0, 10),
-      salary: new Decimal(record.salary.toString()),
+      salary: record.salary === null ? null : new Decimal(record.salary.toString()),
       currency: record.currency,
     })),
     query.currencyMode ?? 'NATIVE',

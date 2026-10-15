@@ -55,7 +55,7 @@ export function CsvImportWorkflow() {
       <PageHeader
         eyebrow="Data migration"
         title="Import employees from CSV"
-        description="Validate up to 10,000 new employee records before saving the entire batch. Columns may be in any order; employeeCode and salary are required."
+        description="Validate up to 10,000 new employee records before saving the entire batch. Columns may be in any order. Salaries can be added later."
         actions={
           <Button
             variant="outlined"
@@ -159,10 +159,11 @@ export function CsvImportWorkflow() {
                 </Button>
               </Stack>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                Use the template field names, or fullName for name, jobTitle for
-                jobRole, and hireDate for joiningDate. Include each field once.
-                Salary must be annual base pay in major currency units. An id
-                column does not replace employeeCode.
+                Use the template field names, or id for employeeCode, fullName
+                for name, jobTitle for jobRole, and hireDate for joiningDate.
+                Include each field once. Omit salary or leave it blank to save
+                an employee with salary pending. When provided, salary must be
+                annual base pay in major currency units.
               </Typography>
               {csv.fileName && (
                 <Alert severity={csv.fileError ? "error" : "info"} sx={{ mt: 2 }}>
@@ -212,6 +213,15 @@ export function CsvImportWorkflow() {
                     <Alert severity="error" sx={{ mt: 2 }}>
                       Nothing has been saved. Correct every error in the CSV,
                       then choose the updated file and validate again.
+                    </Alert>
+                  )}
+                  {previewData.valid && previewData.salaryPendingCount > 0 && (
+                    <Alert severity="info" sx={{ mt: 2 }}>
+                      {previewData.salaryPendingCount.toLocaleString()}{" "}
+                      {previewData.salaryPendingCount === 1 ? "employee will" : "employees will"}{" "}
+                      be saved with salary pending. These employees are visible
+                      in the directory and excluded from pay statistics until a
+                      salary is added. Use Add salary on their employee details.
                     </Alert>
                   )}
                 </Box>
@@ -266,7 +276,7 @@ export function CsvImportWorkflow() {
           {!previewData && !csv.csvText && (
             <EmptyState
               title="No CSV selected"
-              description="Download the template and fill every required field, including employee code and annual salary, then choose the file to validate it."
+              description="Download the template and fill the employee details, then choose the file to validate it. Salary may be left blank and added later. Each file can contain up to 10,000 employee rows."
             />
           )}
         </>

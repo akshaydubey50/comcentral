@@ -5,7 +5,7 @@ import type { Insights } from '@/shared/contracts';
 import { GroupSection, SummarySection } from './summary-sections';
 
 const insights: Insights = {
-  headcount: 2, asOf: '2026-10-14', currencyMode: 'NATIVE', groupBy: 'department',
+  headcount: 2, salaryPendingCount: 0, asOf: '2026-10-14', currencyMode: 'NATIVE', groupBy: 'department',
   summaries: [], bands: [], tenure: [], reportingAvailable: true,
   groups: [{
     label: 'Engineering', currency: 'USD', count: 2, total: '160000.00',
@@ -65,6 +65,13 @@ describe('Grouped pay statistics', () => {
 });
 
 describe('Pay summary charts', () => {
+  it('reports all-pending headcount and explains why pay statistics have no records', () => {
+    render(<SummarySection insights={{ ...insights, headcount: 3, salaryPendingCount: 3, groups: [] }} />);
+    expect(screen.getByText('3 employees have salary pending.')).toBeInTheDocument();
+    expect(screen.getByText(/included in matching headcount but excluded from pay statistics/i)).toBeInTheDocument();
+    expect(screen.getByText(/no recorded salaries match these filters/i)).toBeInTheDocument();
+  });
+
   it('keeps native-currency statistics in separate labelled charts with exact text', () => {
     const nativeInsights: Insights = {
       ...insights,

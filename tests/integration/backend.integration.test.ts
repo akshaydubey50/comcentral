@@ -88,7 +88,7 @@ describe('PostgreSQL salary invariants', () => {
 
     const history = await prisma.salaryHistory.findMany({ where: { employeeId: employee.id } });
     expect(history).toHaveLength(1);
-    expect(history[0]?.previousSalary.toFixed(2)).toBe('100000.00');
+    expect(history[0]?.previousSalary?.toFixed(2)).toBe('100000.00');
     expect(history[0]?.salary.toFixed(2)).toBe('110000.00');
 
     await expect(
@@ -118,7 +118,7 @@ describe('PostgreSQL salary invariants', () => {
     ).rejects.toThrow();
 
     const afterRollback = await prisma.employee.findUniqueOrThrow({ where: { id: employee.id } });
-    expect(afterRollback.salary.toFixed(2)).toBe('110000.00');
+    expect(afterRollback.salary?.toFixed(2)).toBe('110000.00');
     expect(afterRollback.version).toBe(changed.version);
     expect(await prisma.salaryHistory.count({ where: { employeeId: employee.id } })).toBe(1);
   });
@@ -216,7 +216,7 @@ describe('PostgreSQL salary invariants', () => {
     ).rejects.toMatchObject({ code: 'VERSION_CONFLICT' });
 
     const unchanged = await prisma.employee.findUniqueOrThrow({ where: { id: employee.id } });
-    expect(unchanged.salary.toFixed(2)).toBe('100000.00');
+    expect(unchanged.salary?.toFixed(2)).toBe('100000.00');
     expect(await prisma.salaryHistory.count({ where: { employeeId: employee.id } })).toBe(0);
   });
 

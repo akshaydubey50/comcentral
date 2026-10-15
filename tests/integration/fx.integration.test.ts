@@ -2,12 +2,12 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 
 import { getPrisma } from '../../src/server/db/prisma';
 import type { PrismaClient } from '../../src/server/generated/prisma/client';
-import { parseFrankfurterRates } from '../../src/server/domain/fx';
+import { fxChecksum, parseFrankfurterRates } from '../../src/server/domain/fx';
 import { getFxContext, refreshFx } from '../../src/server/services/fx';
 import { requireIsolatedTestDatabaseUrl } from './test-database';
 
 const now = new Date('2026-10-14T12:00:00Z');
-const rows = [['INR', 90], ['EUR', 0.9], ['GBP', 0.8], ['JPY', 150], ['CAD', 1.4], ['AUD', 1.5], ['SGD', 1.3]]
+const rows = [['INR', 90], ['EUR', 0.9], ['GBP', 0.8], ['JPY', 150], ['CAD', 1.4], ['AUD', 1.5], ['SGD', 1.3], ['BRL', 5]]
   .map(([quote, rate]) => ({ date: '2026-10-13', base: 'USD', quote, rate }));
 let prisma: PrismaClient | undefined;
 
@@ -56,6 +56,26 @@ describe('persisted FX integrity and refresh state', () => {
     const unchanged = await prisma!.fxSnapshot.findUniqueOrThrow({ where: { id: first.id } });
     expect(unchanged.fetchedAt).toEqual(now);
     expect((await getFxContext(later)).rates.EUR?.toString()).toBe('1.1111111111111111111');
+    expect((await getFxContext(later)).rates.BRL?.toString()).toBe('0.2');
+    expect(vi.mocked(fetch).mock.calls[0]?.[0]).toContain('BRL');
+  });
+
+  it('preserves a verified legacy snapshot but requires refresh for BRL coverage', async () => {
+    const parsed = parseFrankfurterRates(rows, now);
+    const legacyRates = Object.fromEntries(Object.entries(parsed.rates).filter(([currency]) => currency !== 'BRL'));
+    const legacy = await prisma!.fxSnapshot.create({ data: {
+      provider: parsed.provider, rateDate: new Date(`${parsed.rateDate}T00:00:00Z`), fetchedAt: now,
+      rates: legacyRates, checksum: fxChecksum({ ...parsed, rates: legacyRates }),
+    } });
+    const unavailable = await getFxContext(now);
+    expect(unavailable.status).toMatchObject({ available: false, state: 'STALE' });
+    expect(unavailable.status.message).toMatch(/BRL.*Refresh/i);
+    expect(unavailable.rates).toEqual({});
+    provider();
+    expect(await refreshFx(new Date('2026-10-14T13:00:00Z'))).toMatchObject({ available: true, state: 'FRESH' });
+    const unchanged = await prisma!.fxSnapshot.findUniqueOrThrow({ where: { id: legacy.id } });
+    expect(unchanged).toEqual(legacy);
+    expect(await prisma!.fxSnapshot.count()).toBe(2);
   });
 
   it('records failed provider refreshes and exposes cached or missing status without silent fallback', async () => {

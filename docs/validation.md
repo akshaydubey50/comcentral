@@ -1,5 +1,30 @@
 # Verification evidence
 
+## Salary-pending CSV checkpoint, 2026-10-15 (B01/B02/B03/B04/F08/C02)
+
+Current CSV slice: source id mapping, optional imported salary, FR/BR/BRL/INTERN coverage and initial salary audit are implemented and locally verified. The applied configured-database migration is verified separately below. Tests ran in the shared working tree while unrelated welcome/policy/deployment work continued; this is CSV evidence, not qualification of every concurrent change or a hosted deployment. The preceding alias-only checkpoint `18b14dd` is historical and superseded for the approved draft behavior.
+
+| Execution | Actual result |
+|---|---|
+| Source-file inspection and parser checks | Download has 10,001 rows and no salary. Original fails only the retained row limit; prepared 10,000-row file and one-row remainder both validate with zero errors and null salary. Source values and original file preserved |
+| Focused backend/domain regressions | 40/40 across CSV, validation, FX, analytics and seed cases; new missing-pay cases failed before implementation |
+| Focused frontend regressions | 42 distinct cases passed; six pending-pay cases failed before implementation |
+| `npm test -- --maxWorkers=1 --no-file-parallelism` | Entire unit/component suite across 31 files passed. Earlier invalid-INTERN fixtures were updated to a truly unsupported value, retaining rejection assertions; new BR/FR/INTERN filter coverage passed |
+| `npm run typecheck`, `npm run lint` | Full commands passed; final changed browser test also checked separately |
+| `npm run build` | Prisma generation and default Next.js Turbopack production build passed after approved execution outside the Windows sandbox |
+| Full isolated PostgreSQL integration suite | 53/53 across 11 files, 36.48s; disposable PostgreSQL 17, separate integration/seed databases, no configured application database used for tests |
+| Reproducible built-app CSV Playwright suite | 4/4, 2.9m: real paid alias import, all 10,000 synthetic draft records read back across 100 pages and visible after reload, first salary assignment plus null-before audit, and two intercepted recovery/replacement journeys |
+| Actual downloaded-file built-app Playwright check | Prepared private file uploaded/committed through UI; 10,000 saved, 10,000 fetched, every source field matched, 10,000 pending salaries, zero fabricated salaries, visible after reload, zero unhandled browser errors. Original 10,001-row file rejected with zero writes |
+| Configured Neon migration (not a test target) | Read-only preflight found zero employees and the applied initial migration. `npm run db:migrate` applied `202610150001_salary_pending_imports`. Read-only follow-up confirmed connection OK, both migrations finished, salary nullable and employee count still zero. No downloaded records imported into this database by verification |
+| Requirements artifact | 652 words on one A4 page; complete Markdown extraction and page bounds checked; rendered page visually inspected |
+| Independent final review | No runtime/migration blocker: atomic import, null/pay denominator semantics, audit/version/archive constraints and legacy FX verification retained |
+
+Browser corrections: one private run selected a hidden mobile copy of the pending label; the scoped visible-table-row assertion passed. The reproducible test later waited for a nonexistent `Annual salary` label; the actual field is `New annual base salary`. Its exact accessible-name locator passed, with no timeout increase or removed persistence assertions. These were test-locator failures, not incomplete import writes.
+
+Local delivery files are private in `C:\Users\aksha\AppData\Local\Temp\comcentral-draft-import`: `employees-10000.csv` (1,525,918 bytes) and `employees-remaining-1.csv` (250 bytes). They are excluded from Git. Use the first file for the approved 10,000-row import; the extra row is retained separately. Temporary browser servers stop after each run. Deployment, final remote CI and video delivery remain separate open tasks.
+
+## Earlier release checkpoints
+
 Checkpoints through 2026-10-15 with Node 24.18.1, Next.js 16.4.0, Prisma 7.10.0 and TypeScript 5.9.3.
 
 The clean release snapshot `2a7e3d4` passed every local gate: 207 unit/component tests, 45 database tests, 34 browser journeys, benchmark helpers, TypeScript, lint, production build and startup. The subsequent CSV fix `18b14dd` has 218 passing unit/component tests, 47 passing database tests, passing typecheck/lint/build and three distinct focused CSV browser journeys; see its checkpoint below. The 10,000-employee performance baseline is recorded. V02 remains open for current remote CI evidence and final integration of any concurrent work. Older results below retain their revision/date limitations. Nothing is deployed yet.

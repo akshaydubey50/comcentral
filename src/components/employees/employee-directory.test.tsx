@@ -83,7 +83,7 @@ describe('EmployeeDirectory', () => {
   });
 
   it('sends normalized URL state to the employee API', async () => {
-    mocks.search = 'q=Ada&page=bad&pageSize=bad&status=UNKNOWN&employmentType=INTERN&sortBy=other&sortOrder=desc';
+    mocks.search = 'q=Ada&page=bad&pageSize=bad&status=UNKNOWN&employmentType=UNSUPPORTED&sortBy=other&sortOrder=desc';
 
     renderDirectory();
 

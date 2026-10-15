@@ -27,7 +27,7 @@ export function buildSeedEmployee(index: number): EmployeeInput {
   const [country, currency] = countries[index % countries.length]!;
   const dayOffset = Math.floor(pseudoRandom(index, 1) * 5_800);
   const joiningDate = new Date(Date.UTC(2010, 0, 1 + dayOffset)).toISOString().slice(0, 10);
-  const baseByCurrency: Record<Currency, number> = {
+  const baseByCurrency: Record<(typeof countries)[number][1], number> = {
     USD: 45_000,
     INR: 600_000,
     EUR: 42_000,

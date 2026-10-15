@@ -5,6 +5,8 @@ import {
   evaluateFxStatus,
   fxChecksum,
   FX_PROVIDER,
+  LEGACY_FX_CURRENCIES,
+  isLegacyFxRates,
   FxProviderError,
   parseFrankfurterResponseText,
 } from '@/server/domain/fx';
@@ -12,7 +14,7 @@ import type { FxAnalyticsContext } from '@/server/domain/analytics';
 import { getPrisma } from '@/server/db/prisma';
 
 const FRANKFURTER_URL =
-  'https://api.frankfurter.dev/v2/rates?base=USD&quotes=INR,EUR,GBP,JPY,CAD,AUD,SGD&providers=ecb';
+  `https://api.frankfurter.dev/v2/rates?base=USD&quotes=${CURRENCIES.filter((currency) => currency !== 'USD').join(',')}&providers=ecb`;
 
 function unavailableStoredStatus(status: FxStatus): FxStatus {
   return {
@@ -61,21 +63,30 @@ export async function getFxContext(now = new Date()): Promise<FxAnalyticsContext
     return { status: unavailableStoredStatus(status), rates: {} };
   }
   try {
+    const legacy = isLegacyFxRates(stored);
+    const currencies = legacy ? LEGACY_FX_CURRENCIES : CURRENCIES;
+    if (Object.keys(stored).length !== currencies.length) throw new Error('invalid rate coverage');
     const rates = Object.fromEntries(
-      CURRENCIES.map((currency) => {
+      currencies.map((currency) => {
         const value = (stored as Record<string, unknown>)[currency];
         if (typeof value !== 'string') throw new Error('invalid rate');
         const decimal = new Decimal(value);
         if (!decimal.isFinite() || decimal.lte(0)) throw new Error('invalid rate');
         return [currency, decimal];
       }),
-    ) as Record<Currency, Decimal>;
-    if (!rates.USD.eq(1)) throw new Error('invalid USD convention');
+    ) as Partial<Record<Currency, Decimal>>;
+    if (!rates.USD?.eq(1)) throw new Error('invalid USD convention');
     if (snapshot.checksum !== fxChecksum({
       provider: snapshot.provider,
       rateDate: snapshot.rateDate.toISOString().slice(0, 10),
-      rates: stored as Record<Currency, string>,
+      rates: stored as Partial<Record<Currency, string>>,
     })) throw new Error('snapshot checksum mismatch');
+    if (legacy) {
+      return { status: {
+        ...status, available: false, state: 'STALE',
+        message: 'Stored FX snapshot predates BRL support. Refresh exchange rates before using USD reporting.',
+      }, rates: {} };
+    }
     return { status, rates };
   } catch {
     return { status: unavailableStoredStatus(status), rates: {} };

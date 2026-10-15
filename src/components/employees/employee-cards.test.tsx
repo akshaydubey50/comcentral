@@ -42,6 +42,12 @@ const employees: Employee[] = [
 ];
 
 describe('EmployeeCards', () => {
+  it('shows a pending salary without converting it to zero', () => {
+    render(<EmployeeCards employees={[{ ...employees[0], salary: null }]} sortBy="name" sortOrder="asc" onSort={vi.fn()} />);
+    expect(screen.getByText('Salary pending')).toBeInTheDocument();
+    expect(screen.queryByText('GBP 0.00')).not.toBeInTheDocument();
+  });
+
   it('shows the desktop-directory fields, native salary, status, and accessible detail links', () => {
     render(
       <EmployeeCards

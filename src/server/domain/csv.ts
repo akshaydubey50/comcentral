@@ -1,12 +1,12 @@
 import { parse } from 'csv-parse/sync';
 import { ZodError } from 'zod';
 
-import type { EmployeeInput, ImportError } from '@/shared/contracts';
+import type { EmployeeImportInput, ImportError } from '@/shared/contracts';
 import {
   InputValidationError,
   MAX_IMPORT_BYTES,
   MAX_IMPORT_ROWS,
-  normalizeEmployeeInput,
+  normalizeEmployeeImport,
 } from '@/shared/validation';
 
 export const EMPLOYEE_CSV_HEADERS = [
@@ -24,7 +24,7 @@ export const EMPLOYEE_CSV_HEADERS = [
 
 export interface ParsedEmployeeCsv {
   totalRows: number;
-  rows: EmployeeInput[];
+  rows: EmployeeImportInput[];
   rowNumbers: number[];
   errors: ImportError[];
   errorCount: number;
@@ -73,6 +73,7 @@ export function parseEmployeeCsv(csvText: string, now = new Date()): ParsedEmplo
   const header = records[0] ?? [];
   // Resolve supported aliases before rejecting ambiguous or missing columns.
   const headerAliases = new Map<string, string>([
+    ['id', 'employeeCode'],
     ['fullName', 'name'],
     ['jobTitle', 'jobRole'],
     ['hireDate', 'joiningDate'],
@@ -101,6 +102,7 @@ export function parseEmployeeCsv(csvText: string, now = new Date()): ParsedEmplo
   }
 
   for (const name of EMPLOYEE_CSV_HEADERS) {
+    if (name === 'salary') continue;
     if (seenHeaders.has(name)) continue;
     addError(errors, counter, {
       row: 1,
@@ -128,18 +130,18 @@ export function parseEmployeeCsv(csvText: string, now = new Date()): ParsedEmplo
     });
   }
 
-  const rows: EmployeeInput[] = [];
+  const rows: EmployeeImportInput[] = [];
   const rowNumbers: number[] = [];
   const seenCodes = new Map<string, number>();
   const seenEmails = new Map<string, number>();
 
   dataRows.slice(0, MAX_IMPORT_ROWS).forEach((values, index) => {
     const rowNumber = index + 2;
-    if (values.length !== EMPLOYEE_CSV_HEADERS.length) {
+    if (values.length !== normalizedHeader.length) {
       addError(errors, counter, {
         row: rowNumber,
         field: 'row',
-        message: `Expected ${EMPLOYEE_CSV_HEADERS.length} columns`,
+        message: `Expected ${normalizedHeader.length} columns`,
       });
       return;
     }
@@ -148,7 +150,7 @@ export function parseEmployeeCsv(csvText: string, now = new Date()): ParsedEmplo
       normalizedHeader.map((name, columnIndex) => [name, values[columnIndex] ?? '']),
     );
     try {
-      const employee = normalizeEmployeeInput(raw, now);
+      const employee = normalizeEmployeeImport(raw, now);
       const firstCodeRow = seenCodes.get(employee.employeeCode);
       if (firstCodeRow !== undefined) {
         addError(errors, counter, {

@@ -154,16 +154,18 @@ function InsightsDashboardContent() {
             )}
             {insights.data.headcount === 0 ? (
               <EmptyState title="No employees match these filters" description="Clear one or more report filters to widen the matching population." />
-            ) : insights.data.reportingAvailable ? (
+            ) : (
               <>
                 <SummarySection insights={insights.data} />
-                <GroupSection insights={insights.data} />
-                <DistributionSection insights={insights.data} />
-                <TenureSection insights={insights.data} />
+                {insights.data.reportingAvailable && (
+                  <>
+                    <GroupSection insights={insights.data} />
+                    <DistributionSection insights={insights.data} />
+                    <TenureSection insights={insights.data} />
+                  </>
+                )}
                 <OutlierSection insights={insights.data} />
               </>
-            ) : (
-              <OutlierSection insights={insights.data} />
             )}
           </>
         )}
