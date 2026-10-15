@@ -5,6 +5,7 @@ import {
 
 import type { Insights, PayStatistics } from '@/shared/contracts';
 import { formatCurrency } from '@/lib/formatters';
+import { HorizontalBarChart, type HorizontalBarItem } from './horizontal-bar-chart';
 
 function Stat({ label, value }: { label: string; value: string }) {
   return <Box><Typography variant="caption" color="text.secondary">{label}</Typography><Typography fontWeight={750} sx={{ mt: 0.25, fontVariantNumeric: 'tabular-nums' }}>{value}</Typography></Box>;
@@ -53,9 +54,47 @@ export function SummarySection({ insights }: { insights: Insights }) {
 
 export function GroupSection({ insights }: { insights: Insights }) {
   const label = insights.groupBy === 'jobRole' ? 'Job role' : insights.groupBy === 'department' ? 'Department' : 'Country';
+  const pluralLabel = insights.groupBy === 'jobRole' ? 'job roles' : insights.groupBy === 'department' ? 'departments' : 'countries';
+  const headcounts = Array.from(insights.groups.reduce((counts, group) => {
+    counts.set(group.label, (counts.get(group.label) ?? 0) + group.count);
+    return counts;
+  }, new Map<string, number>())).map<HorizontalBarItem>(([groupLabel, count]) => ({
+    key: groupLabel,
+    label: groupLabel,
+    visualValue: count,
+    displayValue: count.toLocaleString(),
+  }));
+  const representedHeadcount = headcounts.reduce((total, item) => total + item.visualValue, 0);
+  const chartLabel = `Headcount by ${label.toLowerCase()} chart. ${headcounts.map((item) => `${item.label}: ${item.displayValue} ${item.visualValue === 1 ? 'person' : 'people'}`).join('; ')}.`;
+
   return (
     <Box component="section" aria-labelledby="group-title">
       <Typography id="group-title" component="h2" variant="h2" sx={{ mb: 1.5 }}>By {label.toLowerCase()}</Typography>
+      <Card sx={{ mb: 2 }}>
+        <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
+          <Typography component="h3" variant="h3">Headcount</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75, mb: 2.5 }}>
+            {representedHeadcount.toLocaleString()} matching {representedHeadcount === 1 ? 'person' : 'people'} across {headcounts.length.toLocaleString()} {headcounts.length === 1 ? label.toLowerCase() : pluralLabel}. Currency rows are combined in these counts.
+          </Typography>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: 'minmax(0, 1.5fr) minmax(16rem, 0.7fr)' }, gap: 3, alignItems: 'start' }}>
+            <HorizontalBarChart ariaLabel={chartLabel} items={headcounts} />
+            <TableContainer>
+              <Table size="small" aria-label={'Headcount by ' + label.toLowerCase()}>
+                <TableHead><TableRow><TableCell>{label}</TableCell><TableCell align="right">People</TableCell></TableRow></TableHead>
+                <TableBody>
+                  {headcounts.map((item) => (
+                    <TableRow key={item.key}>
+                      <TableCell component="th" scope="row" sx={{ fontWeight: 700 }}>{item.label}</TableCell>
+                      <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums' }}>{item.displayValue}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
+        </CardContent>
+      </Card>
+      <Typography component="h3" variant="h3" sx={{ mb: 1.5 }}>Pay statistics</Typography>
       <Card sx={{ overflow: 'hidden' }}>
         <TableContainer className="data-table-wrap">
           <Table aria-label={'Salary statistics by ' + label.toLowerCase()} sx={{ minWidth: 1100 }}>

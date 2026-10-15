@@ -29,4 +29,37 @@ describe('Grouped pay statistics', () => {
     expect(within(row).getByText('USD 70,000.00')).toBeInTheDocument();
     expect(within(row).getByText('USD 90,000.00')).toBeInTheDocument();
   });
+
+  it('shows exact filtered headcounts aggregated across currency rows', () => {
+    const groupedInsights: Insights = {
+      ...insights,
+      headcount: 6,
+      groups: [
+        insights.groups[0],
+        {
+          ...insights.groups[0],
+          currency: 'GBP',
+          count: 3,
+        },
+        {
+          ...insights.groups[0],
+          label: 'People',
+          count: 1,
+        },
+      ],
+    };
+
+    render(<GroupSection insights={groupedInsights} />);
+
+    expect(screen.getByRole('img', {
+      name: 'Headcount by department chart. Engineering: 5 people; People: 1 person.',
+    })).toBeInTheDocument();
+    expect(screen.getByText('6 matching people across 2 departments. Currency rows are combined in these counts.')).toBeInTheDocument();
+
+    const headcountTable = screen.getByRole('table', { name: 'Headcount by department' });
+    const engineering = within(headcountTable).getByRole('row', { name: 'Engineering 5' });
+    const people = within(headcountTable).getByRole('row', { name: 'People 1' });
+    expect(within(engineering).getByRole('cell', { name: '5' })).toBeInTheDocument();
+    expect(within(people).getByRole('cell', { name: '1' })).toBeInTheDocument();
+  });
 });
