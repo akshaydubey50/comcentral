@@ -3,6 +3,7 @@ import Decimal from 'decimal.js';
 import { CURRENCIES, type Currency, type FxStatus } from '@/shared/contracts';
 import {
   evaluateFxStatus,
+  fxChecksum,
   FX_PROVIDER,
   FxProviderError,
   parseFrankfurterResponseText,
@@ -70,6 +71,11 @@ export async function getFxContext(now = new Date()): Promise<FxAnalyticsContext
       }),
     ) as Record<Currency, Decimal>;
     if (!rates.USD.eq(1)) throw new Error('invalid USD convention');
+    if (snapshot.checksum !== fxChecksum({
+      provider: snapshot.provider,
+      rateDate: snapshot.rateDate.toISOString().slice(0, 10),
+      rates: stored as Record<Currency, string>,
+    })) throw new Error('snapshot checksum mismatch');
     return { status, rates };
   } catch {
     return { status: unavailableStoredStatus(status), rates: {} };

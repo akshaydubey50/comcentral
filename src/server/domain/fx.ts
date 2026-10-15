@@ -23,6 +23,16 @@ export interface ParsedFxRates {
 type ProviderRow = { date: string; base: string; quote: string; rate: unknown };
 type ProviderCurrency = Exclude<Currency, 'USD'>;
 
+/** Stable content identity used both when saving and reading immutable snapshots. */
+export function fxChecksum(snapshot: Pick<ParsedFxRates, 'provider' | 'rateDate' | 'rates'>): string {
+  const canonical = JSON.stringify({
+    provider: snapshot.provider,
+    rateDate: snapshot.rateDate,
+    rates: CURRENCIES.map((currency) => [currency, snapshot.rates[currency]]),
+  });
+  return createHash('sha256').update(canonical).digest('hex');
+}
+
 function isProviderCurrency(value: string): value is ProviderCurrency {
   return value !== 'USD' && CURRENCIES.some((currency) => currency === value);
 }
@@ -85,16 +95,11 @@ export function parseFrankfurterRates(payload: unknown, now = new Date()): Parse
         : new Decimal(1).div(quotes.get(currency)!).toSignificantDigits(20).toString(),
     ]),
   ) as Record<Currency, string>;
-  const canonical = JSON.stringify({
-    provider: FX_PROVIDER,
-    rateDate,
-    rates: CURRENCIES.map((currency) => [currency, rates[currency]]),
-  });
   return {
     provider: FX_PROVIDER,
     rateDate,
     rates,
-    checksum: createHash('sha256').update(canonical).digest('hex'),
+    checksum: fxChecksum({ provider: FX_PROVIDER, rateDate, rates }),
   };
 }
 

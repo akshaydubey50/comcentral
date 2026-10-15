@@ -1,5 +1,7 @@
 # Reporting decisions
 
+FX integrity hardening (B03): every stored snapshot read recomputes its SHA-256 identity from provider, rate date and supported currency/rate pairs in fixed currency order. A mismatch yields unavailable `STALE` status with an integrity message and no rates; valid snapshots retain their existing identity and deduplication behavior. Checksums detect content mismatch, not malicious changes to both data and checksum; database permissions and immutability remain the enforcement boundary.
+
 Current annual gross base salary only, active by default, all filtered records before aggregation. Native currency totals never mixed. Use Decimal throughout (no Number for salary), round only displayed results half-up to currency precision. Percentiles use R type7: interpolate at zero-based (n-1)*p. Empty stats null except count/total0. Singletons repeat their value.
 
 Distribution bands are descriptive ranges, not pay grades: USD/EUR/GBP/CAD/AUD/SGD boundaries 0,25000,50000,75000,100000,150000,200000,infinity; INR 0,500000,1000000,1500000,2000000,3000000,5000000,infinity; JPY 0,3000000,5000000,7000000,10000000,15000000,20000000,infinity. Lower inclusive, upper exclusive; retain zero-count bins. USD mode uses USD bands.

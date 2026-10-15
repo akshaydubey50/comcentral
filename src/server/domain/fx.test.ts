@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   evaluateFxStatus,
+  fxChecksum,
   FxProviderError,
   parseFrankfurterRates,
   parseFrankfurterResponseText,
@@ -18,6 +19,14 @@ const rows = [
 ].map(([quote, rate]) => ({ date: '2026-10-13', base: 'USD', quote, rate }));
 
 describe('Frankfurter FX validation', () => {
+  it('hashes every identifying field with stable currency order', () => {
+    const parsed = parseFrankfurterRates(rows, new Date('2026-10-14T12:00:00Z'));
+    const reversed = Object.fromEntries(Object.entries(parsed.rates).reverse()) as typeof parsed.rates;
+    expect(fxChecksum({ ...parsed, rates: reversed })).toBe(parsed.checksum);
+    expect(fxChecksum({ ...parsed, provider: 'Changed provider' })).not.toBe(parsed.checksum);
+    expect(fxChecksum({ ...parsed, rateDate: '2026-10-12' })).not.toBe(parsed.checksum);
+    expect(fxChecksum({ ...parsed, rates: { ...parsed.rates, EUR: '2' } })).not.toBe(parsed.checksum);
+  });
   it('builds complete USD-per-unit rates and includes USD one', () => {
     const parsed = parseFrankfurterRates(rows, new Date('2026-10-14T12:00:00Z'));
     expect(parsed.rateDate).toBe('2026-10-13');
