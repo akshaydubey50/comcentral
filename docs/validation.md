@@ -12,11 +12,11 @@ These results identify separate working-tree checkpoints. F01 resolved the salar
 | Unit/component tests | Clean checkout at `a814f3a`: 200 passed, 3 employee-directory timeouts across 30 files in 208.32s. Focused directory correction passed 7/7 at the default timeout; combined rerun pending. AppShell cases now pass. Earlier counts are historical |
 | TypeScript | `npm run typecheck` passed, including after restoring the pre-existing generated Next.js type imports changed by the build |
 | Lint | Full ESLint check passed with no errors or warnings |
-| Production build | Clean-checkout default Turbopack build passed at `0b6e210`, including /login, /register and /welcome; nonce-bearing documents render dynamically |
+| Production build | Clean-checkout default Turbopack build passed at `2a7e3d4`, including the public root, /login, /register and /welcome; nonce-bearing documents render dynamically |
 | Database integration | Separate focused runs: 15 registration/salary tests, 4 seed tests, 5 import tests and 4 FX tests passed on disposable local PostgreSQL 17; combined current-suite run pending |
 | Migration and HR provisioning | Initial migration repaired and applied; Prisma status is up to date, read-only schema diff is empty, and the provisioned HR user and credential account are verified |
-| Browser journeys | All 31 Chromium journeys passed in 1.2 minutes against the built app on localhost:3106, including real signup/logout/login, mobile employee actions and persisted salary/import boundaries, plus intercepted frontend recovery and navigation cases |
-| 10,000-employee seed/performance | 10 target-guard cases and 4 dedicated PostgreSQL seed cases passed, including concurrent first/repeat runs with exactly 10,000 rows; workload measurement pending |
+| Browser journeys | All 34 Chromium journeys passed in 58.1 seconds at `2a7e3d4` against the built app on localhost:3106, including real signup/logout/login, mobile employee actions and persisted salary/import boundaries, plus intercepted frontend recovery and navigation cases |
+| 10,000-employee seed/performance | P01 passed at clean `2a7e3d4`: 63/63 measured reads, exact 10,000-row population/export and successful 10,000-row import; timings, memory and proposed budgets in performance.md |
 | Deployed software | Not deployed |
 | Demo video | Script prepared; recording pending verified runtime |
 
@@ -62,7 +62,9 @@ V02 clean-checkout checkpoint, 2026-10-15: `npm ci --prefer-offline --no-audit -
 
 V02 current unit follow-up: the serial release run at `a814f3a` passed 200/203 across 30 files in 208.32s. Three directory cases hit the unchanged five-second limit; AppShell and salary-dialog cases passed. The directory test now isolates its unused employee-form module (`3cab980`). All seven focused cases passed in 14.87s total, with the three previously timing-out scenarios at 1.10s, 1.42s and 1.72s. This focused result does not replace the combined gate.
 
-F09 root refinement: six focused presentation/session-gate cases passed in 16.78s after adding anonymous `/` entry, preserving authenticated `/`, and expanding navigation, capabilities, workflow and shared-access content. Targeted ESLint passed. A separate reviewer identified and corrected a session-loading race in the new keyboard browser scenario. The new root/layout built-browser check is pending; the prior 31/31 browser result covers the earlier `/welcome` implementation.
+F09 root refinement: six focused presentation/session-gate cases passed in 16.78s after adding anonymous `/` entry, preserving authenticated `/`, and expanding navigation, capabilities, workflow and shared-access content. Targeted ESLint passed. A separate reviewer identified and corrected a session-loading race in the new keyboard browser scenario. The normal production build passed at `2a7e3d4`, then all 34 Chromium journeys passed in 58.1s with no skips. New coverage verifies anonymous/signed-in root behavior, 320/768/1280px layout, keyboard skip/section navigation and registration links. Actual anonymous root screenshots at 320px and 1280px were visually inspected. The earlier 31/31 result is retained for history.
+
+P01 (`2a7e3d4`), 2026-10-15 04:59 UTC: the isolated production-artifact benchmark completed successfully on local PostgreSQL 17 with exactly 10,000 active synthetic employees. All 63 measured read requests succeeded. Warm p95 was 66.15ms for the directory, 525.35ms for complete native insights and 512.62ms for complete CSV export; concurrency-two p95 was 81.43ms, 1080.71ms and 919.76ms respectively. Process peak RSS was 459.15MiB. A separate 10,000-row import took 459.58ms to preview and 6945.73ms to commit; persisted count and owned-fixture cleanup succeeded. The checkout was clean. [performance.md](performance.md) records the full method, aggregate artifact, proposed local budgets and limits. P02/P03 remain conditional; no hosted/capacity SLA is inferred. This closes P01.
 
 ## Earlier verification checkpoints
 

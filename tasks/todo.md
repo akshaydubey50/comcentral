@@ -2,7 +2,7 @@
 
 Updated 2026-10-15. This extends the existing project checklist. The original backend tasks are preserved through the mapping in [plan.md](plan.md). Scope and audit dispositions are in [the delivery plan](../docs/implementation-plan.md); actual execution results are in [validation.md](../docs/validation.md).
 
-Current checkpoint: **20 of 34 tasks verified complete** (C01, F01-F09, V01, B01-B07, S01, S03). The **14 open items** comprise **8 delivery tasks**, **2 conditional optimizations** (P02/P03), **3 future product decisions** (U01-U03), and **1 recurring evidence task** (C02). Twelve of the 20 delivery tasks prioritized on 2026-10-15 are now closed. All 31 built-browser journeys passed; the two remaining local-release tasks are P01 measurements and the V02 combined gate. S02 still needs deployed HTTPS verification. The current user deadline prioritizes local release checks and performance results within 2-3 hours; deployment, scheduled-job, alert and recovery evidence remain the following milestone.
+Current checkpoint: **21 of 34 tasks verified complete** (C01, F01-F09, V01, B01-B07, S01, S03, P01). The **13 open items** comprise **7 delivery tasks**, **2 conditional optimizations** (P02/P03), **3 future product decisions** (U01-U03), and **1 recurring evidence task** (C02). Thirteen of the 20 delivery tasks prioritized on 2026-10-15 are now closed. All 34 built-browser journeys passed; P01 measurements are complete and the remaining local-release task is the V02 combined gate. S02 still needs deployed HTTPS verification. The current user deadline prioritizes local release checks and performance results within 2-3 hours; deployment, scheduled-job, alert and recovery evidence remain the following milestone.
 
 The user has authorized audit implementation and incremental commits, and prioritized all 20 remaining delivery tasks as P0 on 2026-10-15. Conditional P02/P03 and future U01-U03 remain outside this delivery batch. C01 represents completed planning; other boxes track acceptance work still to implement or verify, including checks of existing features. Recommended frontend/delivery improvements are selected for implementation. Conditional performance changes require measurements; future account/tenant decision tasks retain the approved scope boundary. Existing registration, employee, salary, CSV and analytics code is retained.
 
@@ -294,7 +294,7 @@ Estimated scope: M: 3-5 files.
 - [x] Existing dashboard URLs, session redirects and deep links remain valid; moving / requires a separate explicit decision.
 - [x] No unsupported production/security claims, real employee data or fabricated customer statistics appear.
 
-Follow-up approved 2026-10-15: make the public introduction the normal signed-out `/` entry while preserving the authenticated overview. Expand navigation, salary-history explanation, workflow and shared-access copy according to [homepage-design.md](../docs/homepage-design.md). Implementation is in review; the earlier `/welcome` acceptance remains complete, and root-route browser verification is pending.
+Follow-up approved 2026-10-15: make the public introduction the normal signed-out `/` entry while preserving the authenticated overview. Expand navigation, salary-history explanation, workflow and shared-access copy according to [homepage-design.md](../docs/homepage-design.md). Implemented in `2a7e3d4`. All 34 built-browser journeys passed, including anonymous/signed-in root routing, 320/768/1280px layout, keyboard skip/section navigation and both account entry paths. Phone and desktop screenshots were visually inspected.
 
 Verification: Verify public/signed-in navigation and mobile/keyboard layout against the actual app; update scope only if selected.
 
@@ -305,11 +305,13 @@ Dependencies: B05; B01/B02/B04 correctness; B06 diagnostics recommended.
 Likely files: scripts/benchmark.mjs; benchmark helper if needed; docs/validation.md.
 Estimated scope: M: 2-3 files.
 
-- [ ] Use an explicitly isolated 10,000-employee target; record dataset, environment, commit, request mix and no employee payloads.
-- [ ] Measure cold/warm and concurrent list/report/export behavior, percentile latency, memory and error rate; include relevant large-import duration.
-- [ ] Record proposed acceptance budgets and rationale; activate P02/P03 only for demonstrated bottlenecks or resource risk.
+- [x] Use an explicitly isolated 10,000-employee target; record dataset, environment, commit, request mix and no employee payloads.
+- [x] Measure cold/warm and concurrent list/report/export behavior, percentile latency, memory and error rate; include relevant large-import duration.
+- [x] Record proposed acceptance budgets and rationale; activate P02/P03 only for demonstrated bottlenecks or resource risk.
 
 Verification: Run bounded reproducible measurements on the designated demo target and report limitations; no invented SLA.
+
+Measured at `2a7e3d4`: 63/63 read requests passed, 10,000-row import persisted successfully, and aggregate timings/memory plus proposed regression budgets are recorded in [performance.md](../docs/performance.md). P02/P03 remain conditional.
 
 ## P02: Bound CSV export memory if required
 

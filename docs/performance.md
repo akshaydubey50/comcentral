@@ -19,4 +19,30 @@ A private IPC preload samples the actual application process RSS/heap every 100m
 
 The report identifies the revision, dirty-tree state, Node/platform/CPU count, exact synthetic population, sample counts, nearest-rank p50/p95, maximum successful latency, error rate and application memory. Ten observations per phase make p95 close to the maximum; these are small reproducible samples rather than an SLA or capacity proof. Run heavy validation separately to avoid measuring test-runner contention.
 
-Actual measurements, proposed acceptance budgets and any decision to activate P02/P03 will be recorded in [validation.md](validation.md) after execution. Do not present the existence of this runner as a completed performance result.
+## Measured baseline, 2026-10-15 (P01)
+
+The reviewed `2a7e3d4` checkout was clean. The normal production build ran on Windows x64, Node 24.18.1, 12 logical CPUs, with local PostgreSQL 17 and exactly 10,000 active synthetic employees. Heavy validation commands were stopped during measurement. The [aggregate JSON](evidence/benchmark-2026-10-15.json) records the full result and sample counts.
+
+| Operation | First request (ms) | Warm p50 / p95 (ms) | Concurrency 2 p50 / p95 (ms) |
+|---|---:|---:|---:|
+| Directory, 25 rows | 76.53 | 39.67 / 66.15 | 49.21 / 81.43 |
+| Complete native insights | 797.18 | 483.09 / 525.35 | 753.00 / 1080.71 |
+| Complete 10,000-row CSV export | 726.29 | 481.07 / 512.62 | 522.67 / 919.76 |
+
+All 63 measured read requests succeeded. The first export was parsed and verified to contain all 10,000 rows; list/report population checks also passed. Application-process peak RSS was **459.15 MiB**, with peak used heap **297.49 MiB**. The separate 10,000-row import preview took **459.58 ms** and atomic commit **6945.73 ms**, with persisted row count verified before owned-fixture cleanup. Its process peaked at **403.75 MiB RSS** / **233.45 MiB heap**. These are observed whole-process peaks, not a leak analysis or endpoint allocation profile.
+
+## Proposed local regression budgets
+
+These thresholds are proposed from this baseline, not thresholds established before measuring or a hosted SLA. They allow roughly twofold latency headroom for this developer machine while keeping directory interaction responsive and reports/imports within a short user wait. Re-evaluate against the actual hosting region, resource limits, data size and usage.
+
+| Signal | Proposed budget | Baseline |
+|---|---|---|
+| Directory p95 | Warm <=250ms; concurrency 2 <=500ms | Within budget |
+| Reports and export p95 | Warm <=1s; concurrency 2 <=2s | Within budget |
+| 10,000-row import | Preview <=2s; commit <=15s | Within budget |
+| Observed application RSS | <=768 MiB in either measured process | Within budget |
+| Errors and result integrity | Zero failed requests; exact expected population and persisted import count | Passed |
+
+**Decision:** retain the current export/report implementation for the approved 10,000-row release. P02 streaming export and P03 SQL aggregation remain conditional; these measurements do not establish a current bottleneck requiring either rewrite. Reopen them for larger accumulated populations, greater concurrency, hosted memory pressure or repeated budget failures. The import cap does not cap total stored employees.
+
+This small run excludes provider cold starts, database network latency, browser rendering, sustained concurrency, long-running memory growth and live FX-provider timing. Ten samples per phase cannot establish a reliable tail-latency SLA. Final gate and deployment status remain in [validation.md](validation.md).
