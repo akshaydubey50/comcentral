@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 
 import type { Insights } from '@/shared/contracts';
-import { GroupSection } from './summary-sections';
+import { GroupSection, SummarySection } from './summary-sections';
 
 const insights: Insights = {
   headcount: 2, asOf: '2026-10-14', currencyMode: 'NATIVE', groupBy: 'department',
@@ -61,5 +61,45 @@ describe('Grouped pay statistics', () => {
     const people = within(headcountTable).getByRole('row', { name: 'People 1' });
     expect(within(engineering).getByRole('cell', { name: '5' })).toBeInTheDocument();
     expect(within(people).getByRole('cell', { name: '1' })).toBeInTheDocument();
+  });
+});
+
+describe('Pay summary charts', () => {
+  it('keeps native-currency statistics in separate labelled charts with exact text', () => {
+    const nativeInsights: Insights = {
+      ...insights,
+      headcount: 3,
+      summaries: [
+        insights.groups[0],
+        {
+          ...insights.groups[0],
+          currency: 'INR',
+          count: 1,
+          total: '12345678901234567890.12',
+          average: '12345678901234567890.12',
+          median: '12345678901234567890.12',
+        },
+      ],
+    };
+
+    render(<SummarySection insights={nativeInsights} />);
+
+    expect(screen.getByRole('img', { name: /USD pay statistics chart/ })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /INR pay statistics chart/ })).toHaveAccessibleName(/INR 12,345,678,901,234,567,890\.12/);
+    expect(screen.getAllByText('INR 12,345,678,901,234,567,890.12').length).toBeGreaterThan(0);
+  });
+
+  it('labels approximate USD statistics with their rate date', () => {
+    const usdInsights: Insights = {
+      ...insights,
+      currencyMode: 'USD',
+      summaries: [insights.groups[0]],
+      fx: { ...insights.fx, available: true, state: 'FRESH', rateDate: '2026-10-14' },
+    };
+
+    render(<SummarySection insights={usdInsights} />);
+
+    expect(screen.getByRole('heading', { name: 'Approximate USD salaries' })).toBeInTheDocument();
+    expect(screen.getByText('Rate date: 14 Oct 2026')).toBeInTheDocument();
   });
 });

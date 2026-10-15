@@ -7,6 +7,13 @@ export interface HorizontalBarItem {
   displayValue: string;
 }
 
+/** Converts an exact decimal string only into a bounded presentation coordinate. */
+export function decimalStringToVisualValue(value: string | null): number {
+  if (value === null) return 0;
+  const coordinate = Number(value);
+  return Number.isFinite(coordinate) && coordinate > 0 ? coordinate : 0;
+}
+
 /**
  * Renders comparison bars while keeping exact display values independent from
  * the numeric coordinates used only to size the visual marks.
@@ -27,7 +34,7 @@ export function HorizontalBarChart({
           key={item.key}
           sx={{
             display: 'grid',
-            gridTemplateColumns: { xs: 'minmax(0, 1fr) auto', sm: 'minmax(7rem, 14rem) minmax(0, 1fr) auto' },
+            gridTemplateColumns: { xs: 'minmax(0, 1fr) minmax(0, 1.5fr)', sm: 'minmax(7rem, 12rem) minmax(3rem, 1fr) minmax(0, 12rem)' },
             alignItems: 'center',
             columnGap: 1.5,
             rowGap: 0.5,
@@ -58,7 +65,15 @@ export function HorizontalBarChart({
           <Typography
             variant="body2"
             fontWeight={750}
-            sx={{ fontVariantNumeric: 'tabular-nums', justifySelf: 'end', gridColumn: { xs: 2, sm: 'auto' }, gridRow: { xs: 1, sm: 'auto' } }}
+            sx={{
+              fontVariantNumeric: 'tabular-nums',
+              justifySelf: 'end',
+              gridColumn: { xs: 2, sm: 'auto' },
+              gridRow: { xs: 1, sm: 'auto' },
+              maxWidth: '100%',
+              overflowWrap: 'anywhere',
+              textAlign: 'right',
+            }}
           >
             {item.displayValue}
           </Typography>

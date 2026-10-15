@@ -4,27 +4,55 @@ import {
 } from '@mui/material';
 
 import type { Insights, PayStatistics } from '@/shared/contracts';
-import { formatCurrency } from '@/lib/formatters';
-import { HorizontalBarChart, type HorizontalBarItem } from './horizontal-bar-chart';
+import { formatCurrency, formatDate } from '@/lib/formatters';
+import {
+  decimalStringToVisualValue, HorizontalBarChart, type HorizontalBarItem,
+} from './horizontal-bar-chart';
 
 function Stat({ label, value }: { label: string; value: string }) {
-  return <Box><Typography variant="caption" color="text.secondary">{label}</Typography><Typography fontWeight={750} sx={{ mt: 0.25, fontVariantNumeric: 'tabular-nums' }}>{value}</Typography></Box>;
+  return <Box sx={{ minWidth: 0 }}><Typography variant="caption" color="text.secondary">{label}</Typography><Typography fontWeight={750} sx={{ mt: 0.25, fontVariantNumeric: 'tabular-nums', overflowWrap: 'anywhere' }}>{value}</Typography></Box>;
 }
 
 function MoneyStats({ stats, currency }: { stats: PayStatistics; currency: Insights['summaries'][number]['currency'] }) {
+  const chartValues: Array<[string, string | null]> = [
+    ['Minimum', stats.min],
+    ['25th percentile', stats.p25],
+    ['Median', stats.median],
+    ['Average', stats.average],
+    ['75th percentile', stats.p75],
+    ['Maximum', stats.max],
+  ];
+  const chartItems = chartValues.map<HorizontalBarItem>(([label, value]) => ({
+    key: label,
+    label,
+    visualValue: decimalStringToVisualValue(value),
+    displayValue: formatCurrency(value, currency),
+  }));
+  const chartLabel = `${currency} pay statistics chart. ${chartItems.map((item) => `${item.label}: ${item.displayValue}`).join('; ')}.`;
+
   return (
-    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 1.75, mt: 2 }}>
-      <Stat label="Total" value={formatCurrency(stats.total, currency)} />
-      <Stat label="Average" value={formatCurrency(stats.average, currency)} />
-      <Stat label="Median" value={formatCurrency(stats.median, currency)} />
-      <Stat label="Range" value={formatCurrency(stats.min, currency) + ' – ' + formatCurrency(stats.max, currency)} />
-      <Stat label="25th percentile" value={formatCurrency(stats.p25, currency)} />
-      <Stat label="75th percentile" value={formatCurrency(stats.p75, currency)} />
-    </Box>
+    <>
+      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 1.75, mt: 2 }}>
+        <Stat label="Total" value={formatCurrency(stats.total, currency)} />
+        <Stat label="Average" value={formatCurrency(stats.average, currency)} />
+        <Stat label="Median" value={formatCurrency(stats.median, currency)} />
+        <Stat label="Range" value={formatCurrency(stats.min, currency) + ' – ' + formatCurrency(stats.max, currency)} />
+        <Stat label="25th percentile" value={formatCurrency(stats.p25, currency)} />
+        <Stat label="75th percentile" value={formatCurrency(stats.p75, currency)} />
+      </Box>
+      <Box sx={{ mt: 2.5 }}>
+        <HorizontalBarChart ariaLabel={chartLabel} items={chartItems} />
+      </Box>
+    </>
   );
 }
 
 export function SummarySection({ insights }: { insights: Insights }) {
+  const approximateUsd = insights.currencyMode === 'USD';
+  const hasUsableFx = insights.reportingAvailable && Boolean(insights.fx.rateDate)
+    && (insights.fx.state === 'FRESH' || insights.fx.state === 'CACHED');
+  const approximateUsdUnavailable = approximateUsd && !hasUsableFx;
+
   return (
     <Box component="section" aria-labelledby="summary-title">
       <Typography id="summary-title" component="h2" variant="h2" sx={{ mb: 1.5 }}>Current annual commitments</Typography>
@@ -36,13 +64,17 @@ export function SummarySection({ insights }: { insights: Insights }) {
             <Typography variant="body2" sx={{ color: '#bfd6d3', mt: 1 }}>All report sections use this same filtered population.</Typography>
           </CardContent>
         </Card>
-        {insights.summaries.map((summary) => (
+        {approximateUsdUnavailable && (
+          <Card><CardContent sx={{ p: 2.5 }}><Typography role="status">Approximate USD pay statistics are unavailable because a complete current rate snapshot is required.</Typography></CardContent></Card>
+        )}
+        {!approximateUsdUnavailable && insights.summaries.map((summary) => (
           <Card key={summary.currency}>
             <CardContent sx={{ p: 2.5 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1 }}>
-                <Typography component="h3" variant="h3">{summary.currency} salaries</Typography>
-                <Chip size="small" label={summary.count.toLocaleString() + ' people'} />
+                <Typography component="h3" variant="h3">{approximateUsd ? 'Approximate USD salaries' : summary.currency + ' salaries'}</Typography>
+                <Chip size="small" label={summary.count.toLocaleString() + (summary.count === 1 ? ' person' : ' people')} />
               </Box>
+              {approximateUsd && insights.fx.rateDate && <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.75 }}>Rate date: {formatDate(insights.fx.rateDate)}</Typography>}
               <MoneyStats stats={summary} currency={summary.currency} />
             </CardContent>
           </Card>
