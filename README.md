@@ -28,6 +28,8 @@ npm run dev
 
 For that seed command, DATABASE_URL must name `comcentral_demo`; change the acknowledgment to the exact name of your dedicated database ending `_demo`. Seeding refuses production mode, missing acknowledgment and unrelated populated targets. Count checks and insertion run under one transaction and table lock; subsequent normal demo imports remain allowed. A repeat seed refuses a changed population instead of deleting records. Open http://localhost:3000/welcome for the product introduction, or sign in at /login and create an account at /register. The existing / dashboard and employee deep links remain unchanged. Use synthetic data only.
 
+Keep one `npm run dev` process running while developing. It uses port 3000 explicitly and Next.js Fast Refresh updates the browser when source files are saved. If port 3000 is occupied, startup fails instead of silently choosing another port; stop the existing server from its terminal with Ctrl+C, then run `npm run dev` again. `npm start` serves the last production build and does not reload source changes. Restart the development server after changing environment variables; Prisma schema changes also require client generation and the appropriate reviewed migration. For production verification, stop the local server, run `npm run build`, then `npm start` on the same port.
+
 ## Verification
 
 ```bash
