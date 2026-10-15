@@ -30,7 +30,7 @@ export function EmployeeTable({
   onSort: (key: EmployeeSort) => void;
 }) {
   return (
-    <TableContainer className="data-table-wrap">
+    <TableContainer className="data-table-wrap" sx={{ display: { xs: 'none', md: 'block' } }}>
       <Table aria-label="Employee directory" sx={{ minWidth: 980 }}>
         <TableHead>
           <TableRow>

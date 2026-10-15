@@ -15,6 +15,7 @@ import { EmptyState, ErrorState, LoadingState } from '@/components/feedback';
 import { PageHeader } from '@/components/page-header';
 import { EmployeeFilterBar } from './employee-filters';
 import { EmployeeFormDialog } from './employee-form-dialog';
+import { EmployeeCards } from './employee-cards';
 import { EmployeeTable } from './employee-table';
 
 const defaultFilters: EmployeeFilters = { status: 'ACTIVE' };
@@ -131,7 +132,10 @@ function EmployeeDirectoryContent() {
               action={<Button variant="contained" onClick={() => setCreateOpen(true)} disabled={!canCreateEmployee}>Add employee</Button>}
             />
           ) : employees.data && (
-            <EmployeeTable employees={employees.data.data} sortBy={query.sortBy!} sortOrder={query.sortOrder!} onSort={sortBy} />
+            <>
+              <EmployeeCards employees={employees.data.data} sortBy={query.sortBy!} sortOrder={query.sortOrder!} onSort={sortBy} />
+              <EmployeeTable employees={employees.data.data} sortBy={query.sortBy!} sortOrder={query.sortOrder!} onSort={sortBy} />
+            </>
           )}
       </Card>
       {employees.data && employees.data.pagination.totalPages > 1 && (

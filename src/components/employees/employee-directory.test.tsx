@@ -25,6 +25,7 @@ vi.mock('@/lib/api-client', () => ({
 }));
 
 vi.mock('./employee-table', () => ({ EmployeeTable: () => <div>Employee rows</div> }));
+vi.mock('./employee-cards', () => ({ EmployeeCards: () => <div>Employee cards</div> }));
 
 import { EmployeeDirectory } from './employee-directory';
 
@@ -73,6 +74,13 @@ describe('EmployeeDirectory', () => {
       sortBy: 'name',
       sortOrder: 'desc',
     }));
+  });
+
+  it('renders table and card presentations from the same employee result', async () => {
+    renderDirectory();
+
+    expect(await screen.findByText('Employee rows')).toBeInTheDocument();
+    expect(screen.getByText('Employee cards')).toBeInTheDocument();
   });
 
   it('keeps employee creation unavailable until required country options load', () => {

@@ -28,7 +28,7 @@ export function EmployeeFilterBar({
           value={filters.q ?? ''}
           onChange={(event) => onChange({ ...filters, q: event.target.value })}
           InputProps={{ startAdornment: <Search size={18} aria-hidden style={{ marginRight: 8 }} /> }}
-          sx={{ flex: '1 1 280px' }}
+          sx={{ flex: { xs: 'none', md: '1 1 280px' } }}
         />
         <FormControl sx={{ minWidth: 150 }}>
           <InputLabel id="status-filter-label">Status</InputLabel>
