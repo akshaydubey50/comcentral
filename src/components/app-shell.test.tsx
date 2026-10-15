@@ -37,10 +37,11 @@ describe('AppShell session recovery', () => {
 
     expect(await screen.findByText('We could not verify your session.')).toBeInTheDocument();
     expect(mocks.replace).not.toHaveBeenCalled();
-    expect(screen.queryByRole('heading', { name: 'Employee workspace' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Employee workspace', { selector: 'h1' })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
-    expect(await screen.findByRole('heading', { name: 'Employee workspace' })).toBeInTheDocument();
+    // The test-owned heading confirms content access without rescanning both MUI drawers.
+    expect(await screen.findByText('Employee workspace', { selector: 'h1' })).toBeInTheDocument();
     expect(mocks.replace).not.toHaveBeenCalled();
   });
 
@@ -49,7 +50,7 @@ describe('AppShell session recovery', () => {
     renderWorkspace();
 
     await waitFor(() => expect(mocks.replace).toHaveBeenCalledWith('/login'));
-    expect(screen.queryByRole('heading', { name: 'Employee workspace' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Employee workspace', { selector: 'h1' })).not.toBeInTheDocument();
   });
 
   it('retains the workspace on sign-out failure and clears cached data after retry succeeds', async () => {
@@ -57,7 +58,7 @@ describe('AppShell session recovery', () => {
     mocks.signOut.mockRejectedValueOnce(new Error('Temporarily unavailable')).mockResolvedValueOnce({});
     const client = renderWorkspace();
     client.setQueryData(['employee', 'private-record'], { name: 'Cached employee' });
-    await screen.findByRole('heading', { name: 'Employee workspace' });
+    await screen.findByText('Employee workspace', { selector: 'h1' });
 
     fireEvent.click(screen.getByRole('button', { name: 'Sign out' }));
     expect(await screen.findByText('Sign out failed. Your session is still active.')).toBeInTheDocument();
