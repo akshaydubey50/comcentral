@@ -2,23 +2,44 @@
 
 Checkpoints through 2026-10-15 with Node 24.18.1, Next.js 16.4.0, Prisma 7.10.0 and TypeScript 5.9.3.
 
-The clean release snapshot `2a7e3d4` now passes every local gate: 207 unit/component tests, 45 database tests, 34 browser journeys, benchmark helpers, TypeScript, lint, production build and startup. The 10,000-employee performance baseline is recorded. V02 remains open for current remote CI evidence and the separate CSV/import edits being prepared in the shared checkout; those uncommitted changes are not covered by this snapshot. Older results below retain their revision/date limitations. Nothing is deployed yet.
+The clean release snapshot `2a7e3d4` passed every local gate: 207 unit/component tests, 45 database tests, 34 browser journeys, benchmark helpers, TypeScript, lint, production build and startup. The subsequent CSV fix `18b14dd` has 218 passing unit/component tests, 47 passing database tests, passing typecheck/lint/build and three distinct focused CSV browser journeys; see its checkpoint below. The 10,000-employee performance baseline is recorded. V02 remains open for current remote CI evidence and final integration of any concurrent work. Older results below retain their revision/date limitations. Nothing is deployed yet.
 
 | Check | Current evidence |
 |---|---|
-| One-page requirements | 642 words after the approved audit usability/delivery additions; rendered one-page A4 PDF, text and page bounds checked against Markdown, and preview visually inspected |
+| One-page requirements | CSV follow-up `18b14dd`: 650 words; regenerated one-page A4 PDF, complete Markdown text and page bounds checked, rendered preview visually inspected |
 | Public registration | Implemented and verified: real signup persists credentials, establishes a session, opens the shared workspace, and supports logout/login |
 | Prisma generation/schema | Client generation and Prisma validate passed |
-| Unit/component tests | Clean `2a7e3d4`: 207/207 across 31 files in 160.81s; no skipped cases or timeout increases. The earlier directory/AppShell failures are superseded |
-| TypeScript | Full npm run typecheck passed at the reviewed local release snapshot |
-| Lint | Full npm run lint passed at the reviewed local release snapshot |
-| Production build | Clean-checkout default Turbopack build passed at `2a7e3d4`, including the public root, /login, /register and /welcome; nonce-bearing documents render dynamically |
-| Database integration | Clean `2a7e3d4`: all 45/45 across 10 files passed in 34.60s on isolated PostgreSQL 17, including a fresh dedicated seed-test database |
+| Unit/component tests | CSV follow-up: 218/218 across 31 files in 119.97s; serial workers, no skipped cases or timeout increases. The earlier directory/AppShell failures are superseded |
+| TypeScript | Full npm run typecheck passed for the CSV slice, including after the final browser-test locator correction |
+| Lint | Full npm run lint passed; the final changed browser test also passed targeted ESLint |
+| Production build | CSV slice: Prisma generation and default Turbopack production build passed after an approved retry outside the Windows sandbox; includes /imports, /login, /register and /welcome |
+| Database integration | CSV follow-up: all 47/47 across 10 files passed in 33.05s on disposable local PostgreSQL 17, with separate integration and seed-test databases |
 | Migration and HR provisioning | Initial migration repaired and applied; Prisma status is up to date, read-only schema diff is empty, and the provisioned HR user and credential account are verified |
-| Browser journeys | All 34 Chromium journeys passed in 58.1 seconds at `2a7e3d4` against the built app on localhost:3106, including real signup/logout/login, mobile employee actions and persisted salary/import boundaries, plus intercepted frontend recovery and navigation cases |
+| Browser journeys | Historical clean baseline: all 34 Chromium journeys passed at `2a7e3d4`. CSV follow-up: three distinct focused journeys passed across two runs against the built app, including one real import/reload journey and two intercepted UI recovery cases; the whole browser suite was not repeated for this slice |
 | 10,000-employee seed/performance | P01 passed at clean `2a7e3d4`: 63/63 measured reads, exact 10,000-row population/export and successful 10,000-row import; timings, memory and proposed budgets in performance.md |
 | Deployed software | Not deployed |
 | Demo video | Script prepared; recording pending verified runtime |
+
+## CSV compatibility checkpoint, 2026-10-15 (B01/F08/C02)
+
+Implementation commit: `18b14dd` (`fix(csv): support reordered headers and explicit field aliases`). Tests ran in the shared working tree while unrelated welcome-page work continued separately; this evidence verifies the CSV slice and is not a fresh release qualification of those concurrent changes.
+
+| Execution | Result |
+|---|---|
+| `npm test -- src/server/domain/csv.test.ts`, before the parser fix | Eight of the ten new regressions failed against the exact-header validator; six total cases passed |
+| Same focused command after the fix | 14/14 passed, including reordering, all three aliases, BOM, missing fields, duplicates, unknown fields, incorrect row widths and retained original cases |
+| `npm test -- src/components/imports/csv-import-workflow.test.tsx` | 5/5 passed, including actionable errors with confirmation blocked and retained race/review behavior |
+| `npm test -- --maxWorkers=1 --no-file-parallelism` | 218/218 across 31 files; 119.97s |
+| `npm run test:integration -- tests/integration/imports.integration.test.ts` | 7/7 passed against actual PostgreSQL; exact persisted values, missing-salary refusal, multi-batch success, late rollback, changed digest, duplicate race and JPY precision |
+| `npm run test:integration -- --silent` | 47/47 across 10 files; 33.05s; no skipped tests after configuring both required isolated database URLs |
+| `npm run lint`; `npm run typecheck`; `npm run build` | All passed; final browser-test edits also passed targeted ESLint and another full typecheck |
+| Playwright `csv-workflow.spec.ts` | Both intercepted UI cases passed: changed-file review, pending/retry/conflict recovery, mobile width and keyboard confirmation |
+| Playwright `csv-import-live.spec.ts` | Passed with real API/database: register synthetic HR, reject the original nine-column shape, replace with reordered aliases and BOM, inspect exact salary, confirm, verify all saved fields and reload the filtered directory |
+| `python scripts/render-requirements.py` | One page, 650 words, complete source text and page bounds verified; rendered PNG visually checked |
+
+The real browser journey uses the existing loopback/local `_test` guard, with trace, screenshot and video disabled for credentials. It ran against an owned production-mode Next.js process and fresh migrated PostgreSQL 17 container, never Neon. The full integration suite kept application URLs intact for its target-identity guards; seed tests used a separate empty database. Owned app processes and the disposable database container were stopped after verification, and the temporary connection-state file was removed.
+
+Recovered verification failures: the first broader database run had 43 passes and a seed-suite setup failure because SEED_TEST_DATABASE_URL was missing; configuring its dedicated migrated test database produced the complete 47-pass run. The sandbox denied Next.js path canonicalization and local app startup; approved execution outside it passed. The first new browser test reached a correct preview but expected the employee code in its own text node; the actual cell combines code and email. Scoping the assertion to the matching visible row fixed the test without changing production behavior or removing exact API assertions. The original user CSV still requires actual employeeCode and annual salary data; aliases do not supply missing facts. No API shape or database migration was needed.
 
 ## Commands and limitations
 
