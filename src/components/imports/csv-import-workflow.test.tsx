@@ -104,4 +104,27 @@ describe('CsvImportWorkflow', () => {
     await screen.findByText(/ready to import/i);
     expect(input).not.toBeDisabled();
   });
+
+  it('invalidates a reviewed preview when a different file is selected', async () => {
+    mocks.previewImport
+      .mockResolvedValueOnce(validPreview)
+      .mockResolvedValueOnce({ ...validPreview, previewHash: 'latest-hash' });
+    mocks.commitImport.mockResolvedValue({ imported: 1 });
+    const input = renderWorkflow();
+
+    fireEvent.change(input, { target: { files: [csvFile('first.csv', () => Promise.resolve('first-content'))] } });
+    await screen.findByText(/first.csv is ready to validate/i);
+    fireEvent.click(screen.getByRole('button', { name: /validate and preview/i }));
+    expect(await screen.findByRole('button', { name: /confirm and import 1 employee/i })).toBeInTheDocument();
+
+    fireEvent.change(input, { target: { files: [csvFile('latest.csv', () => Promise.resolve('latest-content'))] } });
+    expect(screen.queryByRole('button', { name: /confirm and import/i })).not.toBeInTheDocument();
+    await screen.findByText(/latest.csv is ready to validate/i);
+    expect(screen.queryByRole('button', { name: /confirm and import/i })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /validate and preview/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /confirm and import 1 employee/i }));
+
+    await waitFor(() => expect(mocks.commitImport).toHaveBeenCalledWith('latest-content', 'latest-hash'));
+  });
 });
