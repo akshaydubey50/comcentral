@@ -2,9 +2,9 @@
 
 Updated 2026-10-15. This extends the existing project checklist. The original backend tasks are preserved through the mapping in [plan.md](plan.md). Scope and audit dispositions are in [the delivery plan](../docs/implementation-plan.md); actual execution results are in [validation.md](../docs/validation.md).
 
-Current checkpoint: **6 of 34 tasks verified complete** (C01, F01, V01, B01, B03, B05). The **28 open items** comprise **22 delivery tasks**, **2 conditional optimizations** (P02/P03), **3 future product decisions** (U01-U03), and **1 recurring evidence task** (C02). F02 mobile cards are implemented with focused checks; browser acceptance remains. B02 persistence checks are drafted. Open delivery tasks include deployment and scheduled-job evidence, not only missing feature code.
+Current checkpoint: **14 of 34 tasks verified complete** (C01, F01-F05, V01, B01-B06, S01). The **20 open items** comprise **14 delivery tasks**, **2 conditional optimizations** (P02/P03), **3 future product decisions** (U01-U03), and **1 recurring evidence task** (C02). Six of the 20 delivery tasks prioritized on 2026-10-15 are now closed. Mobile employee cards and headcount/pay/tenure charts passed built-browser acceptance; session boundaries passed isolated PostgreSQL tests. F08 is implemented with focused checks; browser acceptance remains. Open delivery tasks include deployment and scheduled-job evidence, not only missing feature code.
 
-The user has authorized audit implementation and incremental commits. C01 represents completed planning; other boxes track acceptance work still to implement or verify, including checks of existing features. Recommended frontend/delivery improvements are selected for implementation. Conditional performance changes require measurements; future account/tenant decision tasks retain the approved scope boundary. Existing registration, employee, salary, CSV and analytics code is retained.
+The user has authorized audit implementation and incremental commits, and prioritized all 20 remaining delivery tasks as P0 on 2026-10-15. Conditional P02/P03 and future U01-U03 remain outside this delivery batch. C01 represents completed planning; other boxes track acceptance work still to implement or verify, including checks of existing features. Recommended frontend/delivery improvements are selected for implementation. Conditional performance changes require measurements; future account/tenant decision tasks retain the approved scope boundary. Existing registration, employee, salary, CSV and analytics code is retained.
 
 Owners: Frontend and Backend are separately assigned workers in this coordinated development session; the former independent backend session is no longer active. Coordinator owns contracts/configuration/docs/CI/integration and delivery. Do not overlap writers. For every implementation task, use isolated database/browser targets, keep secrets out of output and run the applicable required gates from the delivery plan. Estimated file counts are bounds: split any task that grows beyond them.
 
@@ -80,9 +80,9 @@ Dependencies: Existing test-target guard; F01 only for the combined UI checkpoin
 Likely files: src/server/services/employees.ts; focused employee integration tests; src/shared/validation.ts if a defect is demonstrated.
 Estimated scope: M: 2-4 files.
 
-- [ ] Metadata and salary stale writes are rejected; salary and immutable before/after history commit together with actor/reason.
-- [ ] Archive/restore preserves history and archived records reject prohibited salary operations.
-- [ ] Stable filtered pagination and complete filtered export preserve exact decimal strings and formula-safe cells.
+- [x] Metadata and salary stale writes are rejected; salary and immutable before/after history commit together with actor/reason.
+- [x] Archive/restore preserves history and archived records reject prohibited salary operations.
+- [x] Stable filtered pagination and complete filtered export preserve exact decimal strings and formula-safe cells.
 
 Verification: Extend isolated employee/API tests; retain existing concurrent salary and history-immutability coverage.
 
@@ -106,9 +106,9 @@ Dependencies: Existing test-target guard.
 Likely files: src/server/services/insights.ts; src/server/domain/analytics.ts only if needed; focused analytics integration tests.
 Estimated scope: M: 2-4 files.
 
-- [ ] Reports use all matching employees and maintain native-currency separation and active/archived filter semantics.
-- [ ] Totals, percentiles, bands and tenure agree with known exact fixtures, including anniversaries and leap-day behavior.
-- [ ] Outlier cohorts respect employment type, minimum size and zero-IQR policy with explicit non-flagging states.
+- [x] Reports use all matching employees and maintain native-currency separation and active/archived filter semantics.
+- [x] Totals, percentiles, bands and tenure agree with known exact fixtures, including anniversaries and leap-day behavior.
+- [x] Outlier cohorts respect employment type, minimum size and zero-IQR policy with explicit non-flagging states.
 
 Verification: Compare persisted service results with deterministic domain fixtures; avoid tests that only repeat implementation formulas.
 
@@ -134,9 +134,9 @@ Dependencies: Agree request-ID header/error handling before client changes.
 Likely files: src/server/http.ts; proposed logging helper; focused logging/HTTP tests; API documentation.
 Estimated scope: M: 3-5 files.
 
-- [ ] Each request has a bounded validated or generated correlation ID visible in response headers and matching structured logs.
-- [ ] Credentials, cookies, tokens, connection strings and employee/salary payloads are excluded from logs.
-- [ ] Logging failure cannot replace the original response; error output remains sanitized.
+- [x] Each request has a bounded validated or generated correlation ID visible in response headers and matching structured logs.
+- [x] Credentials, cookies, tokens, connection strings and employee/salary payloads are excluded from logs.
+- [x] Logging failure cannot replace the original response; error output remains sanitized.
 
 Verification: Exercise successful/error requests and failed log transport; inspect structured keys and redaction with harmless fixtures.
 
@@ -160,9 +160,9 @@ Dependencies: V01; existing isolated guards.
 Likely files: focused auth integration tests; existing registration/auth helpers; auth/HTTP implementation only for proven defects.
 Estimated scope: M: 2-5 files.
 
-- [ ] Expired and revoked/logout sessions cannot read or mutate protected employee data; copied old cookies do not remain authorized.
-- [ ] Missing/foreign origins, incorrect content types, oversized input and auth-rate limits produce the intended sanitized responses.
-- [ ] No password policy, account access model or existing durable throttling is weakened.
+- [x] Expired and revoked/logout sessions cannot read or mutate protected employee data; copied old cookies do not remain authorized.
+- [x] Missing/foreign origins, incorrect content types, oversized input and auth-rate limits produce the intended sanitized responses.
+- [x] No password policy, account access model or existing durable throttling is weakened.
 
 Verification: Use controlled session-expiry fixtures rather than wall-clock sleeps; run protected read/write and logout checks on the isolated target.
 
@@ -199,9 +199,9 @@ Dependencies: Stable existing employee contract.
 Likely files: src/components/employees/employee-directory.tsx; employee-table.tsx; proposed employee-card.tsx; focused/browser tests.
 Estimated scope: M: 3-5 files.
 
-- [ ] Small screens show readable employee cards with the same status, currency, detail and allowed actions as the desktop table.
-- [ ] Filters, sort, pagination, archive/restore and empty/error states keep existing API/URL behavior.
-- [ ] Keyboard operation and 44px touch targets work without page overflow at 360, 768 and 1280px.
+- [x] Small screens show readable employee cards with the same status, currency, detail and allowed actions as the desktop table.
+- [x] Filters, sort, pagination, archive/restore and empty/error states keep existing API/URL behavior.
+- [x] Keyboard operation and 44px touch targets work without page overflow at 360, 768 and 1280px.
 
 Verification: Use focused behavior checks and built-browser viewports; exercise at least one real directory/detail workflow.
 
@@ -212,9 +212,9 @@ Dependencies: Stable insights contract; B04 before release acceptance.
 Likely files: src/components/insights/summary-sections.tsx; insights-dashboard.tsx; proposed chart helper; focused tests.
 Estimated scope: M: 3-4 files.
 
-- [ ] Country/department/role headcount charts use the existing filtered response rather than a separate population.
-- [ ] Labels, text summary and an accessible table communicate the same counts without hover/color dependence.
-- [ ] Loading, empty, error and narrow-screen states preserve filter context.
+- [x] Country/department/role headcount charts use the existing filtered response rather than a separate population.
+- [x] Labels, text summary and an accessible table communicate the same counts without hover/color dependence.
+- [x] Loading, empty, error and narrow-screen states preserve filter context.
 
 Verification: Compare displayed counts/table with fixed contract fixtures and inspect keyboard/mobile rendering; coordinate any new dependency first.
 
@@ -225,9 +225,9 @@ Dependencies: F03 chart approach; B04 before release acceptance.
 Likely files: src/components/insights/summary-sections.tsx; distribution-sections.tsx; chart helper; focused tests.
 Estimated scope: M: 3-4 files.
 
-- [ ] Pay summaries and band charts remain separated by currency, or clearly labelled with the selected dated approximate USD view.
-- [ ] Tables/tooltips retain exact decimal values and definitions; chart coordinates do not become salary calculation inputs.
-- [ ] Missing/stale FX, empty cohorts and filter changes never display fabricated totals or stale context.
+- [x] Pay summaries and band charts remain separated by currency, or clearly labelled with the selected dated approximate USD view.
+- [x] Tables/tooltips retain exact decimal values and definitions; chart coordinates do not become salary calculation inputs.
+- [x] Missing/stale FX, empty cohorts and filter changes never display fabricated totals or stale context.
 
 Verification: Check exact values against fixtures, multi-currency/stale-FX states and built-browser layout.
 
@@ -238,9 +238,9 @@ Dependencies: F03 chart approach; B04 before release acceptance.
 Likely files: src/components/insights/distribution-sections.tsx; chart helper; focused tests.
 Estimated scope: M: 2-3 files.
 
-- [ ] Show headcount and pay by documented tenure bucket with a visible reporting date.
-- [ ] Use backend-calculated buckets and native-currency groups; do not recalculate tenure approximately in the browser.
-- [ ] Provide equivalent table/text content and readable empty/mobile states.
+- [x] Show headcount and pay by documented tenure bucket with a visible reporting date.
+- [x] Use backend-calculated buckets and native-currency groups; do not recalculate tenure approximately in the browser.
+- [x] Provide equivalent table/text content and readable empty/mobile states.
 
 Verification: Use anniversary/leap-day response fixtures and inspect the built chart/table at mobile and desktop widths.
 
@@ -455,7 +455,7 @@ Verification: Review each recovery/enrollment/administration journey and failure
 ## Checkpoints
 
 - [x] M0: F01/V01 close current registration and unit-suite evidence; C01 is current.
-- [ ] M1: B01-B05 meet the accepted data invariants; no application database was used for tests or seeding.
+- [x] M1: B01-B05 meet the accepted data invariants; no application database was used for tests or seeding.
 - [ ] M2: selected F02-F08 improvements pass desktop/mobile/keyboard journeys against stable contracts.
 - [ ] M3: B06/B07 and selected S01-S03 controls have real built-app evidence.
 - [ ] M4: P01 records the workload baseline and targets; activated P02/P03 preserve results and show measured improvement.

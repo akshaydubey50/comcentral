@@ -14,7 +14,7 @@ The three work categories are:
 
 - **Required:** repair demonstrated defects, complete approved acceptance criteria, verify existing behavior and finish deployment/delivery.
 - **Recommended:** mobile cards, richer accessible charts, focused component simplification and operational improvements. These are planned improvements, not completed work.
-- **Optional/conditional:** a public landing page, debounced search, measured query/export optimizations and future access features. Their activation conditions are recorded below; they do not silently change first-release requirements.
+- **Selected presentation work:** F07 search interaction and F09 public introduction are included in the user-approved delivery batch. **Conditional/future:** measured query/export optimizations and future access features retain their activation boundaries.
 
 ## Current baseline
 
@@ -63,10 +63,10 @@ Every comparison area has a disposition below. A reference-only issue becomes a 
 | Daily FX and failure states | Add checksum read verification, persisted failure coverage, then live provider/cron evidence | B03, D02 |
 | Demo-data realism | Keep deterministic supported data; improve realism only if it helps the demo without changing domain scope | B05, P01 |
 | Seed production guard and race | Guard the target and perform count/marker preconditions inside the protected transaction | B05 |
-| Public landing page | Optional presentation addition; preserve dashboard URLs and redirects | F09, decision before route changes |
+| Public introduction | Selected presentation addition at a separate welcome route; preserve dashboard URLs and redirects | F09 |
 | Mobile employee cards | Recommended improvement using the same data/actions as the desktop table | F02 |
 | Charts and table alternatives | Keep exact values accessible and filter/currency/date context visible | F03-F05 |
-| Debounced search | Optional; preserve URL/back navigation and avoid stale responses | F07 |
+| Search interaction | Selected; choose explicit submit or debounce with URL/back navigation and stale-response protection | F07 |
 | Large CSV component and feature hooks | Extract specific responsibilities without a broad rewrite | F08 |
 | Drawer/dialog/keyboard accessibility | Verify our focus and pending-mutation behavior; avoid PayScope's identified gaps | F06 |
 | Request IDs and structured redacted logs | Add correlation without exposing salary records or credentials | B06 |
