@@ -67,7 +67,9 @@ async function stopApp(app) {
 
 async function startApp(databaseUrl, authSecret) {
   const port = await availablePort();
-  const baseUrl = `http://${host}:${port}`;
+  // NextRequest normalizes loopback IP URLs to localhost. Keep authenticated
+  // request origins canonical while the listener remains IPv4-loopback only.
+  const baseUrl = `http://localhost:${port}`;
   const nextBin = resolve(projectRoot, 'node_modules', 'next', 'dist', 'bin', 'next');
   const sampler = pathToFileURL(resolve(scriptDirectory, 'benchmark-helpers.mjs')).href;
   const child = spawn(process.execPath, ['--import', sampler, nextBin, 'start', '-H', host, '-p', String(port)], {
