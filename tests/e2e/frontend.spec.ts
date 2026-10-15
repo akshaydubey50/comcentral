@@ -248,3 +248,41 @@ for (const width of [360, 768, 1280]) {
     await page.screenshot({ path: testInfo.outputPath(`reports-${width}.png`), fullPage: true });
   });
 }
+
+test('outlier review explains cohort limits and opens the exact employee on a phone', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  let available = false;
+  const result = insights(false);
+  result.outliers = {
+    minimumGroupSize: 10, total: 1,
+    data: [{
+      employeeId: employee.id, employeeCode: employee.employeeCode, name: employee.name,
+      country: 'US', currency: 'USD', jobRole: 'Engineer', employmentType: 'FULL_TIME',
+      salary: '60000.00', groupSize: 10, lowerFence: '10000.00', upperFence: '50000.00', direction: 'HIGH',
+    }],
+    cohorts: [
+      { country: 'US', currency: 'USD', jobRole: 'Engineer', employmentType: 'FULL_TIME', count: 10, state: 'EVALUATED' },
+      { country: 'US', currency: 'USD', jobRole: 'Analyst', employmentType: 'FULL_TIME', count: 2, state: 'INSUFFICIENT_DATA' },
+      { country: 'US', currency: 'USD', jobRole: 'Manager', employmentType: 'FULL_TIME', count: 12, state: 'ZERO_IQR' },
+    ],
+  };
+  await page.route('**/api/insights?**', (route) => available
+    ? route.fulfill({ json: { data: result } })
+    : route.fulfill({ status: 503, json: { error: { code: 'UNAVAILABLE', message: 'Temporary report failure' } } }));
+  await page.goto('/?department=Engineering');
+  await expect(page.getByText('We could not load pay insights. Please try again.')).toBeVisible();
+  available = true;
+  await page.getByRole('button', { name: 'Retry', exact: true }).click();
+  await expect(page).toHaveURL(/department=Engineering/);
+  await expect(page.getByText('1 below minimum size', { exact: true })).toBeVisible();
+  await expect(page.getByText('1 with zero spread', { exact: true })).toBeVisible();
+  const table = page.getByRole('table', { name: 'Native salary outlier review' });
+  await expect(table.getByText('USD 60,000.00')).toBeVisible();
+  await expect(table.getByText('Above fence')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  const detail = table.getByRole('link', { name: employee.name });
+  await detail.focus();
+  await detail.press('Enter');
+  await expect(page).toHaveURL(/\/employees\/ui-employee$/);
+  await expect(page.getByRole('heading', { name: employee.name })).toBeVisible();
+});

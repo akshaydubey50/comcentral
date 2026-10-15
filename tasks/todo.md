@@ -2,7 +2,7 @@
 
 Updated 2026-10-15. This extends the existing project checklist. The original backend tasks are preserved through the mapping in [plan.md](plan.md). Scope and audit dispositions are in [the delivery plan](../docs/implementation-plan.md); actual execution results are in [validation.md](../docs/validation.md).
 
-Current checkpoint: **14 of 34 tasks verified complete** (C01, F01-F05, V01, B01-B06, S01). The **20 open items** comprise **14 delivery tasks**, **2 conditional optimizations** (P02/P03), **3 future product decisions** (U01-U03), and **1 recurring evidence task** (C02). Six of the 20 delivery tasks prioritized on 2026-10-15 are now closed. Mobile employee cards and headcount/pay/tenure charts passed built-browser acceptance; session boundaries passed isolated PostgreSQL tests. F08 is implemented with focused checks; browser acceptance remains. Open delivery tasks include deployment and scheduled-job evidence, not only missing feature code.
+Current checkpoint: **18 of 34 tasks verified complete** (C01, F01-F06, F08, V01, B01-B07, S01, S03). The **16 open items** comprise **10 delivery tasks**, **2 conditional optimizations** (P02/P03), **3 future product decisions** (U01-U03), and **1 recurring evidence task** (C02). Ten of the 20 delivery tasks prioritized on 2026-10-15 are now closed. Search and the welcome page are implemented with focused checks; their built-browser acceptance is next. S02 has local browser evidence and still needs deployed HTTPS verification. The current user deadline prioritizes local release checks and performance results within 2-3 hours; deployment, scheduled-job, alert and recovery evidence remain the following milestone.
 
 The user has authorized audit implementation and incremental commits, and prioritized all 20 remaining delivery tasks as P0 on 2026-10-15. Conditional P02/P03 and future U01-U03 remain outside this delivery batch. C01 represents completed planning; other boxes track acceptance work still to implement or verify, including checks of existing features. Recommended frontend/delivery improvements are selected for implementation. Conditional performance changes require measurements; future account/tenant decision tasks retain the approved scope boundary. Existing registration, employee, salary, CSV and analytics code is retained.
 
@@ -147,9 +147,9 @@ Dependencies: B06 for consistent diagnostics.
 Likely files: proposed readiness route; server configuration helper; production-start smoke script; focused tests.
 Estimated scope: M: 3-5 files.
 
-- [ ] A bounded DB readiness check returns a minimal healthy/unavailable result without connection or schema details.
-- [ ] Missing required runtime configuration produces an actionable sanitized startup/readiness failure.
-- [ ] The built Next app starts, answers readiness and stops cleanly; adapt to Next hosting instead of copying an Express server lifecycle.
+- [x] A bounded DB readiness check returns a minimal healthy/unavailable result without connection or schema details.
+- [x] Missing required runtime configuration produces an actionable sanitized startup/readiness failure.
+- [x] The built Next app starts, answers readiness and stops cleanly; adapt to Next hosting instead of copying an Express server lifecycle.
 
 Verification: Run the built-app smoke against an isolated reachable and unreachable target; verify bounded failure and cleanup.
 
@@ -186,9 +186,9 @@ Dependencies: B06; deployment execution model understood.
 Likely files: HTTP/rate-limit helper; affected report/import/export boundary; focused tests; API docs.
 Estimated scope: M: 3-5 files per bounded route-family slice.
 
-- [ ] Document limits and retry behavior appropriate to the deployment; avoid relying solely on per-process counters across instances.
-- [ ] Legitimate 10,000-row imports and normal report/export use remain possible under documented concurrency limits.
-- [ ] Rejected work returns a consistent response and is stopped before avoidable expensive processing.
+- [x] Document limits and retry behavior appropriate to the deployment; avoid relying solely on per-process counters across instances.
+- [x] Legitimate 10,000-row imports and normal report/export use remain possible under documented concurrency limits.
+- [x] Rejected work returns a consistent response and is stopped before avoidable expensive processing.
 
 Verification: Exercise accepted, limited and recovered requests with deterministic counters/time; split additional route families before expanding beyond scope.
 
@@ -251,9 +251,9 @@ Dependencies: F02-F05 for newly selected UI; existing flows can be checked earli
 Likely files: tests/e2e/frontend.spec.ts; relevant component tests; only components with demonstrated defects.
 Estimated scope: S/M per defect; split fixes beyond 5 files.
 
-- [ ] Navigation/drawers/dialogs manage keyboard focus and restoration; loading mutations cannot be dismissed into ambiguous state.
-- [ ] Forms, imports, detail/history and outliers have labelled controls and usable loading/empty/error/conflict recovery.
-- [ ] Built pages at 360, 768 and 1280px have no page overflow and retain accessible exact-data alternatives.
+- [x] Navigation/drawers/dialogs manage keyboard focus and restoration; loading mutations cannot be dismissed into ambiguous state.
+- [x] Forms, imports, detail/history and outliers have labelled controls and usable loading/empty/error/conflict recovery.
+- [x] Built pages at 360, 768 and 1280px have no page overflow and retain accessible exact-data alternatives.
 
 Verification: Run keyboard-only and viewport journeys; include pending save, stale salary, changed CSV file and failed network cases.
 
@@ -277,9 +277,9 @@ Dependencies: B01 contract stable; existing file-race checks retained.
 Likely files: src/components/imports/csv-import-workflow.tsx; proposed import hook and result-table components; existing tests.
 Estimated scope: M: 4-5 files.
 
-- [ ] Extract file-reading/preview state and focused tables only where responsibilities become clearer.
-- [ ] Selecting another file invalidates the prior preview; confirmation always submits the reviewed content/hash.
-- [ ] Pending/error/retry behavior and existing accessibility remain unchanged.
+- [x] Extract file-reading/preview state and focused tables only where responsibilities become clearer.
+- [x] Selecting another file invalidates the prior preview; confirmation always submits the reviewed content/hash.
+- [x] Pending/error/retry behavior and existing accessibility remain unchanged.
 
 Verification: Run existing CSV race/recovery tests and preview-confirm browser checks; avoid tests that mirror the new hook internals.
 
