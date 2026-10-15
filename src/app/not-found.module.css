@@ -1,0 +1,65 @@
+.page {
+  --lost-ink: #172322;
+  --lost-teal: #064844;
+  --lost-muted: #596664;
+  --lost-copper: #9a502b;
+  --lost-line: #dce2df;
+  --lost-paper: #fffdf9;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  color: var(--lost-ink);
+  background: #f5f3ee;
+}
+
+.page a { text-decoration: none; }
+.page a:focus-visible { outline: 3px solid var(--lost-copper); outline-offset: 5px; }
+.header, .main, .footer { width: min(100% - 64px, 1152px); margin-inline: auto; }
+.header { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-block: 24px; border-bottom: 1px solid var(--lost-line); }
+.brand { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; font-size: 20px; font-weight: 800; letter-spacing: -.6px; }
+.brand small { display: block; margin-top: 2px; font-size: 11px; font-weight: 400; letter-spacing: 0; color: var(--lost-muted); }
+.brandIcon { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; border-radius: 10px; color: white; background: var(--lost-teal); }
+.workspace { font-size: 10px; letter-spacing: 1.5px; font-weight: 700; color: var(--lost-muted); }
+.main { flex: 1; display: grid; grid-template-columns: 1.2fr 1fr; gap: 64px; align-items: center; padding-block: 80px; }
+.content { min-width: 0; }
+.eyebrow { display: flex; align-items: center; gap: 12px; margin: 0 0 24px; color: var(--lost-copper); font-size: 11px; font-weight: 800; letter-spacing: 1.5px; }
+.eyebrow span { width: 32px; height: 2px; background: currentColor; }
+.content h1 { margin: 0; font-size: clamp(36px, 4vw, 52px); line-height: 1.12; letter-spacing: -.045em; font-weight: 750; }
+.content h1 em { color: var(--lost-teal); font-family: Georgia, 'Times New Roman', serif; font-weight: 400; }
+.description { max-width: 450px; margin: 24px 0 0; color: var(--lost-muted); font-size: 16px; line-height: 1.8; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.primaryLink, .secondaryLink { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 12px 20px; border: 1px solid var(--lost-teal); border-radius: 8px; font-size: 14px; font-weight: 650; }
+.primaryLink { background: var(--lost-teal); color: white; }
+.primaryLink:hover { background: #0b625e; }
+.secondaryLink { color: var(--lost-teal); background: var(--lost-paper); }
+.secondaryLink:hover { background: #e8eee8; }
+.help { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 20px 0 0; font-size: 12px; color: var(--lost-muted); }
+.help a { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; font-weight: 650; color: var(--lost-teal); }
+.help a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.illustration { min-width: 0; position: relative; padding: 28px; border: 1px solid #cedbd5; border-radius: 12px; background: #e8eee8; box-shadow: 12px 12px 0 #e8e3d9; color: var(--lost-teal); }
+.mapHeading { display: flex; align-items: center; justify-content: space-between; gap: 16px; font-size: 10px; letter-spacing: 1.5px; font-weight: 750; }
+.errorCode { text-align: center; margin-top: 16px; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(96px, 12vw, 152px); line-height: 1.15; letter-spacing: -.06em; }
+.map { display: block; width: 100%; height: auto; margin-top: -8px; }
+.mapCaption { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; font-size: 11px; line-height: 1.6; color: var(--lost-muted); }
+.mapCaption span { flex-shrink: 0; width: 6px; height: 6px; border-radius: 50%; background: var(--lost-teal); }
+.footer { display: flex; justify-content: space-between; gap: 16px; padding-block: 24px; border-top: 1px solid var(--lost-line); font-size: 12px; font-weight: 650; color: var(--lost-muted); }
+.footer span { font-weight: 400; }
+
+@media (max-width: 900px) {
+  .main { gap: 32px; padding-block: 64px; }
+  .illustration { padding: 20px; }
+}
+
+@media (max-width: 640px) {
+  .header, .main, .footer { width: calc(100% - 40px); }
+  .header { padding-block: 20px; }
+  .workspace { display: none; }
+  .main { grid-template-columns: minmax(0, 1fr); padding-block: 40px; gap: 32px; }
+  .content h1 { font-size: 36px; }
+  .eyebrow { margin-bottom: 20px; }
+  .description { margin-top: 20px; font-size: 15px; }
+  .illustration { margin-right: 8px; }
+  .errorCode { font-size: 112px; }
+  .map { max-width: 280px; margin-inline: auto; }
+  .footer { flex-wrap: wrap; padding-block: 20px; }
+}
