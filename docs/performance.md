@@ -1,6 +1,6 @@
 # Reproducible workload measurements
 
-P01 measures the approved 10,000-employee dataset before considering SQL aggregation or streaming export. This script is a local test tool. It refuses remote databases, missing acknowledgments, application targets and reused import/benchmark targets. It emits aggregate timings and memory, never employee rows, credentials, cookies or connection URLs.
+This document preserves the reproducible P01 method and the scoped `2a7e3d4` baseline. It is not current release or deployment status; use [validation.md](validation.md) for that and [the task board](../tasks/todo.md) for open work. The benchmark measures the approved 10,000-employee dataset before considering SQL aggregation or streaming export. It refuses remote databases, missing acknowledgments, application targets and reused import/benchmark targets. It emits aggregate timings and memory, never employee rows, credentials, cookies or connection URLs.
 
 Run `npm run test:benchmark` for offline safety/statistics checks. For a real run, build the reviewed application first and provide these variables privately in the process environment:
 
@@ -19,7 +19,7 @@ A private IPC preload samples the actual application process RSS/heap every 100m
 
 The report identifies the revision, dirty-tree state, Node/platform/CPU count, exact synthetic population, sample counts, nearest-rank p50/p95, maximum successful latency, error rate and application memory. Ten observations per phase make p95 close to the maximum; these are small reproducible samples rather than an SLA or capacity proof. Run heavy validation separately to avoid measuring test-runner contention.
 
-## Measured baseline, 2026-10-15 (P01)
+## Historical measured baseline: `2a7e3d4`, 2026-10-15 (P01)
 
 The reviewed `2a7e3d4` checkout was clean. The normal production build ran on Windows x64, Node 24.18.1, 12 logical CPUs, with local PostgreSQL 17 and exactly 10,000 active synthetic employees. Heavy validation commands were stopped during measurement. The [aggregate JSON](evidence/benchmark-2026-10-15.json) records the full result and sample counts.
 
@@ -31,7 +31,7 @@ The reviewed `2a7e3d4` checkout was clean. The normal production build ran on Wi
 
 All 63 measured read requests succeeded. The first export was parsed and verified to contain all 10,000 rows; list/report population checks also passed. Application-process peak RSS was **459.15 MiB**, with peak used heap **297.49 MiB**. The separate 10,000-row import preview took **459.58 ms** and atomic commit **6945.73 ms**, with persisted row count verified before owned-fixture cleanup. Its process peaked at **403.75 MiB RSS** / **233.45 MiB heap**. These are observed whole-process peaks, not a leak analysis or endpoint allocation profile.
 
-## Proposed local regression budgets
+## Proposed local regression budgets for this harness
 
 These thresholds are proposed from this baseline, not thresholds established before measuring or a hosted SLA. They allow roughly twofold latency headroom for this developer machine while keeping directory interaction responsive and reports/imports within a short user wait. Re-evaluate against the actual hosting region, resource limits, data size and usage.
 

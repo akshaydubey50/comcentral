@@ -6,6 +6,8 @@ Run npm test, npm run typecheck, npm run lint and npm run build. Database tests 
 
 ## Delivery and evidence
 
+Use [docs/README.md](docs/README.md) to locate the maintained guide for each topic. Keep changing work status in tasks/todo.md and execution results in docs/validation.md; consolidate temporary handoffs when their active owner completes the work.
+
 Read PROJECT_SPEC.md and the assigned task in tasks/todo.md. Implement one coherent slice, run its meaningful checks, review the diff and create the user-authorized incremental commit. Coordinate shared contracts and file ownership. Preserve unrelated changes and never use a broad staging command in a dirty tree.
 
 Keep significant decisions and rejected alternatives in docs/architecture.md, AI contributions/corrections in docs/ai-use.md, and actual execution results in docs/validation.md. Link evidence to task IDs and commits. Distinguish implemented, locally verified and deployed states; do not duplicate changing status checklists in agent instruction files. CLAUDE.md points to this same agreement.

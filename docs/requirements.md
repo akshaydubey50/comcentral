@@ -1,6 +1,6 @@
-# ACME Employee Salary Management
+# ComCentral - Employee Salary Management
 
-**One-page requirements | Status: core built; audit delivery in progress | Primary user: HR Manager**
+**One-page requirements | Approved scope | Updated: 15 October 2026 | Primary user: HR Manager**
 
 ## Goal
 Replace spreadsheets for 10,000 employees across countries with accurate salary records and clear pay reporting by country, department, role, and tenure.
@@ -13,7 +13,7 @@ Replace spreadsheets for 10,000 employees across countries with accurate salary 
 - **Pay summaries:** Show headcount, pending-salary count, total, minimum, maximum, average, median, P25 and P75 by country, department and role. Pending employees count toward headcount but not pay statistics. Default to active employees and separate currencies; label filters and annualized commitments.
 - **Bands and tenure:** Show salary-distribution ranges with employee counts, plus headcount and average/median pay by tenure bucket. Derive tenure from joining date and a visible reporting date; publish bucket boundaries.
 - **Outlier review:** Flag salaries within country, native currency, role, and employment-type groups using a documented interquartile-range rule. Show group size and method; withhold flags for insufficient data or zero spread. Flags support HR review, without automatic salary decisions.
-- **USD reporting:** Offer an approximate USD view using automatically fetched daily provider rates, stored as dated snapshots. Display source, rate date, and refresh status; preserve native salaries. Missing or over-age rates make converted totals unavailable; provider failures show explicit fallback status.
+- **USD reporting:** Offer an approximate USD view using automatically fetched daily provider rates, stored as dated snapshots. Display source, rate date, and refresh status; preserve native salaries. Missing or over-age rates make converted totals unavailable; provider failures show explicit cached-rate or failure status.
 - **Usability:** Provide mobile employee cards, accessible charts with exact-data tables, keyboard navigation, password visibility controls, and a public introduction linked to login and registration. Preserve dashboard URLs and filter behavior.
 
 ## Deliberate exclusions

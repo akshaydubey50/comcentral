@@ -1,20 +1,28 @@
-# ComCentral audit implementation checklist
+# ComCentral task board
 
-Current user-requested feature test run: [browser verification tracker, 2026-10-15](browser-verification-2026-10-15.md).
+Updated 2026-10-15. This is the only active work checklist. Scope: [PROJECT_SPEC.md](../PROJECT_SPEC.md). Current execution and known failures: [validation.md](../docs/validation.md). [Original task acceptance/history](../docs/archive/2026-10-15-documentation-history.md#source-tasks-todo-md) preserves every original task ID and detailed criterion; this consolidation does not cancel pending work or promote old evidence into current acceptance.
 
-Updated 2026-10-15. This extends the existing project checklist. The original backend tasks are preserved through the mapping in [plan.md](plan.md). Scope and audit dispositions are in [the delivery plan](../docs/implementation-plan.md); actual execution results are in [validation.md](../docs/validation.md).
+## Progress and ownership
 
-Latest CSV priority: `1b4e1a5` implements the approved salary-pending flow, verified with the actual prepared 10,000-row file, full unit/type/lint/build gates, 53 isolated database cases and four reproducible CSV browser journeys. The configured Neon forward migration is applied; downloaded records remain unimported there. Source id mapping, FR/BR/BRL/INTERN support and the retained 10,000-row cap are current decisions. This supersedes the earlier alias-only salary-required follow-up.
+The original audit has **34 tasks: 21 recorded complete, 13 open**. Of the 13, seven are delivery tasks (V02, D01-D05, S02), one is ongoing evidence (C02), two are conditional optimizations (P02/P03), and three are future product decisions (U01-U03). **F10, F11 and F12 are three additional approved slices**, outside that denominator, all still in progress. These are task counts, not a product-completion percentage. Previously completed features require current regression verification after concurrent changes.
 
-Current checkpoint: **21 of 34 tasks verified complete** (C01, F01-F09, V01, B01-B07, S01, S03, P01). The **13 open items** comprise **7 delivery tasks**, **2 conditional optimizations** (P02/P03), **3 future product decisions** (U01-U03), and **1 recurring evidence task** (C02). Thirteen of the 20 delivery tasks prioritized on 2026-10-15 are now closed. All 34 built-browser journeys passed at the earlier clean baseline; P01 and every local gate at `2a7e3d4` are verified. CSV follow-up `18b14dd` also passes unit/integration/type/lint/build and focused real/intercepted browser checks. V02 still needs current remote CI evidence and final integration of concurrent work. S02 still needs deployed HTTPS verification. The current user deadline prioritizes local release checks and performance results within 2-3 hours; deployment, scheduled-job, alert and recovery evidence remain the following milestone.
+The integration session owns application fixes, dependency restoration, full release gates and final publication. The deployment session owns hosted work. This documentation slice owns C02 and the repository-documentation part of D04. Frontend/backend/coordinator file ownership follows [AGENTS.md](../AGENTS.md); one writer per file, coordinated contracts, no nested delegation or broad staging in the dirty tree. The deployment owner's active checklist and the separate not-found task remain temporary owned handoffs; merge their outcomes into this board/validation when those sessions finish. Do not run competing installs/build/browser suites on the constrained host.
 
-The user has authorized audit implementation and incremental commits, and prioritized all 20 remaining delivery tasks as P0 on 2026-10-15. Conditional P02/P03 and future U01-U03 remain outside this delivery batch. C01 represents completed planning; other boxes track acceptance work still to implement or verify, including checks of existing features. Recommended frontend/delivery improvements are selected for implementation. Conditional performance changes require measurements; future account/tenant decision tasks retain the approved scope boundary. Existing registration, employee, salary, CSV and analytics code is retained.
+## Priority delivery acceptance
 
-Owners: Frontend and Backend follow the agreed file ownership. Additional employee/import/schema edits are currently appearing in the shared checkout, so the coordinator preserves them and verifies a fixed isolated snapshot before final integration. Coordinator owns contracts/configuration/docs/CI/integration and delivery. Do not overlap writers. For every implementation task, use isolated database/browser targets, keep secrets out of output and run the applicable required gates from the delivery plan. Estimated file counts are bounds: split any task that grows beyond them.
+- [ ] **V02 - Current reproducible release candidate.** Stabilize dependencies/source, fix or resolve every current failure and run unit, benchmark-helper, isolated ordinary/seed database, typecheck, lint, default production build, startup and production-browser gates on one fixed revision. Record passing CI for that revision and explicit dependency risks. `cadc103` CI failed its browser step (41/58); historical green snapshots do not close this task.
+- [ ] **V02/F02/F06 - Current browser regression matrix.** Registration/login/logout/invalid recovery; employee create/view/edit/archive/restore and reload; every filter singly/combined, Apply/Enter/Clear/Back/Forward, sorting and First/Previous/Next/Last; 25-row scrolling, sticky headers, keyboard/mobile focus and stale-page recovery; first/change salary/history/conflict; CSV preview/replacement/rollback/10k persistence; filtered export, report math/currencies/tenure/outliers/FX errors and production CSP. Distinguish real persistence from intercepted recovery. Rerun corrected desktop page-size cases on a stable server; do not weaken rate limits/assertions/timeouts to obtain a pass.
+- [ ] **D01 - Correct-account deploy and persistence.** Confirm user-owned Vercel/Neon scope, private runtime configuration, isolated preview/demo targets and reviewed migrations. Deploy the V02-qualified revision; exercise auth, employee, salary/history, CSV/export and reporting; verify refresh/redeployment persistence. The deployment owner reports replacement hosted smoke at `comcentral-six.vercel.app` (`cadc103`) and unchanged migration data, but full candidate/persistence acceptance remains open. Legacy `ankit85` hosting is not this acceptance.
+- [ ] **S02 - Hosted browser security.** Inspect actual HTTPS headers/cookies/CSP and rendered account/workspace/dialog/chart flows. Local policy evidence does not close hosted acceptance.
+- [ ] **D02 - Provider and daily schedule.** Verify a live dated snapshot without native salary changes, observe an actual authenticated scheduled invocation and stale/provider-failure recovery; cron configuration/manual refresh alone is insufficient.
+- [ ] **D03 - Monitoring/notification.** Confirm authorized destination and ownership; connect request IDs/readiness/error/overdue-FX thresholds; demonstrate controlled detection, notification and recovery with provider/retention limits.
+- [ ] **D05 - Backup/restore/rollback.** Verify actual account capability/objectives, restore synthetic data into a separate target, check schema/count/history relationships and measure restore/application rollback.
+- [ ] **D04 - Repository/demo.** Replay portable clean-checkout setup for the selected revision, reconcile claims and links, then record/replay the concise synthetic-data demo with verified owned deployment and known limits. Documentation cleanup alone does not close video/hosting work.
+- [ ] **C02 - Release evidence.** Keep decisions/rejected alternatives in architecture, AI contributions/corrections in ai-use, actual command/revision/environment outcomes in validation and work here. Close the release checkpoint only after its evidence is complete; continue this practice for later work.
 
 ## F10: Explain dashboard data readiness and open matching employees
 
-Design direction and implemented/proposed boundaries: [dashboard-design.md](../docs/dashboard-design.md).
+Design direction and boundaries: [architecture.md](../docs/architecture.md).
 
 Owner: Coordinator integrating frontend/backend. User approved development on 2026-10-15 after the interview-focused dashboard discussion. This is an additional dashboard slice, tracked separately from the original 34-task audit totals. Status: implementation written; verification in progress.
 
@@ -37,51 +45,43 @@ Owner: Coordinator integrating frontend/backend. User approved development on 20
 
 Later candidates: richer metric drill-down, chart presentation, a preview-only budget simulator and reproducible saved reports. They are not included in F10 completion.
 
-## Execution board
+## F11: Apply the approved dashboard design
 
-This is the tracking view for the existing 34 audit tasks. **21 have recorded completion evidence; 13 remain open, including 7 priority delivery tasks.** Earlier completed features still require regression checks after the active employee/import/schema changes are integrated. The new welcome refinement is a follow-up to F09, not an additional top-level task.
+User approved the combined [dashboard/pagination preview](../docs/design-previews/dashboard-pagination.html) on 2026-10-15. This presentation slice builds on F10 and retains the existing real reporting contract.
 
-Execution order: **finish F09 evidence and commit -> V02 -> D01 -> S02/D02 -> D03/D05 -> D04**, with C02 updated throughout. Parallel work is limited to independent source/documentation slices; shared contracts, migrations, Git and the final combined checks are coordinated. Heavy local checks run sequentially while the host is under memory pressure.
+- [x] Create the HTML/CSS preview and inspect desktop/mobile layout and pagination behavior.
+- [x] Obtain the user's layout preference: Use this overall direction.
+- [x] Deliver the detailed interactive HTML reference (`docs/design-previews/dashboard-reference.html`; active owner handoff), desktop screenshot (`docs/design-previews/dashboard-reference-desktop.png`; active owner handoff), and mobile screenshot (`docs/design-previews/dashboard-reference-mobile.png`; active owner handoff); verify three screen widths, filters, state previews and pagination. See reference evidence (`docs/design-previews/dashboard-reference-validation.md`; active owner handoff).
+- [ ] Integrate compact summaries and a currency-separated P25/P75/median group comparison.
+- [ ] Arrange distribution and tenure panels side by side on wide screens and stack them on phones.
+- [ ] Keep exact accessible tables, report filters, pending-salary exclusions and FX failure states.
+- [ ] Pass focused checks, full type/lint/build and current browser journeys; record actual unit-suite status.
+- [ ] Review and publish a separate incremental implementation commit.
 
-### Immediate work: welcome refinement and release snapshot
+F10/current employee workflows were published in `cf3da2b`; the approved preview and then-current verification evidence were pushed as `cadc103`. Remaining full-suite failures and the final build/browser work are explicitly pending, not a green release claim.
 
-- [x] Implement the original connected-record welcome layout and content.
-- [x] Verify every welcome control reaches its account route or section, including keyboard skip navigation and signed-in return.
-- [x] Inspect 320px, 768px and 1280px layouts: no horizontal overflow; visible actions meet 44px height.
-- [x] Trace and fix development-toolbar style-policy errors; keep production nonce protection.
-- [x] Obtain independent frontend and security-policy reviews.
-- [x] Build the isolated committed baseline plus owned welcome changes successfully.
-- [x] Pass all 43 production-browser journeys on that isolated snapshot.
-- [ ] Resolve or reproduce the full-unit timing failures on a clean runner: local result is 211/218, with seven five-second timeouts. The thread-pool retry was stopped after further timing failures; neither attempt is a pass.
-- [x] Finish explicit full typecheck for the isolated snapshot.
-- [ ] Finish full lint for the isolated snapshot.
-- [ ] Record the current execution results and exact revision in validation.md.
-- [ ] Commit the owned welcome/policy/docs changes incrementally, preserving unrelated work.
-- [ ] Publish a reviewable stable revision and obtain current GitHub CI evidence.
-- [ ] Integrate and verify the active backend/CSV/shared-contract/migration changes before declaring the full release ready.
+## F12: Branded 404 and unknown-route recovery
 
-### Priority delivery checklist: seven open tasks
+The independent frontend session owns the existing root not-found boundary, scoped CSS and public read-only browser acceptance. Its temporary tracker (`tasks/not-found-2026-10-15.md`; active owner handoff) remains intact until its owner completes integration; this board preserves the approved slice outside the original 34-task total.
 
-- [ ] **V02 ? Combined release verification.** Review the current shared-contract and schema changes; migrate only disposable test targets; pass unit, integration, benchmark-helper, typecheck, lint, production-build, startup and browser gates on one fixed revision; record passing CI for that same revision. Retain the dependency-risk dispositions and unresolved findings in the release evidence.
-- [ ] **D01 ? Deploy and verify persistence.** Set the Vercel framework to Next.js; configure private runtime variables and the production origin; use separate Neon preview/demo targets; apply reviewed migrations; deploy the verified revision; exercise registration/login, directory, salary history, CSV, export and reports; confirm records survive refresh and redeployment.
-- [ ] **S02 ? Hosted browser security.** Verify actual HTTPS response headers, CSP behavior and cookie protections; exercise account pages, dashboard, dialogs and charts on the deployed preview. Local production-browser success is already recorded, but does not close this hosted check.
-- [ ] **D02 ? Live FX and daily scheduling.** Confirm one real-provider snapshot with source/date/freshness; verify native salaries are unchanged; configure authenticated daily scheduling; observe an actual scheduled invocation and failure/stale-rate behavior. A manual refresh does not complete the scheduling checkbox.
-- [ ] **D03 ? Monitoring and alert delivery.** Set readiness/error/overdue-FX thresholds and operational ownership; connect redacted logs through request IDs; configure a suitable authorized alert destination; prove detection, notification and recovery using controlled preview failures; record provider/retention limits.
-- [ ] **D05 ? Backup, restore and rollback.** Verify the provider/account backup capability and recovery objectives; restore synthetic demo data into a separate target; check schema, employee counts and salary-history relationships; measure application rollback and document recovery results.
-- [ ] **D04 ? Repository and interview demo.** Check clean-checkout setup instructions against the deployed revision; reconcile README feature/status claims; link requirements, architecture, AI-use corrections, CSV guidance, performance and known limits; record and replay the short synthetic-data demonstration.
+- [x] Inspect the existing boundary, design language and installed routing guidance.
+- [x] Write a responsive static branded page with Home/Employees/Welcome links, without a fake /404 redirect, data query, new dependency or auth/API change.
+- [x] Write top-level/nested real-404 status, URL preservation, recovery-link, keyboard and 320/768/1024/1440px browser cases.
+- [ ] Pass current unit/type/lint/build checks, distinguishing shared dashboard failures; the latest recorded run is 301 passed/6 failed, type/build blocked by a concurrent dashboard import and lint passed with one unrelated checker warning.
+- [ ] Run read-only browser cases and inspect actual desktop/mobile rendering.
+- [ ] Review the scoped source diff, record results and create the incremental implementation commit.
 
-### Other open items: six, outside the priority delivery batch
+## Conditional and future scope
 
-- [ ] **C02 ? Release documentation and evidence.** Record each delivered slice's decisions, rejected alternatives, AI contributions/corrections, commands, actual outcomes and commit references. Close the documentation checkpoint for this release; continue this practice for later changes.
-- [ ] **P02 ? Conditional export-memory optimization.** Activate only if measured workload/hosting limits require it; preserve complete filtered output, decimal precision, ordering and formula protection.
-- [ ] **P03 ? Conditional report-query optimization.** Activate only if measurements require it; preserve exact filtered statistics, currency separation, tenure and outlier behavior.
-- [ ] **U01 ? Future Viewer-role decision.** Define grant authority, permissions and privacy/inference scenarios before implementation.
-- [ ] **U02 ? Future multiple-organization decision.** Define membership, tenant isolation and a data-preserving migration/test plan before implementation.
-- [ ] **U03 ? Future account-management decision.** Define recovery, MFA and permission-administration flows and safeguards without adding an unapproved registration gate.
+- [ ] **P02 - Export memory:** activate only for measured workload/hosting risk; preserve complete ordered filtering, decimals, formula safety and observable mid-stream failure behavior, then repeat the same workload.
+- [ ] **P03 - Reporting queries:** activate only for measured bottlenecks; preserve exact statistics, rounding, currencies, tenure and outliers with parameterized/allowlisted SQL and comparable before/after evidence.
+- [ ] **U01 - Viewer role:** obtain a product decision on authority, permissions and inference/privacy safeguards.
+- [ ] **U02 - Organizations:** decide membership/isolation and a data-preserving migration/test approach before multi-company use.
+- [ ] **U03 - Account administration:** decide recovery/MFA/permission safeguards without silently gating approved immediate public registration.
 
-### All 34 tasks at a glance
+## Original audit catalogue
 
-"Complete" below refers to the recorded task evidence, not deployment or verification of the current uncommitted backend changes. Detailed acceptance criteria remain in the task sections below.
+Recorded complete means evidence exists for an earlier named slice, not deployed or current-regression acceptance. Exact commits, execution limits and the chronological results are in validation and the archived acceptance record.
 
 | ID | Task | Status |
 |---|---|---|
@@ -97,7 +97,7 @@ Execution order: **finish F09 evidence and commit -> V02 -> D01 -> S02/D02 -> D0
 | B06 | Add correlated redacted operational logs | Recorded complete |
 | B07 | Add readiness and production-start verification | Recorded complete |
 | S01 | Verify session and request boundaries | Recorded complete |
-| S02 | Add and verify browser security policy | Pending hosted execution/evidence |
+| S02 | Add and verify browser security policy | Local policy and hosted cookie/header smoke recorded; complete hosted CSP/flow acceptance open |
 | S03 | Bound expensive authenticated requests | Recorded complete |
 | F02 | Add mobile employee cards | Recorded complete |
 | F03 | Visualize headcount groups | Recorded complete |
@@ -111,7 +111,7 @@ Execution order: **finish F09 evidence and commit -> V02 -> D01 -> S02/D02 -> D0
 | P02 | Bound CSV export memory if required | Conditional; measurement trigger required |
 | P03 | Optimize report queries if required | Conditional; measurement trigger required |
 | V02 | Verify a reproducible release candidate | In progress |
-| D01 | Deploy and verify persistent application behavior | Pending hosted execution/evidence |
+| D01 | Deploy and verify persistent application behavior | Owned-account migration/deploy/smoke reported; qualified candidate, updated flows and redeploy-persistence acceptance open |
 | D02 | Verify live FX and the daily schedule | Pending hosted execution/evidence |
 | D03 | Make service and FX failures observable | Pending hosted execution/evidence |
 | D05 | Demonstrate backup and recovery | Pending hosted execution/evidence |
@@ -120,465 +120,14 @@ Execution order: **finish F09 evidence and commit -> V02 -> D01 -> S02/D02 -> D0
 | U02 | Decide whether to support multiple organizations | Future scope; decision required |
 | U03 | Decide on recovery, MFA and permission administration | Future scope; decision required |
 
-## C01: Align the audit and current plan
-
-Owner: Coordinator. Category: Required; planning complete.
-Dependencies: None.
-Likely files: docs/implementation-plan.md; tasks/plan.md; tasks/todo.md.
-Estimated scope: M: 3 documents.
-
-- [x] Every audit area maps to a task, a retained behavior or an explicit future decision.
-- [x] Registration/password status is current and all original unfinished backend tasks are preserved.
-- [x] Document links and task IDs resolve; no application code or approved scope is changed.
-
-Verification: Check Markdown targets and ID coverage; compare the old backend backlog with the preservation table.
-
-## C02: Record useful AI and architecture decisions
-
-Owner: Coordinator. Category: Required; recurring per delivered slice.
-Dependencies: C01.
-Likely files: docs/architecture.md; docs/ai-use.md; docs/validation.md.
-Estimated scope: S: 2-3 documents per slice.
-
-- [ ] Each material decision records its reason, rejected alternatives and affected contract.
-- [ ] AI entries identify the task, corrections and executed evidence without reconstructing unrecorded prompts.
-- [ ] Current results live in validation.md; agent rules contain durable conventions rather than duplicate status.
-
-Verification: Review the first completed slice against its task brief, diff and recorded command output.
-
-## F01: Resolve the salary-dialog full-suite timeout
-
-Owner: Frontend. Category: Required fix.
-Dependencies: None.
-Likely files: src/components/employees/salary-change-dialog.test.tsx; salary-change-dialog.tsx; tests/setup.ts only if implicated.
-Estimated scope: S/M: 1-3 files.
-
-- [x] Reproduce and identify the cause of the full-suite timeout before changing behavior or timing policy.
-- [x] Preserve drafts, the opening version, explicit stale-data reload and required fresh review.
-- [x] Focused and full-unit checks pass without skipped assertions or an unexplained timeout increase.
-
-Verification: Run the focused salary-dialog file, then npm test -- --maxWorkers=1 --no-file-parallelism; record timing and cause.
-
-## V01: Verify current registration against the real backend
-
-Owner: Coordinator with backend/frontend owners. Category: Required integration closure.
-Dependencies: F01 for the combined checkpoint; isolated verification can run independently.
-Likely files: tests/integration/registration.integration.test.ts; tests/e2e/registration-live.spec.ts; test helpers; docs/validation.md.
-Estimated scope: M: 3-5 files.
-
-- [x] A five-character password registers, establishes a session and works after logout/login on a disposable target.
-- [x] Four-character, duplicate and invalid submissions preserve account/session invariants; existing rollback cases remain covered.
-- [x] The built UI routes, password controls and session handoff work with the real API; fixture-only results are labelled separately.
-
-Verification: Run isolated registration integration tests and the live Playwright registration journey under existing target guards.
-
-## B01: Verify atomic CSV import
-
-Owner: Backend. Category: Required accepted behavior.
-Dependencies: Existing test-target guard.
-Likely files: src/server/services/imports.ts; focused import integration tests; tests/integration/test-database.ts only if needed.
-Estimated scope: M: 2-4 files.
-
-- [x] A valid multi-batch import inserts every row once without overwriting existing employees.
-- [x] Late-batch failure, duplicate insertion races and changed confirmation input produce no partial import.
-- [x] File size, row count, field, date and currency-precision limits match the template and API contract.
-- [x] CSV draft follow-up: reordered fields and id/fullName/jobTitle/hireDate aliases preserve source values; omitted/blank salary saves null pending pay. Support FR, BR/BRL and INTERN; retain 10,000-row/2 MiB limits and rejection of invalid supplied amounts, missing required fields and duplicates. Actual-file browser evidence saves/fetches all 10,000 rows and verifies reload; the synthetic journey also verifies first salary assignment. See the B01/B02/B03/B04/F08 checkpoint in validation.md.
-
-Verification: Use isolated PostgreSQL fixtures and deterministic failure/race coordination; inspect final counts, not timing assumptions.
-
-## B02: Verify employee and salary persistence invariants
-
-Owner: Backend. Category: Required accepted behavior.
-Dependencies: Existing test-target guard; F01 only for the combined UI checkpoint.
-Likely files: src/server/services/employees.ts; focused employee integration tests; src/shared/validation.ts if a defect is demonstrated.
-Estimated scope: M: 2-4 files.
-
-- [x] Metadata and salary stale writes are rejected; salary and immutable before/after history commit together with actor/reason.
-- [x] Archive/restore preserves history and archived records reject prohibited salary operations.
-- [x] Stable filtered pagination and complete filtered export preserve exact decimal strings and formula-safe cells.
-
-Verification: Extend isolated employee/API tests; retain existing concurrent salary and history-immutability coverage.
-
-## B03: Verify persisted FX integrity and failures
-
-Owner: Backend. Category: Required hardening and accepted behavior.
-Dependencies: Existing test-target guard.
-Likely files: src/server/services/fx.ts; src/server/domain/fx.ts; focused FX unit/integration tests.
-Estimated scope: M: 3-5 files.
-
-- [x] Read-time canonical checksum verification rejects mismatched stored content while preserving supported deduplication behavior.
-- [x] Refresh success/failure, immutable snapshots, missing/stale rates and provider errors persist the documented states without changing native salaries.
-- [x] Manual/cron refresh remains protected and deterministic tests do not call a live provider.
-
-Verification: Use fixed provider responses and isolated persisted fixtures, including malformed rates and a deliberately mismatched checksum.
-
-## B04: Verify persisted reporting calculations
-
-Owner: Backend. Category: Required accepted behavior.
-Dependencies: Existing test-target guard.
-Likely files: src/server/services/insights.ts; src/server/domain/analytics.ts only if needed; focused analytics integration tests.
-Estimated scope: M: 2-4 files.
-
-- [x] Reports use all matching employees and maintain native-currency separation and active/archived filter semantics.
-- [x] Totals, percentiles, bands and tenure agree with known exact fixtures, including anniversaries and leap-day behavior.
-- [x] Outlier cohorts respect employment type, minimum size and zero-IQR policy with explicit non-flagging states.
-
-Verification: Compare persisted service results with deterministic domain fixtures; avoid tests that only repeat implementation formulas.
-
-## B05: Guard demo seeding and its transaction
-
-Owner: Backend. Category: Required before any new seed run.
-Dependencies: None for implementation; isolated target for execution.
-Likely files: prisma/seed.ts; seed/target helper if needed; focused guard and integration tests.
-Estimated scope: M: 3-5 files.
-
-- [x] An explicit demo/test target acknowledgment is required; production mode and unrelated populated targets are refused.
-- [x] Count/marker preconditions and inserts share a transaction and table locks, with rollback on failure. Later normal demo writes remain allowed.
-- [x] The dedicated target has exactly 10,000 deterministic employees after safe first/repeat execution, without deleting unrelated records.
-
-Verification: First run offline refusal cases, then isolated transaction/race and seed checks; print counts only.
-
-Evidence: 10 guard tests and 4 dedicated PostgreSQL tests passed on 2026-10-14; see [seed safety](../docs/seed-safety.md).
-
-## B06: Add correlated redacted operational logs
-
-Owner: Backend; coordinator for response contract. Category: Recommended operational baseline.
-Dependencies: Agree request-ID header/error handling before client changes.
-Likely files: src/server/http.ts; proposed logging helper; focused logging/HTTP tests; API documentation.
-Estimated scope: M: 3-5 files.
-
-- [x] Each request has a bounded validated or generated correlation ID visible in response headers and matching structured logs.
-- [x] Credentials, cookies, tokens, connection strings and employee/salary payloads are excluded from logs.
-- [x] Logging failure cannot replace the original response; error output remains sanitized.
-
-Verification: Exercise successful/error requests and failed log transport; inspect structured keys and redaction with harmless fixtures.
-
-## B07: Add readiness and production-start verification
-
-Owner: Backend with coordinator. Category: Recommended operational baseline.
-Dependencies: B06 for consistent diagnostics.
-Likely files: proposed readiness route; server configuration helper; production-start smoke script; focused tests.
-Estimated scope: M: 3-5 files.
-
-- [x] A bounded DB readiness check returns a minimal healthy/unavailable result without connection or schema details.
-- [x] Missing required runtime configuration produces an actionable sanitized startup/readiness failure.
-- [x] The built Next app starts, answers readiness and stops cleanly; adapt to Next hosting instead of copying an Express server lifecycle.
-
-Verification: Run the built-app smoke against an isolated reachable and unreachable target; verify bounded failure and cleanup.
-
-## S01: Verify session and request boundaries
-
-Owner: Backend; coordinator for browser coverage. Category: Required security verification.
-Dependencies: V01; existing isolated guards.
-Likely files: focused auth integration tests; existing registration/auth helpers; auth/HTTP implementation only for proven defects.
-Estimated scope: M: 2-5 files.
-
-- [x] Expired and revoked/logout sessions cannot read or mutate protected employee data; copied old cookies do not remain authorized.
-- [x] Missing/foreign origins, incorrect content types, oversized input and auth-rate limits produce the intended sanitized responses.
-- [x] No password policy, account access model or existing durable throttling is weakened.
-
-Verification: Use controlled session-expiry fixtures rather than wall-clock sleeps; run protected read/write and logout checks on the isolated target.
-
-## S02: Add and verify browser security policy
-
-Owner: Coordinator with frontend/backend owners. Category: Recommended hardening before public delivery.
-Dependencies: Production build baseline; B07 where readiness is included.
-Likely files: next.config.ts; middleware/proxy only if required by installed Next guidance; browser checks; deployment docs.
-Estimated scope: M: 3-5 files.
-
-- [x] A documented CSP strategy supports the installed Next/MUI rendering and approved resources without a blanket bypass.
-- [x] Login, registration, dashboard, dialogs and charts render and function under the policy.
-- [ ] Preview HTTPS responses verify intended headers and cookie protections; local-only evidence is labelled accurately.
-
-Verification: Read installed framework guidance during implementation; test built pages and inspect actual preview response headers/console.
-
-## S03: Bound expensive authenticated requests
-
-Owner: Backend with coordinator. Category: Recommended operational hardening.
-Dependencies: B06; deployment execution model understood.
-Likely files: HTTP/rate-limit helper; affected report/import/export boundary; focused tests; API docs.
-Estimated scope: M: 3-5 files per bounded route-family slice.
-
-- [x] Document limits and retry behavior appropriate to the deployment; avoid relying solely on per-process counters across instances.
-- [x] Legitimate 10,000-row imports and normal report/export use remain possible under documented concurrency limits.
-- [x] Rejected work returns a consistent response and is stopped before avoidable expensive processing.
-
-Verification: Exercise accepted, limited and recovered requests with deterministic counters/time; split additional route families before expanding beyond scope.
-
-## F02: Add mobile employee cards
-
-Owner: Frontend. Category: Recommended usability improvement.
-Dependencies: Stable existing employee contract.
-Likely files: src/components/employees/employee-directory.tsx; employee-table.tsx; proposed employee-card.tsx; focused/browser tests.
-Estimated scope: M: 3-5 files.
-
-- [x] Small screens show readable employee cards with the same status, currency, detail and allowed actions as the desktop table.
-- [x] Filters, sort, pagination, archive/restore and empty/error states keep existing API/URL behavior.
-- [x] Keyboard operation and 44px touch targets work without page overflow at 360, 768 and 1280px.
-
-Verification: Use focused behavior checks and built-browser viewports; exercise at least one real directory/detail workflow.
-
-## F03: Visualize headcount groups
-
-Owner: Frontend. Category: Recommended reporting improvement.
-Dependencies: Stable insights contract; B04 before release acceptance.
-Likely files: src/components/insights/summary-sections.tsx; insights-dashboard.tsx; proposed chart helper; focused tests.
-Estimated scope: M: 3-4 files.
-
-- [x] Country/department/role headcount charts use the existing filtered response rather than a separate population.
-- [x] Labels, text summary and an accessible table communicate the same counts without hover/color dependence.
-- [x] Loading, empty, error and narrow-screen states preserve filter context.
-
-Verification: Compare displayed counts/table with fixed contract fixtures and inspect keyboard/mobile rendering; coordinate any new dependency first.
-
-## F04: Visualize pay statistics and distributions
-
-Owner: Frontend. Category: Recommended reporting improvement.
-Dependencies: F03 chart approach; B04 before release acceptance.
-Likely files: src/components/insights/summary-sections.tsx; distribution-sections.tsx; chart helper; focused tests.
-Estimated scope: M: 3-4 files.
-
-- [x] Pay summaries and band charts remain separated by currency, or clearly labelled with the selected dated approximate USD view.
-- [x] Tables/tooltips retain exact decimal values and definitions; chart coordinates do not become salary calculation inputs.
-- [x] Missing/stale FX, empty cohorts and filter changes never display fabricated totals or stale context.
-
-Verification: Check exact values against fixtures, multi-currency/stale-FX states and built-browser layout.
-
-## F05: Visualize tenure reporting
-
-Owner: Frontend. Category: Recommended reporting improvement.
-Dependencies: F03 chart approach; B04 before release acceptance.
-Likely files: src/components/insights/distribution-sections.tsx; chart helper; focused tests.
-Estimated scope: M: 2-3 files.
-
-- [x] Show headcount and pay by documented tenure bucket with a visible reporting date.
-- [x] Use backend-calculated buckets and native-currency groups; do not recalculate tenure approximately in the browser.
-- [x] Provide equivalent table/text content and readable empty/mobile states.
-
-Verification: Use anniversary/leap-day response fixtures and inspect the built chart/table at mobile and desktop widths.
-
-## F06: Verify complete accessible frontend journeys
-
-Owner: Frontend with coordinator. Category: Required accessibility/recovery verification.
-Dependencies: F02-F05 for newly selected UI; existing flows can be checked earlier.
-Likely files: tests/e2e/frontend.spec.ts; relevant component tests; only components with demonstrated defects.
-Estimated scope: S/M per defect; split fixes beyond 5 files.
-
-- [x] Navigation/drawers/dialogs manage keyboard focus and restoration; loading mutations cannot be dismissed into ambiguous state.
-- [x] Forms, imports, detail/history and outliers have labelled controls and usable loading/empty/error/conflict recovery.
-- [x] Built pages at 360, 768 and 1280px have no page overflow and retain accessible exact-data alternatives.
-
-Verification: Run keyboard-only and viewport journeys; include pending save, stale salary, changed CSV file and failed network cases.
-
-## F07: Improve search interaction if selected
-
-Owner: Frontend. Category: Optional; implement after core UI.
-Dependencies: F02; choose debounce versus explicit-submit behavior.
-Likely files: src/components/employees/employee-filters.tsx; employee-directory.tsx; focused tests.
-Estimated scope: M: 2-3 files.
-
-- [x] Chosen search behavior is documented and updates URL/filter state consistently, including clearing and back navigation.
-- [x] Earlier responses cannot replace newer results; searching resets pagination appropriately.
-- [x] Typing does not cause excessive requests or remove an accessible explicit action if it remains part of the interaction.
-
-Verification: Use controlled timers and reversed response order; verify keyboard submit and browser history.
-
-## F08: Simplify CSV frontend state ownership
-
-Owner: Frontend. Category: Recommended focused refactor.
-Dependencies: B01 contract stable; existing file-race checks retained.
-Likely files: src/components/imports/csv-import-workflow.tsx; proposed import hook and result-table components; existing tests.
-Estimated scope: M: 4-5 files.
-
-- [x] Extract file-reading/preview state and focused tables only where responsibilities become clearer.
-- [x] Selecting another file invalidates the prior preview; confirmation always submits the reviewed content/hash.
-- [x] Pending/error/retry behavior and existing accessibility remain unchanged.
-
-Verification: Run existing CSV race/recovery tests and preview-confirm browser checks; avoid tests that mirror the new hook internals.
-
-## F09: Add a public product introduction if selected
-
-Owner: Frontend with coordinator. Category: Optional product presentation decision.
-Dependencies: Decide route and copy; retain authenticated dashboard behavior.
-Likely files: proposed src/app/welcome/page.tsx; small landing components; route/CTA tests.
-Estimated scope: M: 3-5 files.
-
-- [x] An agreed public route explains actual capabilities with working login/register calls to action.
-- [x] Existing dashboard URLs, session redirects and deep links remain valid; moving / requires a separate explicit decision.
-- [x] No unsupported production/security claims, real employee data or fabricated customer statistics appear.
-
-Follow-up approved 2026-10-15: make the public introduction the normal signed-out `/` entry while preserving the authenticated overview. Expand navigation, salary-history explanation, workflow and shared-access copy according to [homepage-design.md](../docs/homepage-design.md). Implemented in `2a7e3d4`. All 34 built-browser journeys passed, including anonymous/signed-in root routing, 320/768/1280px layout, keyboard skip/section navigation and both account entry paths. Phone and desktop screenshots were visually inspected.
-
-Verification: Verify public/signed-in navigation and mobile/keyboard layout against the actual app; update scope only if selected.
-
-## P01: Measure the intended workload
-
-Owner: Backend with coordinator. Category: Required accepted delivery evidence.
-Dependencies: B05; B01/B02/B04 correctness; B06 diagnostics recommended.
-Likely files: scripts/benchmark.mjs; benchmark helper if needed; docs/validation.md.
-Estimated scope: M: 2-3 files.
-
-- [x] Use an explicitly isolated 10,000-employee target; record dataset, environment, commit, request mix and no employee payloads.
-- [x] Measure cold/warm and concurrent list/report/export behavior, percentile latency, memory and error rate; include relevant large-import duration.
-- [x] Record proposed acceptance budgets and rationale; activate P02/P03 only for demonstrated bottlenecks or resource risk.
-
-Verification: Run bounded reproducible measurements on the designated demo target and report limitations; no invented SLA.
-
-Measured at `2a7e3d4`: 63/63 read requests passed, 10,000-row import persisted successfully, and aggregate timings/memory plus proposed regression budgets are recorded in [performance.md](../docs/performance.md). P02/P03 remain conditional.
-
-## P02: Bound CSV export memory if required
-
-Owner: Backend. Category: Conditional optimization.
-Dependencies: P01 establishes the need; B02 export invariants.
-Likely files: src/server/services/employees.ts or focused export service; export route; focused integration tests.
-Estimated scope: M: 3-5 files.
-
-- [ ] Export memory stays bounded for the measured workload through batching/streaming while preserving filters and order.
-- [ ] Rows are neither duplicated nor skipped under the documented export consistency policy; decimal/formula safety is unchanged.
-- [ ] Pre-header and mid-stream failures have defined observable behavior without an apparently complete corrupt file.
-
-Verification: Compare complete export content/order with baseline fixtures and measure memory/latency again under the same workload.
-
-## P03: Optimize report queries if required
-
-Owner: Backend. Category: Conditional optimization.
-Dependencies: P01 identifies a report bottleneck; B04 provides correctness fixtures.
-Likely files: src/server/services/insights.ts; focused query module if useful; related domain/integration tests.
-Estimated scope: M: 3-5 files for one report family.
-
-- [ ] Move only measured expensive work into SQL/indexed queries, with parameterized values and allowlisted identifiers.
-- [ ] Totals, percentiles, rounding, currency, tenure and outlier semantics remain equivalent to the established domain rules.
-- [ ] Repeat the same benchmark and record improvement and trade-offs; split further report families into separate slices.
-
-Verification: Compare optimized outputs with deterministic/persisted oracle fixtures and run the original workload benchmark.
-
-## V02: Verify a reproducible release candidate
-
-Owner: Coordinator. Category: Required release gate.
-Dependencies: Selected fixes/features/hardening complete; P01 and any activated optimizations.
-Likely files: package.json/lockfile if necessary; .github/workflows/ci.yml; production smoke script; docs/validation.md.
-Estimated scope: M: 3-5 files; verification mainly execution.
-
-- [x] A clean checkout installs from its lockfile and passes unit, typecheck, lint, build, isolated integration and real browser gates with discovered tests.
-- [ ] The production artifact starts and serves the tested routes; CI uses isolated targets and sanitizes artifacts.
-- [x] Record the reviewed commit and gate results; investigate dependency findings and document intentional version holds without blind upgrades.
-
-Verification: Use npm ci and existing required scripts plus built-app smoke; verify actual CI logs rather than script names alone.
-
-Local checkpoint `2a7e3d4`: 207 unit tests, 45 database tests, 34 browser journeys, benchmark helpers, typecheck, lint, build and startup all passed. Current remote CI and the saved CSV/import changes from the other session remain to be integrated and checked before final closure.
-
-## D01: Deploy and verify persistent application behavior
-
-Owner: Coordinator with backend owner. Category: Required delivery.
-Dependencies: V02; concrete hosting/database configuration available.
-Likely files: docs/deployment.md; deployment configuration only as needed; docs/validation.md.
-Estimated scope: M: 2-4 files plus controlled deployment.
-
-- [ ] Use the reviewed artifact, separate preview/demo/test database targets, safe migrations and correct production origin/cookie settings.
-- [ ] Real signup/login, employee/salary history, valid/invalid import, complete export and reports work on the deployed app.
-- [ ] Persisted records survive refresh and redeployment; secrets and synthetic demo data are appropriately separated from customer production use.
-
-Verification: Follow the existing runbook and record URL/commit/date plus HTTPS/API/persistence smoke results; verify current provider limits when executing.
-
-## D02: Verify live FX and the daily schedule
-
-Owner: Backend with coordinator. Category: Required delivery.
-Dependencies: D01; B03; existing protected cron route.
-Likely files: FX operational configuration; docs/deployment.md; docs/validation.md; source only for demonstrated defects.
-Estimated scope: S/M: 2-4 files.
-
-- [ ] A real provider refresh creates a dated, attributed snapshot without changing native employee salaries.
-- [ ] The deployed scheduled route is authenticated; an actual scheduled invocation has recorded outcome/freshness evidence.
-- [ ] Failure and stale-rate behavior remain explicit; a manual trigger alone is not reported as proof of the daily schedule.
-
-Verification: Run one identified live-provider smoke, inspect the next scheduled invocation and verify native/converted report behavior.
-
-## D03: Make service and FX failures observable
-
-Owner: Coordinator with backend owner. Category: Recommended operational baseline.
-Dependencies: D01/D02; B06/B07.
-Likely files: docs/deployment.md; monitoring/alert configuration; minimal related helper if needed.
-Estimated scope: M: 2-4 files.
-
-- [ ] Define ownership and thresholds for readiness failures, elevated errors and overdue FX refresh.
-- [ ] Provide a usable correlation path from a reported error to redacted operational logs.
-- [ ] Verify alert delivery to the authorized destination and record retention/usage limits without exposing business data.
-
-Verification: Use a controlled non-production failure and overdue-job scenario; record detection, notification and recovery evidence.
-
-## D05: Demonstrate backup and recovery
-
-Owner: Coordinator with backend owner. Category: Recommended operational baseline before real-data operation.
-Dependencies: D01; dedicated restore target.
-Likely files: docs/deployment.md; recovery record; helper only if needed.
-Estimated scope: S/M: 2-3 files plus isolated restore.
-
-- [ ] Document backup availability and chosen recovery time/data-loss expectations; verify actual provider/account capability.
-- [ ] Restore into a separate isolated target and verify schema, employee counts and salary-history relationships.
-- [ ] Demonstrate application rollback without destructive schema rollback; record measured recovery outcome and remaining limits.
-
-Verification: Perform a controlled backup/restore exercise on demo data; never overwrite the running application database.
-
-## D04: Prepare the final repository and demonstration
-
-Owner: Coordinator with frontend/backend owners. Category: Required delivery.
-Dependencies: D01/D02; document D03/D05 status; all selected release tasks closed.
-Likely files: README.md; docs/demo-script.md; docs/validation.md; docs/ai-use.md; reviewed change set.
-Estimated scope: M: 3-5 documents plus recorded demo.
-
-- [ ] README setup/access instructions and feature status match the deployed reviewed commit; credentials remain private.
-- [ ] A short video demonstrates registration, directory, salary history/conflict, CSV and reporting/FX with labelled synthetic data.
-- [ ] Link architecture/decisions, AI-use record, CSV guide, performance results and known limits; preserve unrelated concurrent work when preparing commits.
-
-Verification: Follow the README from a clean checkout and replay the video script against the deployed app; audit artifact links and claims.
-
-## U01: Decide whether to add a Viewer role
-
-Owner: Product decision then coordinator/backend/frontend. Category: Future scope; no implementation yet.
-Dependencies: Explicit role/access requirements.
-Likely files: requirements.md and architecture.md initially.
-Estimated scope: S: decision first; implementation split later.
-
-- [ ] Define who can grant HR/Viewer access without silently changing the current public-HR requirement.
-- [ ] Specify allowed fields and operations across list/detail/export, filtering/sorting, outliers and aggregate inference.
-- [ ] Approve privacy acceptance scenarios, including small groups/bands, before assigning API and UI implementation.
-
-Verification: Review a concrete permission/response matrix; do not treat hidden UI controls as authorization.
-
-## U02: Decide whether to support multiple organizations
-
-Owner: Product decision then coordinator. Category: Future scope; no implementation yet.
-Dependencies: Explicit organizational access requirements.
-Likely files: requirements.md and architecture.md initially.
-Estimated scope: S: decision first; migration plan later.
-
-- [ ] Specify membership, ownership and registration/invitation behavior for the proposed product.
-- [ ] Define tenant isolation for every business query, export, job and audit relation.
-- [ ] Prepare a data-preserving migration and isolation-test plan before changing the current shared-workspace schema.
-
-Verification: Review the tenant model, access scenarios and migration/rollback strategy with concrete examples.
-
-## U03: Decide on recovery, MFA and permission administration
-
-Owner: Product decision then coordinator/backend/frontend. Category: Future scope; no implementation yet.
-Dependencies: Explicit account-management requirements.
-Likely files: requirements.md and architecture.md initially.
-Estimated scope: S: decision first; one flow per implementation task.
-
-- [ ] Choose required flows, delivery provider and recovery rules without inventing an email-verification gate for current registration.
-- [ ] Specify token expiry/replay, session invalidation, rate limits and account-recovery failure behavior.
-- [ ] Break approved capabilities into independently verifiable user journeys before implementation.
-
-Verification: Review each recovery/enrollment/administration journey and failure case against the installed auth system's supported interfaces.
-
-## Checkpoints
-
-- [x] M0: F01/V01 close current registration and unit-suite evidence; C01 is current.
-- [x] M1: B01-B05 meet the accepted data invariants; no application database was used for tests or seeding.
-- [x] M2: selected F02-F08 improvements pass desktop/mobile/keyboard journeys against stable contracts.
-- [x] M3: B06/B07 and selected S01-S03 controls have real built-app evidence; deployed HTTPS acceptance remains in S02.
-- [x] M4: P01 records the workload baseline and targets; P02/P03 remain conditional and have not been activated.
-- [ ] M5: V02 and D01/D02/D04 close required delivery; D03/D05 operational status is explicit.
-- [ ] C02 records decisions, corrections and evidence at each checkpoint; the selected F09 refinement is tracked above and U01-U03 retain their future scope boundary.
-
-A checkpoint is closed by recorded evidence, not an AI assertion of completion. Routine work already authorized proceeds without an added approval gate; material scope choices remain explicit.
+## Documentation cleanup slice - C02/D04
+
+- [x] Review PayScope entry points and retain focused document responsibilities instead of copying its stack or claims.
+- [x] Consolidate architecture, domain/API/CSV, operator, performance and reviewer guides; independently source-check important facts.
+- [x] Add portable root setup and a maintained documentation index.
+- [x] Preserve original acceptance, superseded choices, reference audit and execution history in one dated archive.
+- [x] Compact AI contributions, current verification and the task board without losing failure/deployment boundaries.
+- [x] Remove the merged guides/trackers and update remaining links; preserve the deployment owner's active handoff and its archived-readiness pointer.
+- [x] Synchronize and visually verify the requirements PDF: one A4 page, 655 Markdown words, complete text/bounds checks and correct source-derived date.
+- [x] Pass dependency-free link/parser checks and review the scoped diff.
+- [x] Commit only owned documentation/guard changes; preserve the application's dirty files and leave push/deployment to their owner.

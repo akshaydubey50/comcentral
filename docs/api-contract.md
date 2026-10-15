@@ -1,45 +1,99 @@
 # API contract v1
 
-## F10 salary readiness filter
+The TypeScript types in [`src/shared/contracts.ts`](../src/shared/contracts.ts) are the integration contract. This document explains their HTTP use. Money crosses the API as decimal strings, and current release/deployment status belongs only in [validation.md](validation.md).
 
-`EmployeeFilters` adds optional `salaryStatus=PENDING|RECORDED`. Omission includes both. `PENDING` selects current `salary=null`; `RECORDED` selects a supplied current salary. Combine with search, country, department, job role, employment type and employee status using AND. The same filter applies to `/api/employees`, `/api/employees/export` and `/api/insights` before pagination or aggregation. Unsupported API values use the existing validation error; unsupported browser URL values normalize to the inclusive default. Money and response shapes are unchanged.
+## Transport, responses and errors
 
-## Request correlation
+- Dates use `YYYY-MM-DD`; timestamps use ISO UTC strings.
+- Successful JSON responses use `{data: ...}` unless an endpoint below states otherwise. Employee listing returns `EmployeePage` directly, session returns `{user: HrUser|null}`, and readiness returns its minimal status directly.
+- CSV template/export endpoints return downloads rather than JSON.
+- Application errors use `{error:{code,message,details?}}`. Validation uses `422 VALIDATION_ERROR`; other documented boundaries use 400, 401, 403, 404, 409, 413, 415, 422, 429, 500 or 503 as appropriate. Internal exceptions are sanitized.
+- Better Auth endpoints retain Better Auth's native `{code,message}` errors. For example, an existing registration email returns native status 422 and code `USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL`.
+- Every API response includes `X-Request-ID`. A caller-supplied UUID-shaped ID (RFC variant, versions 1-8) is retained; other or missing values are replaced. It is diagnostic context, never authorization.
+- Structured `http_request` logs include timestamp, entry point, request ID, method, allowlisted route template, status and elapsed milliseconds. Query strings, employee IDs, bodies, cookies, credentials, connection strings and raw exception messages are excluded. Logging failure cannot replace the response.
+- JSON mutations require `Content-Type: application/json` and an `Origin` equal to both the configured `BETTER_AUTH_URL` origin and the request origin. Application mutations read through the shared request helper default to 64 KiB; registration and imports use the explicit limits below. Other native Better Auth actions are handled by Better Auth after the same-origin/content-type check.
 
-Every application API response includes `X-Request-ID`. A caller may send a UUID-shaped ID (RFC variant, version 1-8); other or missing values are replaced with a generated UUID. This is diagnostic context, never an authentication or authorization input. Responses retain the existing JSON shapes, cookies and cache controls.
+## Authentication and public exceptions
 
-The server emits one structured `http_request` event with timestamp, entry point, request ID, method, allowlisted route template, status and elapsed milliseconds. Authentication warnings/errors inherit the same request context, including concurrent requests. Query strings, employee IDs, request/response bodies, cookies, credentials, connection strings and exception messages are excluded. Logging failures cannot replace the original response. Use the response ID to find the event in the hosting platform's stdout/stderr logs; retention and alert delivery remain deployment work.
+All employee, directory-option, import, reporting and manual FX-refresh endpoints require a valid HR database session. The exceptions are:
 
-## Payloads and access
+| Endpoint | Access |
+| --- | --- |
+| Better Auth under `/api/auth/*` | Public auth handler. POST actions still enforce same-origin JSON. Sign-up, sign-in and sign-out use Better Auth's native response/error contract. |
+| `GET /api/session` | Public session probe returning `{user: HrUser|null}`. It exposes only user id, name and email. |
+| `GET /api/ready` | Public minimal readiness result: `{status:"ready"}` (200) or `{status:"unavailable"}` (503). The database/configuration diagnosis is not returned. |
+| `GET /api/cron/fx` | Scheduler access using `Authorization: Bearer <CRON_SECRET>`; it does not accept an HR session as a substitute. |
 
-`GET /api/ready` is public and returns only `{status:"ready"}` (200) or `{status:"unavailable"}` (503). It validates core runtime configuration and bounds a PostgreSQL connection/query probe to two seconds. Neither database details nor missing configuration values are returned. `npm run test:production` starts the built app on a private loopback port, checks readiness, and stops its own process; preflight errors name missing configuration without printing values.
+Public registration uses `POST /api/auth/sign-up/email` with exactly `{name,email,password}`. Name is trimmed and contains 1-160 characters. Email is trimmed, lowercased, valid and at most 254 characters. Password is preserved exactly and contains 5-128 characters; confirmation stays in the browser form and is not sent. The JSON body limit is 4 KiB, and additional fields are rejected.
 
-Expensive authenticated requests use independent PostgreSQL-backed fixed windows per verified HR user: import preview and commit share **6 requests per 60 seconds**, insights permits **30 per 60 seconds**, and CSV export permits **6 per 60 seconds**. A maximum-size 10,000-row import counts as one request per preview/commit step. Limited work stops before body parsing or expensive services and returns `429 {error:{code:"RATE_LIMITED",message:"Too many requests. Try again later."}}` with `Retry-After` seconds. Denied attempts neither extend the window nor grow its counter indefinitely. Limits use the database clock and atomic admission across application instances; client forwarding headers cannot change the authenticated identity. These bounds control request volume, not total in-flight concurrency or account creation across the approved public-registration model.
+A successful public sign-up writes the account/credential/session through Better Auth's transactional Prisma adapter, sets an HttpOnly, SameSite=Lax session cookie (`Secure` in production), and immediately grants the HR account access to the one shared workspace. Invitation, administrator approval and email verification do not gate this assessment flow. The frontend discards returned token data and confirms `GET /api/session` before entering the workspace. The optional administrative provisioning script creates credentials without a browser session and applies its own stricter 12–128-character `HR_PASSWORD` rule; this does not change the public 5–128-character registration contract.
 
-Types: src/shared/contracts.ts. JSON decimal strings for money; dates YYYY-MM-DD and timestamps ISO UTC. Responses use {data: ...} unless otherwise specified. All employee, directory-options, import, and reporting endpoints require a valid HR session; GET /api/session returns {user: HrUser|null}. Better Auth uses POST /api/auth/sign-in/email and /sign-out. Mutations verify request origin; JSON only. Errors {error:{code,message,details?}}, with 401/403/404/409/422 as appropriate. Never expose internal errors.
+Better Auth applies database-backed limits of 5 sign-up attempts per 15 minutes and 10 sign-in attempts per 15 minutes. It identifies unauthenticated clients through the supported ingress. The deployment assumes Vercel overwrites `X-Forwarded-For`; a custom proxy must do the same and prevent direct origin access. Direct public exposure of `next start` is not a verified topology. See [Vercel request headers](https://vercel.com/docs/headers/request-headers) and [Better Auth IP detection](https://better-auth.com/docs/concepts/rate-limit).
 
-Public registration: `POST /api/auth/sign-up/email` accepts exactly `{name,email,password}` as same-origin JSON, limited to 4 KiB. Name is trimmed and must contain 1-160 characters. Email is trimmed, lowercased, valid and at most 254 characters. Password is preserved exactly and must contain 5-128 characters. Confirmation stays in the form; additional fields are rejected. A successful native Better Auth response sets an HttpOnly, SameSite=Lax cookie (Secure in production). The frontend discards returned token data and confirms `GET /api/session` before entering the dashboard. Every HR account immediately accesses the shared workspace without invitation, administrator approval, or email verification.
+## Shared employee and money semantics
 
-Signup writes the user, credential and session in one database transaction. Validation errors use the normal `422 VALIDATION_ERROR` envelope; malformed JSON returns 400, oversized bodies 413, invalid origins 403 and non-JSON requests 415. Existing emails return Better Auth's native `422` body `{code:"USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL",message:...}` without changing the account. Signup is limited to 5 requests per IP per 15 minutes; excess requests return 429 with `X-Retry-After` seconds. Native auth errors use `{code,message}`; the frontend handles both error formats. Administrative provisioning continues to create credentials without creating a session. No shared API type changes were needed.
+- `Employee.salary` is `string|null`. `null` means an imported employee is awaiting a first salary; it never means zero. A manual employee create still requires a positive salary string.
+- Supplied salaries are positive plain decimal strings no greater than `999999999999.99`. JPY permits zero fractional digits; other supported currencies permit at most two.
+- Supported currencies are USD, INR, EUR, GBP, JPY, CAD, AUD, SGD and BRL. Supported countries are AU, BR, CA, DE, FR, GB, IN, JP, SG and US. Country and salary currency are independent.
+- Employment types are `FULL_TIME`, `PART_TIME`, `CONTRACT` and `INTERN`. Joining dates cannot be in the future.
+- Employee code and normalized email are unique. Archive preserves the record and salary history; archived employees reject salary changes.
+- Salary changes require the current positive `version`, exact salary/currency and a reason. The employee update and immutable history insert commit together. `SalaryHistory.previousSalary` is null only for a first assignment.
 
-IP throttling assumes the supported Vercel ingress overwrites `X-Forwarded-For`. A custom reverse proxy must overwrite client-supplied forwarding headers and prevent direct access to the origin. Direct exposure of `next start` is not a verified production topology. See [Vercel request headers](https://vercel.com/docs/headers/request-headers) and [Better Auth IP detection](https://better-auth.com/docs/concepts/rate-limit).
+## Filters, pagination and reporting queries
 
-- GET /api/options -> {data: DirectoryOptions}.
-- GET /api/employees with EmployeeQuery -> EmployeePage. Default active, page1, size25, name asc. pageSize max100. All sorting has stable ID tie-break.
-- POST /api/employees EmployeeInput -> {data: Employee}, 201.
-- GET /api/employees/:id -> {data: Employee}. PATCH same path EmployeeUpdate -> {data: Employee}; salary/currency not writable here.
-- POST /api/employees/:id/salary SalaryChangeInput -> {data: Employee}. Reason required; transaction updates salary and creates immutable history. Version conflict409.
-- POST /api/employees/:id/archive {version,archived:boolean} -> {data: Employee}.
-- GET /api/employees/:id/history -> {data: SalaryHistory[]}, newest first.
-- GET /api/employees/export same EmployeeFilters, all matches as downloadable CSV (native amounts).
-- GET /api/imports/template -> CSV template. Columns are EmployeeInput field names in declaration order.
-- POST /api/imports/preview {csvText:string} -> {data: ImportPreview}. Decoded CSV max 2 MiB and 10,000 rows; JSON envelope max 4 MiB + 1 KiB; preview20rows, at most100 returned errors with errorCount. All fields except salary are required exactly once, in any order. Accepted aliases: id -> employeeCode, fullName -> name, jobTitle -> jobRole, hireDate -> joiningDate. Omitted or blank salary becomes null; a supplied invalid amount is rejected. ImportPreview includes salaryPendingCount and nullable salary in preview rows. Unknown columns and duplicate canonical/alias combinations are rejected. Header spelling remains case-sensitive; full server validation and duplicates withinfile andDB remain enforced.
-- POST /api/imports/commit {csvText,previewHash,confirmed:true} -> {data: ImportResult},201. Server verifies unchanged hash, parses and revalidates all rows and DB uniqueness, then transaction inserts whole batch or none.
-- GET /api/insights InsightsQuery -> {data: Insights}; full filtered set before aggregation, never page-limited.
-- POST /api/fx/refresh -> {data: FxStatus}; authenticated same-origin HR retry. GET /api/cron/fx is separately authenticated with CRON_SECRET Bearer token.
+`EmployeeFilters` accepts `q`, `country`, `department`, `jobRole`, `employmentType`, `status` and `salaryStatus`. Supplied filters combine with AND. Omitting `status` selects active employees; `status=ALL` includes active and archived records.
 
-Employee.salary is string|null. A null salary identifies a salary-pending imported employee; status remains ACTIVE or ARCHIVED. Manual POST /api/employees still requires a positive salary string. POST /api/employees/:id/salary supports the first assignment and subsequent changes; SalaryHistory.previousSalary is null only when no earlier salary existed. Supplied salaries remain exact decimal strings. Exports serialize pending salaries as empty cells.
+`salaryStatus=PENDING` selects `salary=null`; `salaryStatus=RECORDED` selects a supplied salary. Omitting it includes both. The same filter set applies before pagination/aggregation to employee listing, export and insights. Unsupported API values return validation errors; the browser normalizes unsupported URL values to its inclusive default.
 
-Insights.salaryPendingCount counts employees without a salary within the full filtered population. Headcount includes them; summaries, groups, bands, tenure pay statistics and outlier cohorts exclude them. The pending count remains visible when USD conversion is unavailable. An immutable legacy FX snapshot without BRL remains valid historical evidence but cannot supply current USD reporting; a complete provider refresh is required.
+Employee listing defaults to page 1, page size 25, `name` ascending; page size is 1-100. Supported sort fields are `name`, `employeeCode`, `joiningDate`, `salary` and `updatedAt`, with a stable ID tie-break.
 
-Country is supported ISO code (AU, BR, CA, DE, FR, GB, IN, JP, SG, US); department/jobRole are trimmed bounded strings and may be created through employee form. Country and salary currency are independent. Currencies are USD, INR, EUR, GBP, JPY, CAD, AUD, SGD, BRL. Employment types are FULL_TIME, PART_TIME, CONTRACT, INTERN; no hourly pay. Joining date cannot be future. Supplied salary is positive, at most999999999999.99 and precision compatible (JPY0, others2). Unique code and normalized email. Archive preserves records; reject salary edit while archived.
+Insights add `currencyMode=NATIVE|USD` (default `NATIVE`) and `groupBy=country|department|jobRole` (default `country`). They operate on the full filtered population, never the current directory page.
+
+## Endpoints
+
+| Method and path | Request | Successful response and behavior |
+| --- | --- | --- |
+| `GET /api/options` | HR session | `{data: DirectoryOptions}`. |
+| `GET /api/employees` | `EmployeeQuery` in the query string | `EmployeePage` directly: `{data: Employee[], pagination:{page,pageSize,total,totalPages}}`. |
+| `POST /api/employees` | `EmployeeInput` | `{data: Employee}`, 201. Manual create requires salary. |
+| `GET /api/employees/:id` | HR session | `{data: Employee}`. |
+| `PATCH /api/employees/:id` | `EmployeeUpdate` | `{data: Employee}`. Salary/currency are not writable here. |
+| `DELETE /api/employees/:id` | `{version}` | `{data: Employee}` after setting status to `ARCHIVED`. This is an archive operation, not physical deletion. |
+| `POST /api/employees/:id/archive` | `{version,archived:boolean}` | `{data: Employee}` after archive (`true`) or restore (`false`). |
+| `POST /api/employees/:id/salary` | `SalaryChangeInput` | `{data: Employee}` after atomic salary/history change; stale version returns 409. |
+| `GET /api/employees/:id/history` | HR session | `{data: SalaryHistory[]}`, newest first. |
+| `GET /api/employees/export` | `EmployeeFilters` | Complete matching population as native-amount CSV with documented stable ordering and spreadsheet-formula protection. Pending salaries are empty cells. |
+| `GET /api/imports/template` | HR session | Canonical CSV header download. |
+| `POST /api/imports/preview` | `{csvText}` | `{data: ImportPreview}`. Parses/validates without writes. |
+| `POST /api/imports/commit` | `{csvText,previewHash,confirmed:true}` | `{data: ImportResult}`, 201. Rehashes, reparses and revalidates before one atomic insert. |
+| `GET /api/insights` | `InsightsQuery` | `{data: Insights}` over all filtered employees. |
+| `POST /api/fx/refresh` | Strict empty object `{}` | `{data: FxStatus}` after an authenticated same-origin provider refresh attempt. |
+| `GET /api/cron/fx` | Cron bearer secret | `{data: FxStatus}` after the protected scheduled refresh attempt. |
+
+## CSV import contract
+
+Decoded CSV is limited to 2 MiB and 10,000 data rows. The JSON request envelope is limited to 4 MiB plus 1 KiB. Preview returns at most 20 rows and 100 error objects while preserving the full `errorCount`.
+
+Every field except salary is required exactly once, in any order. Canonical headers use `EmployeeInput` names. Accepted aliases are `id -> employeeCode`, `fullName -> name`, `jobTitle -> jobRole` and `hireDate -> joiningDate`. Header spelling is case-sensitive. Unknown columns, missing required columns, duplicate canonical/alias combinations, incorrect row widths, duplicate codes/emails within the file or database, and invalid supplied amounts are rejected.
+
+Omitted or blank salary becomes null; it is never invented. A supplied salary uses the normal currency precision/range rules. Preview exposes nullable salaries, `salaryPendingCount`, a SHA-256 `previewHash`, validity/error totals and bounded preview rows. Commit requires the same text/hash plus `confirmed:true`; it verifies the unchanged hash and all current database constraints, then inserts the entire batch or none. Imports never overwrite existing employees or salaries.
+
+## Reporting and FX semantics
+
+`Insights.headcount` includes salary-pending employees, and `salaryPendingCount` reports them separately. Pay summaries, groups, bands, tenure pay statistics and outlier cohorts exclude pending salaries. The pending count remains visible when USD conversion is unavailable.
+
+Native reporting separates currencies. Approximate USD reporting uses a complete validated dated provider snapshot and never changes native salaries. Missing or over-age rates make converted reporting unavailable rather than applying a fallback. An immutable legacy snapshot without BRL remains historical evidence but cannot supply current USD reporting.
+
+Outliers compare country/currency/job-role/employment-type cohorts and return evaluated, insufficient-data or zero-IQR states with the cohort size and configured minimum. They are descriptive review signals, not automatic pay or employment decisions.
+
+## Authenticated request limits
+
+Expensive requests use independent PostgreSQL-backed fixed windows keyed by verified HR user and the database clock:
+
+| Scope | Limit |
+| --- | --- |
+| Import preview and commit combined | 6 requests per 60 seconds |
+| Insights | 30 requests per 60 seconds |
+| Employee CSV export | 6 requests per 60 seconds |
+
+A maximum-size import counts once at preview and once at commit. Rejected work stops before body parsing or expensive service execution where applicable and returns `429 {error:{code:"RATE_LIMITED",message:"Too many requests. Try again later."}}` with `Retry-After`. Denied requests neither extend the fixed window nor grow its counter indefinitely. These limits bound admitted request volume; they do not cap total in-flight concurrency or public account creation.

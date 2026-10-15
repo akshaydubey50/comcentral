@@ -1,57 +1,105 @@
 # ComCentral
 
-An HR workspace for managing annual base salaries for 10,000 employees across countries. Built independently with Next.js, TypeScript, Material UI, Node.js Route Handlers and PostgreSQL.
+ComCentral is an HR workspace for maintaining annual contractual base pay across countries. It is designed and measured for a 10,000-employee workload, and each CSV import accepts at most 10,000 rows. It provides employee records, versioned salary history, CSV migration, native-currency reporting, approximate dated USD reporting and review-oriented analytics. It is not a payroll, tax or automated pay-decision system.
 
-**Status:** Core HR features and public registration are implemented; audit improvements and delivery are in progress. Verification includes separate isolated-database, real-browser and frontend-fixture runs with different snapshot limits. Current results and unresolved checks are recorded in [validation](docs/validation.md).
-
-**Reviewing the project?** Start with the [reviewer guide](docs/reviewer-guide.md), [product specification](PROJECT_SPEC.md) and [AI contribution record](docs/ai-use.md). They connect requirements, decisions, corrections, tests and incremental commits.
+Release readiness and hosted observations are revision-specific. Read [validation.md](docs/validation.md) for the current evidence and open checks, or use the [reviewer guide](docs/reviewer-guide.md) for a short assessment path. A prepared walkthrough is not a completed demo video.
 
 ## Run locally
 
-Use Node.js 24 and npm. From Git Bash:
+Requirements:
 
-```bash
-cd /d/akshay/comcentral
+- Node.js `>=22.12.0` and npm. Historical local evidence used Node.js `24.18.1`.
+- PostgreSQL with a dedicated application database.
+
+From PowerShell:
+
+```powershell
 npm ci
-test -f .env || cp .env.example .env
+if (-not (Test-Path -LiteralPath '.env')) {
+  Copy-Item -LiteralPath '.env.example' -Destination '.env'
+}
 ```
 
-Populate .env privately: pooled DATABASE_URL, direct DIRECT_URL, BETTER_AUTH_URL=http://localhost:3000, unique random BETTER_AUTH_SECRET and CRON_SECRET, and your HR_EMAIL/HR_NAME/HR_PASSWORD. Generate each secret with `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"`. Use a dedicated demo database with synthetic data. Public registration is available at `/register` with immediate shared HR access. Passwords use 5-128 characters, as requested. The provisioning script below remains available for administrator setup.
+Edit `.env` privately. Configure a pooled `DATABASE_URL`, matching direct `DIRECT_URL`, `BETTER_AUTH_URL=http://localhost:3000`, and unique random `BETTER_AUTH_SECRET` and `CRON_SECRET` values. `BETTER_AUTH_SECRET` must contain at least 32 characters. Do not commit or display the file.
 
-```bash
+Generate the Prisma client, apply reviewed migrations and start development:
+
+```powershell
 npm run db:generate
 npm run db:migrate
-npm run db:provision
-COMCENTRAL_SEED_TARGET=demo COMCENTRAL_SEED_DATABASE_ACK=comcentral_demo npm run db:seed
 npm run dev
 ```
 
-For that seed command, DATABASE_URL must name `comcentral_demo`; change the acknowledgment to the exact name of your dedicated database ending `_demo`. Seeding refuses production mode, missing acknowledgment and unrelated populated targets. Count checks and insertion run under one transaction and table lock; subsequent normal demo imports remain allowed. A repeat seed refuses a changed population instead of deleting records. Open http://localhost:3000/welcome for the product introduction, or sign in at /login and create an account at /register. The existing / dashboard and employee deep links remain unchanged. Use synthetic data only.
+Open `http://localhost:3000/`. Anonymous visitors see the product introduction; signed-in visitors see the workspace. Create an HR account at `/register` with a 5-128-character password. Registration creates a session and grants immediate access to the approved shared workspace without invitation, administrator approval or email verification.
 
-Keep one `npm run dev` process running while developing. It uses port 3000 explicitly and Next.js Fast Refresh updates the browser when source files are saved. If port 3000 is occupied, startup fails instead of silently choosing another port; stop the existing server from its terminal with Ctrl+C, then run `npm run dev` again. `npm start` serves the last production build and does not reload source changes. Restart the development server after changing environment variables; Prisma schema changes also require client generation and the appropriate reviewed migration. For production verification, stop the local server, run `npm run build`, then `npm start` on the same port.
+Initial seeding and private HR provisioning are optional.
+
+### Optional synthetic demo seed
+
+The seed inserts exactly 10,000 deterministic synthetic employees. It is unnecessary for an empty local start. Before running it, verify that the resolved `DATABASE_URL` is the intended disposable target. The database name must end in `_demo` or `_test`, and the acknowledgement must match that name exactly; these checks do not prove that a database is safe to modify.
+
+Example for a dedicated database named `comcentral_demo`:
+
+```powershell
+$env:COMCENTRAL_SEED_TARGET = 'demo'
+$env:COMCENTRAL_SEED_DATABASE_ACK = 'comcentral_demo'
+try {
+  npm run db:seed
+} finally {
+  Remove-Item Env:COMCENTRAL_SEED_TARGET -ErrorAction SilentlyContinue
+  Remove-Item Env:COMCENTRAL_SEED_DATABASE_ACK -ErrorAction SilentlyContinue
+}
+```
+
+Seeding refuses production mode, an unacknowledged target, an incompatible database suffix and unrelated populated data. It never supplies production data.
+
+### Optional HR provisioning
+
+Public registration is the primary access path. For a one-time private account, set `HR_EMAIL`, `HR_NAME` and `HR_PASSWORD` privately in the current process and run `npm run db:provision`. The provisioning password must contain 12-128 characters. Provisioning creates credentials without a browser session and refuses to overwrite an existing email; remove the process variables afterward.
+
+## Development server
+
+`npm run dev` fixes the address at port 3000 and uses Next.js Fast Refresh. If the port is occupied, startup fails visibly instead of selecting another port. Restart after environment changes; Prisma schema changes also require reviewed client generation and migration.
+
+`npm start` serves the last production build and does not watch source files. Use it only after `npm run build` when checking the production artifact.
 
 ## Verification
 
-```bash
+The required local quality commands are:
+
+```powershell
 npm test
 npm run typecheck
 npm run lint
 npm run build
 ```
 
-Unit/component tests run offline. Database tests require an isolated TEST_DATABASE_URL and a separate empty SEED_TEST_DATABASE_URL (both ending `_test`, migrated with `npm run db:migrate`): `npm run test:integration`. Neither may target the application database. Browser journeys need a locally running application backed by a local `_test` database, E2E_EMAIL and E2E_PASSWORD; install Chromium with `npx playwright install chromium`, then run `npm run test:e2e`. Enable the real signup case with E2E_ALLOW_REGISTRATION=true. Never use real employee data in tests.
+Unit and component tests run offline. Database checks require two separate, migrated, disposable databases: `TEST_DATABASE_URL` for integration fixtures and an initially empty `SEED_TEST_DATABASE_URL` for seed concurrency/rollback checks. Both names must end in `_test`; neither may point to the application, preview or demo database.
 
-On a memory-constrained machine, run `npm test -- --maxWorkers=1 --no-file-parallelism` and avoid simultaneous builds/browser suites. The assertion timeouts remain unchanged. After building, `npm run test:production` checks bounded database readiness and stops its own temporary server; supply isolated `DATABASE_URL` and `BETTER_AUTH_SECRET` through the process environment. `npm run test:benchmark` checks benchmark target guards and statistics offline. Workload execution requires separately acknowledged local test databases; see [performance](docs/performance.md).
+```powershell
+npm run test:integration
+```
 
-## Product and engineering artifacts
+Browser journeys require a locally running application backed by a dedicated `_test` database plus `E2E_EMAIL` and `E2E_PASSWORD`. Install the configured Playwright Chromium once, then run:
 
-- [One-page requirements](docs/requirements.pdf) / [Markdown](docs/requirements.md)
-- [Detailed product specification](PROJECT_SPEC.md) and [reviewer guide](docs/reviewer-guide.md)
-- [Architecture and trade-offs](docs/architecture.md)
-- [API contract](docs/api-contract.md) and [analytics rules](docs/analytics-rules.md)
-- [Implementation plan](docs/implementation-plan.md) and [AI-use record](docs/ai-use.md)
-- [Full PayScope audit](docs/payscope-comparison.md), [original reference notes](docs/reference-review.md), and [audit checklist](tasks/todo.md)
-- [Deployment runbook](docs/deployment.md), [validation evidence](docs/validation.md), [demo script](docs/demo-script.md)
-- [Dependency review and version holds](docs/dependencies.md), [workload measurement](docs/performance.md)
+```powershell
+npx playwright install chromium
+npm run test:e2e
+```
 
-The requirements PDF is generated from its Markdown source with `python scripts/render-requirements.py` using the optional documentation tools ReportLab and PyMuPDF. The script checks that every paragraph is present, fits on one page, and stays inside the page bounds, then writes a preview to the operating system's temporary directory. These Python tools are not application runtime dependencies.
+Set `E2E_ALLOW_REGISTRATION=true` only when intentionally exercising real signup against the disposable browser-test database. The production smoke test also requires an isolated database and private `BETTER_AUTH_SECRET`; it starts and stops its own temporary server after a successful build:
+
+```powershell
+npm run test:production
+```
+
+Documentation links and checker behavior are verified independently:
+
+```powershell
+node scripts/check-docs.mjs
+node --test scripts/check-docs.test.mjs
+```
+
+## Documentation
+
+The curated documentation index is [docs/README.md](docs/README.md). Product acceptance is in [PROJECT_SPEC.md](PROJECT_SPEC.md), contributor rules are in [AGENTS.md](AGENTS.md), and current work is tracked only in [tasks/todo.md](tasks/todo.md).

@@ -1,124 +1,125 @@
 # Architecture and decisions
 
-## F10: Dashboard data readiness, 2026-10-15
+## F12: Unknown-route recovery, 2026-10-15
 
-The user approved the interview-focused dashboard improvements. The first slice explains coverage of the full filtered population and opens its matching employees. Recorded/pending counts come from Insights, never a directory page. Salary coverage remains visible when approximate USD reporting is unavailable. Outlier coverage distinguishes evaluated cohorts, groups below the minimum size and zero-IQR groups; flags remain a review aid.
+Use the existing root `src/app/not-found.tsx` boundary for unmatched top-level and nested URLs. Keep the missing address visible and Next.js's genuine 404/noindex behavior; do not redirect to a normal `/404` page or enable the experimental global-not-found mode for this single-root-layout app. The page is static presentation with scoped CSS, decorative local SVG and recovery links to existing routes. It performs no employee/session queries and does not change API errors or authentication gates. Reuse the public welcome palette and typography; validate status, link recovery, keyboard access and mobile overflow in the browser.
 
-The shared optional `salaryStatus=PENDING|RECORDED` filter selects current null/non-null salaries. Omission includes both. Apply it before directory pagination/counting, report calculation and CSV export. Both filter bars expose it; Clear removes it. Dashboard links preserve applied employee filters and archive status, reset the directory page and omit report-only controls. No schema migration is needed.
+This document records the current system boundaries and the decisions that are expensive or easy to misinterpret. Product acceptance belongs in [PROJECT_SPEC.md](../PROJECT_SPEC.md), execution evidence in [validation.md](validation.md), and current work status in [tasks/todo.md](../tasks/todo.md).
 
-Rejected alternatives: treating pending pay as zero, counting a directory page, rounding partial coverage to 100%, inventing a readiness score, or creating a second reporting API. Metric drill-down, a preview-only budget simulator and saved report snapshots remain later slices.
-
-## Directory pagination and filter state, 2026-10-15 (F02/B02)
-
-Keep URL query parameters as the applied filter/pagination/sort state and local state as the unsubmitted filter draft. Copy only actual filter fields into that draft so captured page/sort values cannot overwrite later navigation. Retain explicit Apply/Enter semantics; clearing removes every filter and resets page one while retaining page size and sorting. Individual dropdowns are not cascading, and valid combinations may have no matches.
-
-Add labelled First/Previous/Next/Last controls with disabled boundaries and retain numeric page links. If an old URL points beyond the current page count, explain that matching records still exist and offer first-page recovery preserving filters. Do not change the API response or silently remove criteria. Keep selected dropdown values as fallback options while choices are loading, failed or no longer listed; a blank select must not misrepresent an applied filter. Server validation remains authoritative.
-
-## Salary-pending CSV records, 2026-10-15 (B01/B02/B03/B04/F08)
-
-After inspection of the actual download, the user approved source id as employeeCode, missing salaries as pending records, France, Brazil/BRL and interns. The user explicitly retained the 10,000-row batch limit. This supersedes the mandatory-salary/source-id decision below. The source has 10,001 records; prepare an exact-value 10,000-row file and a separate one-row remainder rather than silently dropping data or raising the limit.
-
-Represent unsupplied pay as nullable employee.salary, with ACTIVE/ARCHIVED status unchanged. This keeps employment lifecycle independent from compensation completeness. Manual employee creation still requires salary; only imports allow omitted/blank pay. Reject nonblank invalid amounts. Employee and preview response salaries become string|null, Insights adds salaryPendingCount, and first-assignment history has previousSalary=null. Metadata edits never assign pay. HR supplies the first salary through the existing reason/version-protected atomic salary endpoint. Preserve immutable history, positive supplied amounts and stale/archive protections.
-
-All pending employees remain searchable and included in headcount. Exclude them before summaries, bands, tenure pay statistics and outlier cohorts; show the excluded count explicitly. Export null salaries as blank cells. Do not use zero, fabricated salaries or an inferred exchange rate. Reject arbitrary column mapping and bulk salary overwrites; preview hashes and confirmation revalidation remain unchanged.
-
-Apply a forward migration, without modifying the previously applied initial migration. Add enum values and supported countries, relax only the current/previous unsupplied salary fields, and retain positive new salary and audit triggers. Existing eight-currency immutable FX snapshots retain their original checksum semantics; current USD reporting requires complete BRL coverage and reports unavailable until a provider refresh supplies it. Native reporting remains available. Deployment rollback must retain a version that understands nullable salary; do not revert to salary-required code after importing drafts.
-
-## Earlier CSV header compatibility, 2026-10-15 (B01/F08; superseded as above)
-
-The original import rejected any header spelling or order that differed from the template. A source export used fullName/jobTitle/hireDate, an internal id, and no salary. Accept reordered required fields and the three unambiguous name/role/date aliases by resolving a Map of allowed names before building row objects. Reject unknown names, repeated canonical fields (including alias collisions), and missing fields with specific errors. Header spelling stays case-sensitive; arbitrary mapping is outside this slice.
-
-Keep employeeCode and salary mandatory. A source database id is not automatically an HR code, and absence of pay data is not a reason to invent a salary or weaken database constraints. HR must explicitly choose codes and supply annual major-unit amounts. The canonical template/export and JSON EmployeeInput contract stay unchanged; preview and commit already share the parser. Raw-content hashing, confirmation revalidation, decimal validation, limits and atomic transactions remain in place. No schema migration or endpoint change is required.
+## Current system
 
 ```mermaid
 flowchart LR
-  HR[HR browser] -->|HTTPS, session cookie| UI[Next.js React UI]
-  UI -->|Typed JSON contract| API[Node Route Handlers]
-  API --> AUTH[Better Auth sessions]
-  API --> DOMAIN[Validation and salary/report services]
-  AUTH --> DB[(PostgreSQL / Neon)]
+  HR[HR browser] -->|HTTPS, session cookie| UI[Next.js App Router and React]
+  UI -->|Typed JSON contract| API[Route Handlers]
+  API --> AUTH[Better Auth]
+  API --> DOMAIN[Services and deterministic domain logic]
+  AUTH --> DB[(PostgreSQL)]
   DOMAIN -->|Prisma transactions| DB
-  CRON[Daily Vercel cron] -->|Bearer secret| FX[FX refresh service]
-  FX -->|Currency codes only| ECB[Frankfurter / ECB rates]
+  CRON[Daily authenticated schedule] --> FX[FX refresh service]
+  FX -->|Currency codes only| PROVIDER[Frankfurter / ECB rates]
   FX -->|Immutable snapshots| DB
 ```
 
-A single deployable Next.js application keeps UI/API same-origin and avoids a second server host, CORS configuration and distributed transactions. PostgreSQL persists across serverless restarts; a local SQLite file on Vercel would not provide the required durable shared storage. Prisma 7 uses its PostgreSQL driver adapter and explicit migrations. Runtime connection pooling and direct migration URLs are separated.
+One Next.js deployment keeps the browser and API same-origin. Route Handlers enforce session, origin, content-type and body-size boundaries; services coordinate transactions; domain functions own deterministic validation, money, CSV, tenure, reporting and FX rules. PostgreSQL constraints and triggers complement application checks. Prisma uses pooled runtime connections and a separate direct migration connection.
 
-All HR users have the same organizational access. Better Auth owns credential hashing/session lifecycle; each business-data route checks a session server-side. The UI gate is convenience, not the security boundary. Mutation routes validate origin, content type and payload; error/log output excludes credentials and salary records.
+Browser pages compose feature components. TanStack Query owns server state, URL parameters own applied filters, sorting and pagination, and local component state owns unsubmitted drafts. The typed client and [shared contracts](../src/shared/contracts.ts) define the browser/API boundary. Monetary values cross that boundary as decimal strings; an imported employee with no supplied salary uses `null`, never zero.
 
-Registration decision, 2026-10-14: public account creation with immediate authenticated access replaces the provisioned-only requirement. A new user registers with name, work email, and password, then enters the existing shared HR workspace with the same employee and salary access as every other HR user. No invitation, administrator approval, email-verification gate, role selection, or separate organization is involved. The frontend and backend now implement this approved scope, including public signup and automatic session creation. Passwords use 5-128 characters following the user decision on the same date. The provisioning script remains available for setup. Isolated PostgreSQL and real browser signup/logout/login checks are recorded in [validation.md](validation.md).
+The employee row holds current annual contractual base pay and a version. Salary assignment or change checks that version and writes the new value and immutable before/after history in one transaction. Metadata updates also increment the version. Archive and restore change lifecycle status without deleting the employee or salary history.
 
-The employee table holds current annual gross base pay. A salary change checks an integer version and writes the new value plus immutable before/after history in one transaction. Metadata updates also increment version; a stale browser gets HTTP 409 and must reload. Archiving preserves evidence. Database uniqueness/amount/currency checks complement runtime validation.
+CSV import is create-only. Preview validates content and returns a hash; confirmation submits the reviewed content and hash, then parses, validates and checks uniqueness again before one serializable transaction. Export uses the same employee filters and stable ordering as the directory and protects formula-like cells. Exact import rules are in [csv-data-guide.md](csv-data-guide.md).
 
-Import is create-only. Preview is informative, with a hash linking confirmation to the inspected input. The commit parses and validates again, checks current uniqueness and inserts atomically. A unique constraint protects the race after preview. CSV exports escape formula-like strings; exports/report queries share filtering semantics with the directory.
+Reporting reads the full filtered population and uses deterministic Decimal calculations. Native currencies remain separate. Approximate USD results use one complete, persisted rate snapshot and never change authoritative salaries. Exact statistics, cohort and freshness rules are in [analytics-rules.md](analytics-rules.md).
 
-Reporting reads only required columns for the full filtered employee set, then deterministic Decimal functions compute statistics for this bounded 10,000-employee dataset. Directory requests are paginated in SQL with stable ordering. Native-currency groups prevent misleading totals. Start with a single bounded scan; measure before adopting materialized views or background queues.
+## Identity, registration and public routes
 
-FX is a separate deterministic conversion layer using persisted rate snapshots; it never changes authoritative salary. See analytics-rules.md for freshness, precision and missing-data decisions. Daily provider I/O is not a dependency of unit tests or ordinary native-currency reporting.
+**Decision, 2026-10-14:** public registration creates one HR account and an authenticated session with immediate access to the existing shared workspace. There is one access level and one organization in the approved assessment scope. Invitation, administrator approval, email verification, role selection and tenant creation do not gate access. This access model is unsuitable for confidential multi-company use until a separate membership and isolation design is approved.
 
-Remaining scaling considerations: connection concurrency in serverless functions, cold starts, import transaction duration and larger than 10,000 report sets need measurements. This assessment is not a payroll engine; taxes, payment execution and country employment-law decisions are outside scope.
+Registration accepts name, work email and a raw 5–128-character password. Name and email are trimmed, email is normalized to lowercase, and the password is preserved exactly. Better Auth owns password hashing, session issuance and revocation. Automatic sign-in is required because disabling it can obscure duplicate-account outcomes and would not satisfy immediate access. After signup, the browser confirms `/api/session` before entering the workspace. If account creation succeeds without a usable session, the UI offers sign-in recovery and does not repeat account creation automatically. Protected APIs always enforce the session independently of page routing.
 
-## Audit adoption decision, 2026-10-14
+**Decision, 2026-10-15:** `/` is session-aware. A confirmed anonymous visitor sees the product introduction; an authenticated visitor sees the workspace overview. A failed session check keeps its error/retry state rather than treating the visitor as anonymous. `/welcome` is always public, while anonymous protected deep links redirect to `/login`.
 
-Retain the single Next.js deployment and Better Auth sessions. PayScope's Express/Turbo separation is useful for independently deployed services, but ComCentral currently benefits from a same-origin browser/API and fewer operational boundaries. Adding a second server would not fix our identified UI, observability or measurement gaps.
+The public link contract is stable:
 
-Adopt mobile employee cards, accessible reporting visuals, correlated diagnostics and concrete production-start/workload verification in bounded tasks. Preserve our archive/history, version checks, atomic imports and dated FX semantics. Optimize exports/analytics only after a reproducible baseline identifies a resource or latency need; retain exact-data acceptance fixtures during optimization.
+| Control | Destination |
+|---|---|
+| Skip to content | `#home-content`, focusing the main landmark |
+| ComCentral identity | `/` |
+| Features and Explore the workspace | `#features` |
+| How it works | `#how-it-works` |
+| Employee directory, Salary history and Pay insights | `#directory`, `#salary-history`, `#reporting` |
+| Create account | `/register` |
+| Sign in or Open your workspace | `/login`; an existing session returns to `/` |
 
-Maintain the one-page brief for scope, PROJECT_SPEC.md for detailed acceptance, the task checklist for progress and validation.md for current execution. CLAUDE.md links to AGENTS.md instead of duplicating it. This avoids the conflicting completion checklists and stale agent-file assumptions observed in the reference repository. AI-use entries record actual corrections and evidence, not a claim that generated code is inherently reliable.
+One shared welcome component serves anonymous `/` and `/welcome`. It describes employee records, salary history, import and reporting without fabricated metrics, customer claims or payroll/AI-decision features. Native anchor-backed controls preserve browser navigation and the Server Component boundary. Semantic landmarks, a keyboard skip link, visible focus, reduced-motion behavior and 44px actions apply across phone and desktop layouts. Moving the overview to `/dashboard`, copying reference assets, or adding another animation/UI dependency were rejected because they would add routing or presentation complexity without improving the approved workflow.
 
-## Request diagnostics decision, 2026-10-15 (B06)
+## Employee, import and reporting decisions
 
-Use a small allowlisted JSON logger at the shared Route Handler boundary. It answers which route failed, its status/duration, and how an authentication warning relates to the same request. AsyncLocalStorage propagates the correlation ID through overlapping authentication calls. Unknown paths are reduced to a fixed label and employee IDs/query strings are never logged. Response header IDs are diagnostic, not trusted identity.
+### Pending salary and CSV compatibility — 2026-10-15 (B01–B04, F08)
 
-Do not serialize exceptions or whole request/response objects and then attempt to redact arbitrary nested fields. Allowlisting prevents new payload fields from silently entering logs. Preserve the response and cookies even when stdout/stderr fails. A separate telemetry SDK or external service is deferred until deployment monitoring requires one; stdout capture provides the current single-application baseline, with retention/alerts tracked in D03.
+An omitted or blank import salary creates an employee with `salary=null`. Pending employees remain searchable and count toward headcount, but are excluded from pay summaries, bands, tenure pay statistics and outlier cohorts. Manual employee creation still requires salary. The first later salary assignment records `previousSalary=null`; metadata edits never assign pay.
 
-## Browser rendering policy, 2026-10-15 (S02)
+CSV columns may be reordered. The accepted aliases are `id` → `employeeCode`, `fullName` → `name`, `jobTitle` → `jobRole`, and `hireDate` → `joiningDate`. Unknown fields, missing required fields and canonical/alias collisions are rejected. Import never overwrites salary. The 10,000-row and 2 MiB limits remain fixed; larger source exports must be split at CSV record boundaries without dropping data.
 
-Follow the installed Next.js 16 CSP guide: generate a fresh cryptographic nonce in `src/proxy.ts`, pass the policy into rendering, and pass the same nonce to MUI's Emotion cache. Reading request headers makes document rendering dynamic; static document caching is deliberately traded for per-response script/style authorization. API responses retain their separate no-store and content-type protections. Production permits neither arbitrary inline scripts nor eval. The narrow `style-src-attr` allowance supports MUI positioning/transitions and React style properties; it does not permit unnonced style elements or scripts. HTTPS documents also upgrade insecure subresources; local HTTP verification remains usable.
+The nullable-salary schema change is forward-only: keep supplied amounts positive, keep salary history immutable, export pending salary as a blank cell, and deploy only application versions that understand pending records after importing them. Rolling application code back to a salary-required model would make persisted pending employees unsafe to read or update.
 
-Reject a blanket `unsafe-inline` script policy and a hardcoded/reused nonce. The browser test injects an unnonced script into the HTML parser and proves it is blocked while the application's matching scripts work. DevTools-created scripts are not an appropriate attack fixture because strict-dynamic trust propagates to non-parser-inserted scripts ([CSP specification](https://www.w3.org/TR/CSP/)). Built local browser evidence is recorded separately from pending preview HTTPS/cookie verification.
+This superseded an earlier decision that kept source IDs and missing salaries outside the importer. Its rationale is retained in the [documentation history](archive/2026-10-15-documentation-history.md); it is not current implementation guidance.
 
-## Import presentation boundaries, 2026-10-15 (F08)
+### Dashboard readiness and salary filtering — 2026-10-15 (F10)
 
-Keep mutation submission in the workflow component, file-reading/preview invalidation in a focused hook, and exact result rendering in small table components. A successful preview stores an immutable text/hash pair; confirmation uses that reviewed pair. Replacing a file invalidates it immediately and a sequence identifier prevents an older file read from replacing a newer selection. Avoid a global store or additional state library: this state belongs to one import screen and the backend revalidates every commit.
+The approved F10 contract explains the complete filtered population:
 
-## Explicit search and durable admission, 2026-10-15 (F07, S03)
+- salary coverage uses full-population recorded and pending counts, never one directory page;
+- salary coverage remains visible when USD conversion is unavailable and never rounds partial coverage to 100%;
+- outlier coverage distinguishes evaluated cohorts, groups below the minimum size and zero-IQR groups;
+- currency reporting shows actual FX availability, source and freshness without weakening native reporting;
+- matching, recorded and pending links preserve employee filters and archive status, reset directory pagination and omit report-only controls.
 
-Retain explicit Apply filters/Enter submission rather than introduce a debounce. This lets HR compose several filters before one request and keeps history/bookmarked URLs predictable. Typing changes only a draft; submission and Clear reset pagination. URL changes remount the draft, including Back/Forward. Query keys isolate responses and prior-query placeholder rows are removed so the screen does not pair a new filter URL with old records.
+The optional `salaryStatus=PENDING|RECORDED` filter applies before directory pagination/counting, report calculation and export; omission includes both states and Clear removes it. The approved layout direction does not by itself prove production integration or verification. Current implementation and check results remain in the task and validation ledgers. A bulk salary simulator and saved report snapshots require separate approval; neither may mutate salaries through this reporting slice.
 
-Use atomic PostgreSQL admission keyed by authenticated user and route family, rather than per-process counters that reset across serverless instances. Namespaced keys reuse the existing durable rate-limit table without a migration or new service. The database clock avoids instance clock drift; a fixed window and capped counter keep rejected traffic from extending the lockout or growing counts. Existing Better Auth pruning retains rows for its longest configured 15-minute window, longer than these 60-second windows. This is bounded request volume, not an in-flight semaphore. Keep the single-workspace/public signup access decision explicit; stronger organization-level admission belongs to a separately approved membership model.
+All dashboard values come from authenticated application responses; production components do not embed demonstration metrics. Treating pending pay as zero, deriving coverage from a directory page, inventing a readiness score and creating a second reporting API were rejected.
 
-## Database target identity, 2026-10-15 (B05, P01, V02)
+### Search, pagination and table presentation — 2026-10-15 (F02, F06, F07)
 
-Safety checks must describe the database the installed driver will actually open. Review of `pg-connection-string` found that query parameters can replace the authority host/port or supply a nested connection string. Test, seed and benchmark preflights now reject those driver-recognized overrides, including URL-encoded and duplicate keys, before connecting (`a217afe`). Integration and benchmark comparisons also decode authority hostnames consistently with the driver. TLS and schema options remain supported; credentials never enter target diagnostics.
+Applied filter, sort and page state lives in the URL; unsubmitted filter values remain local drafts. Apply or Enter commits filters and resets page one. Clear removes filters while retaining page size and sorting. Back/Forward restores applied state. Query keys isolate results, and selected filter values remain visible while choices load or fail.
 
-Do not replace this with a hostname-only URL check or parse a supplied URL through a driver helper that may load certificate files during validation. Naming and acknowledgment checks remain additional operator safeguards; they do not prove that an arbitrary database is disposable.
+The directory uses stable server pagination with 25 rows by default. Desktop shows a bounded, keyboard-focusable table with sticky headers and pagination outside the scroll region; phones use readable cards and compact First/Previous/Next/Last controls. View, Edit and Delete actions have readable labels and employee-specific accessible names. Delete archives and preserves history. Virtualizing the 25-row page, silently dropping filters for stale pages, debouncing the explicit search flow and introducing a second data grid were rejected.
 
-## Public home and workspace entry, 2026-10-15 (F09)
+### Import UI state — 2026-10-15 (F08)
 
-The user requested a homepage at the normal entry URL. AppShell reuses its existing resolved session: anonymous `/` renders shared public content and authenticated `/` retains the overview. Loading and failed checks retain loading/retry; protected deep links still redirect anonymous visitors to login. `/welcome` remains independently public and server-rendered. This avoids moving the dashboard, rewriting bookmarks or adding a second session source. The presentation uses native anchor-backed MUI controls so it works across the Server/Client Component boundary. Layout, content and rejected presentation alternatives are recorded in [homepage-design.md](homepage-design.md). API authorization remains the independent data boundary.
+File reading and preview state belong to the import workflow, not a global store. Selecting another file immediately invalidates the prior preview, and a sequence guard prevents an older read from replacing the newer file. Confirmation uses the immutable text/hash pair that was reviewed; the server still revalidates every commit.
 
-## Measured report/export scope, 2026-10-15 (P01-P03)
+## Security and operational decisions
 
-The 10,000-row built-app baseline at `2a7e3d4` completed all measured reads and the large import without errors. Warm p95 report/export times were about 0.53/0.51 seconds, concurrency-two p95 about 1.08/0.92 seconds, and observed whole-process RSS peaked at 459.15 MiB. Retain the current implementation for this workload rather than introducing SQL percentile/rounding differences or streaming consistency complexity without measured need. The initial budgets and limitations are in [performance.md](performance.md); larger accumulated data, hosted memory pressure or greater concurrency can activate P02/P03. This decision does not establish a hosting SLA or bound total stored employees.
+### Correlated request diagnostics — 2026-10-15 (B06)
 
-## Public welcome presentation and development styles, 2026-10-15 (F09/S02)
+The shared Route Handler boundary emits small allowlisted JSON events with route label, status, duration and correlation ID. AsyncLocalStorage carries the ID through overlapping authentication calls. Unknown paths use a fixed label; query strings, employee IDs, credentials and employee/salary payloads are excluded. Exceptions and full request/response objects are never serialized. Logging failure must not alter the response or cookies.
 
-Keep one shared welcome component for anonymous `/` and public `/welcome`. A connected-record illustration and numbered editorial feature rows explain employee records, salary history and reports without fabricated metrics. Scoped CSS expresses the original visual direction; native links and Material UI controls retain browser navigation, accessibility and the Server Component boundary. Keep all header links visible on mobile. Reject copying reference-repository assets or adding another animation/UI dependency for this presentation. The complete link contract is in [homepage-design.md](homepage-design.md).
+### Browser rendering policy — 2026-10-15 (S02)
 
-Browser inspection traced development-only style policy violations to Next DevTools' injected style elements, while MUI's Emotion styles already had their nonce. Follow the installed Next.js [development CSP example](https://nextjs.org/docs/app/guides/content-security-policy#development-vs-production-considerations): allow inline style elements only when `NODE_ENV` is exactly `development`. Production retains nonce-only style elements; scripts retain nonce/strict-dynamic in both modes, with development-only eval. Do not disable CSP assertions, relax production, or suppress the errors in browser tests. Regression assertions distinguish the two environments explicitly.
+Each document receives a new cryptographic CSP nonce before Next.js renders it, and MUI Emotion receives the same nonce. Reading request headers makes document rendering dynamic so the nonce cannot be cached. Production allows neither arbitrary inline scripts nor `eval`; development permits only the narrow exceptions required by installed Next.js development tooling. A hardcoded nonce or blanket production `unsafe-inline` policy was rejected.
 
-## Fixed local development address, 2026-10-15 (F06/V02)
+### Durable admission control — 2026-10-15 (S03)
 
-Use the installed Next.js development server with an explicit `--port 3000`. Its Fast Refresh mechanism recompiles saved source; `next start` serves only an existing production build. The explicit port disables Next's automatic fallback to another port and makes an occupied port a visible startup error. Keep one local development process and the matching localhost authentication origin. Reject a custom file watcher, automatic production rebuild loop or repeated alternate ports: Next already owns development reloads. Environment and Prisma schema changes still require the relevant restart/generation/migration; the address stays the same.
+Expensive imports, exports and reports use atomic PostgreSQL admission keyed by authenticated user and route family. The database clock avoids instance drift; fixed windows and capped counters prevent rejected traffic from extending a lockout or growing without bound. Per-process counters were rejected because serverless instances do not share them. This is request-volume control, not an in-flight semaphore.
 
-## Employee pagination presentation and action icons, 2026-10-15 (F02/F06)
+### Database target and synthetic seed safety — 2026-10-15 (B05, P01, V02)
 
-The user identified the pagination layout as the problem and requested action icons. Keep pagination inside the results card: show the returned record range and a labelled page-size selector; use controlled Material UI numbered pages on desktop and compact First/Previous/Next/Last icon controls on phones. Keep the API's one-based page convention, server totals, existing filter/sort navigation and first-page reset when page size changes. Retain valid bookmarked sizes alongside the common 10/25/50/100 options. Do not invent ranges for empty results. This supersedes the four large text-button presentation described above. The pattern follows [Material UI pagination](https://v7.mui.com/material-ui/react-pagination/).
+Test, seed and benchmark guards identify the database the installed PostgreSQL driver will actually open, including driver-recognized query overrides and encoded or duplicate parameters. Naming rules and acknowledgements are additional safeguards, not proof that a target is disposable. Credentials never enter target diagnostics.
 
-Use Eye/Pencil/Trash icons on existing View/Edit/Delete controls with readable labels and employee-specific accessible names. Delete still archives and preserves history; its confirmation remains on the detail page. Reject unlabeled icon-only data actions and a new deletion behavior for a visual request. During phone inspection the Next development indicator overlapped the page counter; use the documented `devIndicators: false` option, which hides that indicator while Next continues to report compilation/runtime errors.
+Synthetic seeding is allowed only when all of these conditions hold before connecting:
 
-## Employee table scrolling, 2026-10-15 (F02/F06)
+- `COMCENTRAL_SEED_TARGET` is explicitly `demo` or `test`;
+- the resolved database name ends in the matching `_demo` or `_test` suffix;
+- `COMCENTRAL_SEED_DATABASE_ACK` exactly matches that database name; and
+- `NODE_ENV` is not `production`.
 
-The user explicitly confirmed the Employee directory table should keep 25 records per page with scrolling. Preserve the existing server pagination and default page size; bound the desktop table to the smaller of 65vh and 40rem. Keep pagination outside the scrolling area, use sticky column headers, and expose a named, keyboard-focusable region with a visible focus outline. Scroll padding keeps row controls clear of the fixed header and action column. Mobile retains the existing readable cards. Do not truncate fetched records or replace the native table with a virtualized grid for this request. This follows the installed MUI 7 sticky-header API and [scroll-container keyboard accessibility guidance](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/overflow#accessibility).
+The seed locks the employee and seed-marker tables, checks the target and inserts exactly 10,000 deterministic employees inside one serializable transaction. A failed batch rolls back everything. Concurrent first runs serialize; an unchanged repeat reports completion; changed or unrelated data causes refusal rather than deletion. Seed integration tests use a dedicated, migrated, initially empty `SEED_TEST_DATABASE_URL`, separate from application and ordinary integration databases.
+
+## Performance and delivery boundaries
+
+**Decision, 2026-10-15 (P01–P03):** retain the bounded in-process report calculation and complete export for the measured 10,000-row workload. Moving percentiles into SQL or adding streaming consistency machinery could change established rounding/order semantics and is justified only by a reproduced resource or latency problem. Historical measurements and their snapshot limits belong in [validation.md](validation.md), not in this decision record; this decision establishes no hosting SLA or bound on total stored employees.
+
+Local development uses Next.js on explicit port 3000 so an occupied port fails visibly and authentication keeps one known origin. Fast Refresh owns source reloads; environment changes require a restart, and Prisma schema changes require reviewed generation/migration steps. A custom watcher, automatic production rebuild loop and alternate-port fallback were rejected.
+
+The repository keeps one-page scope in [requirements.md](requirements.md), detailed acceptance in [PROJECT_SPEC.md](../PROJECT_SPEC.md), current work in [tasks/todo.md](../tasks/todo.md), execution evidence in [validation.md](validation.md), and significant decisions here. Instruction files do not duplicate changing completion checklists. Deployment configuration, migrations, secrets, scheduling and rollback follow the [deployment runbook](deployment.md).

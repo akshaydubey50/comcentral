@@ -33,7 +33,7 @@ def footer(canvas, document):
     canvas.setFont("Helvetica", 7.3)
     canvas.setFillColor(MUTED)
     canvas.drawString(38, 24, "ComCentral | Product requirements")
-    canvas.drawRightString(A4[0] - 38, 24, "14 October 2026")
+    canvas.drawRightString(A4[0] - 38, 24, source_updated)
     canvas.restoreState()
 
 
@@ -46,6 +46,10 @@ styles = {
 }
 
 source = SOURCE.read_text(encoding="utf-8")
+updated_match = re.search(r"Updated: (\d{1,2} [A-Za-z]+ \d{4})", source)
+if updated_match is None:
+    raise ValueError("Requirements must include an explicit Updated date")
+source_updated = updated_match.group(1)
 story = []
 for line in source.splitlines():
     if not line.strip():

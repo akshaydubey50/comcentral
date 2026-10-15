@@ -26,7 +26,7 @@ Dashboard follow-up F10, approved 2026-10-15: explain full-population recorded/p
 | FR-10 | Use the app on phones and keyboards | Mobile employee cards, readable charts with exact-data alternatives, labelled inputs, focus management, 44px touch targets and usable loading/empty/error/recovery states | F02-F06 |
 | FR-11 | Understand the product before signing in | A concise public introduction with working login/register links; preserve existing dashboard/deep-link routes and accurately describe implemented capabilities | F09 |
 
-Search refinement and the public introduction are presentation improvements approved in the audit implementation request. Signed-out visitors see the product introduction at `/`; signed-in visitors retain the dashboard at `/`. The permanent `/welcome` route also serves the introduction. Other protected deep links retain their login gate. Explain employee records, salary history, CSV import, reporting, the three-step workflow and immediate shared HR access; keep all existing links and filter semantics. The [homepage design](docs/homepage-design.md) records the layout and content decisions.
+Search refinement and the public introduction are presentation improvements approved in the audit implementation request. Signed-out visitors see the product introduction at `/`; signed-in visitors retain the dashboard at `/`. The permanent `/welcome` route also serves the introduction. Other protected deep links retain their login gate. Explain employee records, salary history, CSV import, reporting, the three-step workflow and immediate shared HR access; keep all existing links and filter semantics. The [architecture record](docs/architecture.md) records the layout, route and content decisions.
 
 ## Engineering requirements
 
@@ -53,11 +53,11 @@ Keep the UI/API same-origin and independently test the important boundaries. A r
 
 ## Scope decisions retained
 
-The current release excludes additional roles/tenants, approval chains, scheduled/backdated pay changes, recovery/MFA administration, hourly pay, payroll/tax execution, arbitrary Excel parsing and bulk salary overwrites. U01-U03 are decision tasks for a later product, not authorization to silently redesign current account access. The audit's reference features are compared in [payscope-comparison.md](docs/payscope-comparison.md).
+The current release excludes additional roles/tenants, approval chains, scheduled/backdated pay changes, recovery/MFA administration, hourly pay, payroll/tax execution, arbitrary Excel parsing and bulk salary overwrites. U01-U03 are decision tasks for a later product, not authorization to silently redesign current account access. The original reference comparison is retained in the [dated documentation history](docs/archive/2026-10-15-documentation-history.md#source-docs-payscope-comparison-md); current decisions belong in architecture.
 
 ## Delivery and evidence
 
-Use [implementation-plan.md](docs/implementation-plan.md) for ordering and [tasks/todo.md](tasks/todo.md) for ownership/acceptance. Implement a bounded slice, run its meaningful checks, review the diff, record the result and create a descriptive incremental commit. Run the required integrated checks before a release candidate. Generated documentation does not substitute for successful execution.
+Use [tasks/todo.md](tasks/todo.md) for ordering, ownership and acceptance; the [documentation index](docs/README.md) identifies the canonical guide for each topic. Implement a bounded slice, run its meaningful checks, review the diff, record the result and create a descriptive incremental commit. Run the required integrated checks before a release candidate. Generated documentation does not substitute for successful execution.
 
 Keep one current evidence ledger; historical results retain their date/snapshot limitations. Record the deployed URL/commit, current limitations and the demo video. Follow [deployment.md](docs/deployment.md) for database separation, migrations, secrets and rollback.
 
