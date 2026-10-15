@@ -1,4 +1,9 @@
-import { route, mutationBody } from '@/server/http';
+import { assertMutationRequest, readJson, requireHrSession, route } from '@/server/http';
+import {
+  consumeAuthenticatedRequestLimit,
+  IMPORT_REQUEST_LIMIT,
+  rateLimitedResponse,
+} from '@/server/rate-limit';
 import { commitImport } from '@/server/services/imports';
 import {
   importCommitBodySchema,
@@ -6,7 +11,11 @@ import {
 } from '@/shared/validation';
 
 export const POST = route(async (request: Request) => {
-  const { body } = await mutationBody(request, MAX_IMPORT_REQUEST_BYTES);
+  assertMutationRequest(request);
+  const actor = await requireHrSession(request);
+  const admission = await consumeAuthenticatedRequestLimit(actor.id, IMPORT_REQUEST_LIMIT);
+  if (!admission.allowed) return rateLimitedResponse(admission);
+  const body = await readJson(request, MAX_IMPORT_REQUEST_BYTES);
   const input = importCommitBodySchema.parse(body);
   return Response.json(
     { data: await commitImport(input.csvText, input.previewHash) },
